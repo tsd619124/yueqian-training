@@ -1781,6 +1781,7 @@ function adoptRemote(payload){
   if(!S.lc||!S.lc.id)S.lc=lc;
   S.pushedRev=S.rev||0;S.pushedAt=new Date().toLocaleString('zh-CN');
   persist();hideConflict();renderAll();renderSyncCard();
+  if(S.name){var ob=$('#onboard');if(ob)ob.classList.add('hidden')}
   toast('已从云端恢复进度','i-check','green');
  }catch(e){toast('云端数据解析失败','i-msg')}
 }
