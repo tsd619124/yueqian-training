@@ -1,0 +1,14 @@
+{
+  "name": "跃迁计划 · AI 售前训练营",
+  "short_name": "跃迁计划",
+  "description": "帆软销售 → 上海 AI 售前的 12 周训练与学习系统",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f7",
+  "theme_color": "#0071e3",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,1859 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>跃迁计划 · 帆软销售 → 上海 AI 售前训练营</title>
+<meta name="description" content="90 天跳槽冲刺:AI 通识、行业格局、售前硬技能、面试叙事与求职实战,一条轨道飞向 Offer。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230071E3'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='PingFang SC,sans-serif' font-weight='600'%3E跃%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="跃迁计划">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#f5f5f7; --surface:#ffffff; --surface-2:#e8e8ed; --ink:#1d1d1f; --muted:#6e6e73;
+  --line:rgba(0,0,0,0.07); --line-strong:rgba(0,0,0,0.14);
+  --brand:#0071e3; --brand-2:#0077ed; --brand-soft:rgba(0,113,227,0.10);
+  --orange:#c93400; --orange-soft:rgba(255,149,0,0.13);
+  --green:#248a3d; --green-soft:rgba(52,199,89,0.14);
+  --red:#d70015; --red-soft:rgba(255,59,48,0.12);
+  --amber:#b25000; --amber-soft:rgba(255,159,10,0.14);
+  --shadow:0 8px 30px rgba(0,0,0,0.12); --shadow-sm:0 1px 3px rgba(0,0,0,0.05);
+  --r:20px; --r-sm:12px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#1c1c1e; --surface-2:#2c2c2e; --ink:#f5f5f7; --muted:#98989d;
+  --line:rgba(255,255,255,0.10); --line-strong:rgba(255,255,255,0.20);
+  --brand:#2997ff; --brand-2:#409cff; --brand-soft:rgba(41,151,255,0.16);
+  --orange:#ff9f0a; --orange-soft:rgba(255,159,10,0.16);
+  --green:#30d158; --green-soft:rgba(48,209,88,0.16);
+  --red:#ff453a; --red-soft:rgba(255,69,58,0.16);
+  --amber:#ffd60a; --amber-soft:rgba(255,214,10,0.15);
+  --shadow:0 10px 34px rgba(0,0,0,0.55); --shadow-sm:0 1px 3px rgba(0,0,0,0.40);
+}
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased;letter-spacing:0.01em}
+::selection{background:var(--brand-soft)}
+h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-0.02em}
+p{margin:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono);letter-spacing:0}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.hidden{display:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}}
+/* ---------- shell ---------- */
+.app{display:flex;min-height:100vh}
+.sidebar{width:236px;flex:none;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px;padding:20px 14px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:11px;padding:4px 8px 18px}
+.logo-mark{width:38px;height:38px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:600;font-size:17px}
+.logo b{display:block;font-size:15.5px;letter-spacing:0.02em}
+.logo span{display:block;font-size:10px;color:var(--muted);letter-spacing:1.4px;font-family:var(--mono)}
+.nav-btn{display:flex;align-items:center;gap:11px;width:100%;padding:8px 12px;border-radius:10px;color:var(--muted);font-weight:500;font-size:14px;text-align:left;transition:background .15s,color .15s}
+.nav-btn:hover{background:var(--surface-2);color:var(--ink)}
+.nav-btn.on{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.side-note{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:11.5px;color:var(--muted);line-height:1.55}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:12px 28px;background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.topbar h1{font-size:16.5px;font-weight:600}
+.topbar .spacer{flex:1}
+.streak-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink);font-weight:600;font-size:13px}
+.streak-chip .ic{color:var(--orange);width:15px;height:15px}
+.icon-btn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s}
+.icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+.content{width:100%;max-width:1040px;margin:0 auto;padding:28px 32px 110px}
+.view{animation:vin .3s ease}
+@keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tabbar{display:none}
+/* ---------- components ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.card.lift{transition:transform .2s ease,box-shadow .2s ease}
+.card.lift:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+:root[data-theme="dark"] .card.lift:hover{box-shadow:0 6px 18px rgba(0,0,0,0.5)}
+.pad{padding:20px 22px}
+.eyebrow{font-size:12px;font-weight:500;letter-spacing:0.06em;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:980px;font-weight:500;font-size:14px;background:var(--surface-2);color:var(--ink);border:1px solid transparent;transition:background .18s,color .18s,transform .12s ease;user-select:none}
+.btn:hover{background:color-mix(in srgb,var(--surface-2) 82%,var(--muted))}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-2)}
+.btn.ghost{background:transparent;color:var(--brand)}
+.btn.ghost:hover{background:var(--brand-soft)}
+.btn.danger{color:var(--red)}
+.btn.sm{padding:6px 14px;font-size:13px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:500;background:var(--surface-2);color:var(--muted);border:1px solid transparent}
+.tag.brand{background:var(--brand-soft);color:var(--brand)}
+.tag.orange{background:var(--orange-soft);color:var(--orange)}
+.tag.green{background:var(--green-soft);color:var(--green)}
+.tag.amber{background:var(--amber-soft);color:var(--amber)}
+.field{width:100%;padding:10px 13px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);font-size:14px}
+.field:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-soft)}
+select.field{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
+.form-check{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;border-radius:10px;cursor:pointer;transition:background .12s}
+.form-check:hover{background:var(--surface-2)}
+.form-check input{width:17px;height:17px;margin:2px 0 0;accent-color:var(--brand);flex:none}
+.form-check input:checked + span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-strong)}
+.hr{border:0;border-top:1px solid var(--line);margin:18px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:2px;gap:2px}
+.seg button{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+/* ---------- hero ---------- */
+.hero{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
+.hero-top{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.hero h2{font-size:27px;font-weight:700;letter-spacing:-0.03em}
+.hero h2 em{font-style:normal;color:var(--brand)}
+.runway{padding:22px 24px 12px}
+.runway svg{width:100%;height:auto;display:block}
+.rw-phase{font-size:10px;letter-spacing:0.12em;fill:var(--muted);font-weight:500}
+.rw-phase.done{fill:var(--brand);font-weight:600}
+.rw-flag{font-size:11px;letter-spacing:0.18em;fill:var(--brand);font-weight:600}
+.rw-dots{display:none;gap:6px;flex-wrap:wrap;padding:2px 0 10px}
+.rw-dots .tag{font-size:10.5px}
+.coach{display:flex;gap:12px;align-items:flex-start}
+.coach-ic{width:34px;height:34px;flex:none;border-radius:9px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center}
+.coach-card{flex:1;min-width:0;border-left:2px solid var(--brand);padding-left:14px}
+.coach-card .who{font-size:12px;font-weight:600;color:var(--brand);letter-spacing:0.04em;margin-bottom:2px}
+.coach-card p{font-size:15px;line-height:1.6}
+.coach-card p.fadein{animation:vin .45s ease}
+.app-ic{width:44px;height:44px;border-radius:11px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:600;font-size:18px}
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{padding:18px 20px}
+.stat .lbl{font-size:12px;color:var(--muted);font-weight:500}
+.stat .val{font-size:30px;font-weight:600;letter-spacing:-0.02em;margin-top:2px}
+.stat .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+.stat .val .unit{font-size:14px;color:var(--muted);font-weight:500;margin-left:2px}
+/* ---------- heat / bars ---------- */
+.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:5px;max-width:520px}
+.heat i{aspect-ratio:1;border-radius:5px;background:var(--surface-2)}
+.heat i.on{background:var(--brand)}
+.heat i.today{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--brand)}
+.bar-row{display:flex;align-items:center;gap:12px}
+.bar-row .bl{flex:0 0 128px;font-size:12.5px;font-weight:500}
+.bar-row .track{flex:1;height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar-row .fill{height:100%;border-radius:99px;background:var(--brand);transition:width .5s ease}
+.bar-row .pc{flex:0 0 42px;text-align:right;font-size:12px;color:var(--muted)}
+/* ---------- skills ---------- */
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:9px}
+.chip-skill{display:flex;align-items:center;gap:6px;padding:8px 9px 8px 13px;border-radius:13px;border:1px solid var(--line);background:var(--surface);transition:transform .12s,border-color .15s,background .15s}
+.chip-skill:hover{transform:translateY(-1px);border-color:var(--line-strong)}
+.sk-main{flex:1;display:flex;flex-direction:column;gap:2px;text-align:left;font:inherit;min-width:0;padding:3px 0}
+.sk-main:active{transform:scale(.97)}
+.sk-learn{width:24px;height:24px}
+.chip-skill .nm{font-size:13px;font-weight:500;line-height:1.4}
+.chip-skill .lv{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em}
+.chip-skill .lv::before{content:"";width:6px;height:6px;border-radius:99px;background:var(--line-strong)}
+.chip-skill.lv1{background:var(--surface-2);border-color:transparent}
+.chip-skill.lv1 .lv::before{background:var(--muted)}
+.chip-skill.lv2{background:var(--brand-soft);border-color:transparent}
+.chip-skill.lv2 .lv::before{background:var(--brand)}
+.chip-skill.lv3{background:var(--green-soft);border-color:transparent}
+.chip-skill.lv3 .lv::before{background:var(--green)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+.chip-skill.pop{animation:pop .22s ease}
+/* ---------- weeks / details ---------- */
+details.wk{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+details.wk + details.wk{margin-top:9px}
+details.wk summary{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;list-style:none;font-weight:500;font-size:14px}
+details.wk summary::-webkit-details-marker{display:none}
+details.wk .chev{transition:transform .18s;color:var(--muted)}
+details[open] > summary .chev{transform:rotate(180deg)}
+details.wk .wk-body{padding:2px 16px 14px;display:flex;flex-direction:column;gap:2px}
+details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-soft)}
+.phase-head{display:flex;align-items:center;gap:12px;margin:22px 0 10px}
+.phase-head h3{font-size:15.5px;font-weight:600}
+.phase-head .track{flex:1;height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;min-width:80px}
+.phase-head .fill{height:100%;background:var(--brand);border-radius:99px;transition:width .5s}
+/* ---------- qa flip ---------- */
+.qa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px}
+.flip{perspective:1200px;height:215px;cursor:pointer}
+.flip-in{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.2,.7,.25,1);transform-style:preserve-3d}
+.flip.on .flip-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;border:1px solid var(--line);background:var(--surface);padding:16px 17px;display:flex;flex-direction:column;box-shadow:var(--shadow-sm)}
+.face.back{transform:rotateY(180deg);background:var(--surface-2);overflow:auto}
+.face .q{font-weight:600;font-size:14px;line-height:1.5}
+.face .hint{margin-top:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11.5px}
+.face.back ul{margin:4px 0 8px;padding-left:17px;display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink)}
+.face.back li::marker{color:var(--brand)}
+/* ---------- task rows / lessons ---------- */
+.tsk{display:flex;align-items:flex-start;gap:6px;padding:6px 8px;border-radius:10px}
+.tsk:hover{background:var(--surface-2)}
+.tsk .form-check{flex:1;padding:1px 0}
+.lesson-btn{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--brand);background:var(--brand-soft);transition:transform .12s}
+.lesson-btn:hover{transform:scale(1.1)}
+/* ---------- drawer ---------- */
+#drawerMask{position:fixed;inset:0;background:rgba(0,0,0,0.32);z-index:70;opacity:0;transition:opacity .25s;pointer-events:none}
+:root[data-theme="dark"] #drawerMask{background:rgba(0,0,0,0.5)}
+#drawerMask.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100vw);background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);z-index:75;transform:translateX(103%);transition:transform .34s cubic-bezier(.32,.72,.25,1);display:flex;flex-direction:column;border-radius:0}
+#drawer.on{transform:none}
+.dr-head{padding:20px 24px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.dr-head h3{font-size:18px;font-weight:600;flex:1;letter-spacing:-0.02em}
+.dr-src{font-size:11px;color:var(--muted);letter-spacing:0.04em;margin-bottom:4px;font-weight:500}
+.dr-body{flex:1;overflow-y:auto;padding:8px 24px 32px}
+.dr-foot{padding:14px 24px;border-top:1px solid var(--line)}
+/* md */
+.md h5{font-size:13.5px;margin:14px 0 4px;font-weight:600;letter-spacing:-0.01em}
+.md p{margin:8px 0;font-size:14px;line-height:1.78}
+.md ul{margin:6px 0 6px;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.md blockquote{margin:10px 0;padding:10px 14px;border-radius:12px;background:var(--brand-soft);font-size:13.5px;line-height:1.7}
+.md table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.md th{text-align:left;padding:7px 10px;background:transparent;border-bottom:1px solid var(--line-strong);font-size:12px;font-weight:600;white-space:nowrap}
+.md td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
+.mat{margin:12px 0;border:none;border-radius:14px;background:var(--surface-2);padding:13px 15px}
+.mat summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer;list-style:none}
+.mat summary::-webkit-details-marker{display:none}
+.mat .chev{color:var(--muted);margin-left:auto;transition:transform .18s}
+.mat[open] .chev{transform:rotate(180deg)}
+.sec-t{font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--muted);margin:20px 0 8px}
+/* learn view */
+.learn-week{font-size:12px;font-weight:500;letter-spacing:0.04em}
+.learn-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface);transition:transform .12s,border-color .15s;margin-bottom:7px;font-size:14px;font-weight:500}
+.learn-item:hover{transform:translateY(-1px);border-color:var(--brand)}
+.daily-how summary{cursor:pointer;color:var(--brand);font-weight:500;font-size:13px}
+.daily-how{margin:-4px 0 16px}
+/* ---------- toast / modal ---------- */
+#toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,480px)}
+.toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%}
+.toast .ic{color:var(--brand)}
+.toast.orange .ic{color:var(--orange)}
+.toast.green .ic{color:var(--green)}
+@keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.toast.out{opacity:0;transform:translateY(-8px);transition:.3s}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.36);backdrop-filter:blur(6px);z-index:80;display:grid;place-items:center;padding:20px}
+.modal{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);max-width:420px;width:100%;padding:28px;animation:vin .3s ease}
+.modal h3{font-size:19px;font-weight:600;margin:12px 0 6px;letter-spacing:-0.02em}
+/* ---------- mobile ---------- */
+@media (max-width:880px){
+  .sidebar{display:none}
+  .content{padding:18px 16px 130px}
+  .topbar{padding:10px 14px}
+  .hero h2{font-size:21px}
+  .rw-dots{display:flex}
+  .runway .rw-phase{display:none}
+  .rw-lbls{display:none}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+  .tabbar .nav-btn{flex:1;flex-direction:column;gap:3px;align-items:center;padding:6px 2px;font-size:10px;border-radius:12px}
+  .flip{height:240px}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></symbol>
+    <symbol id="i-cal-check" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 8.5 4.7L12 11.4 3.5 6.7 12 2z"/><path d="m3.5 11.7 8.5 4.7 8.5-4.7"/><path d="m3.5 16.6 8.5 4.7 8.5-4.7"/></symbol>
+    <symbol id="i-range" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h6"/></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="m9 13.5 2 2 4-4"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3"/><path d="M14 2v4M8 10v4M16 18v4"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-9"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/><path d="M17 6h3a2 2 0 0 1-2 4h-1M7 6H4a2 2 0 0 0 2 4h1"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></symbol>
+    <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+    <symbol id="i-user-check" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+    <symbol id="i-kanban" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v7M12 7v4M16 7v9"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4"/><path d="M4 4c3-2 6 2 9 0s5-2 7-1v9c-2-1-4 1-7 1s-6-2-9 0"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 7h4l10 10h4M3 17h4M17 7h4"/><path d="m18 4 3 3-3 3M18 14l3 3-3 3"/></symbol>
+    <symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">跃</div>
+      <div><b>跃迁计划</b><span>PRESALES LEAP</span></div>
+    </div>
+    <button class="nav-btn on" data-view="ov"><svg class="ic"><use href="#i-home"/></svg>总览</button>
+    <button class="nav-btn" data-view="daily"><svg class="ic"><use href="#i-cal-check"/></svg>今日训练</button>
+    <button class="nav-btn" data-view="skills"><svg class="ic"><use href="#i-layers"/></svg>技能树</button>
+    <button class="nav-btn" data-view="plan"><svg class="ic"><use href="#i-range"/></svg>12 周计划</button>
+    <button class="nav-btn" data-view="learn"><svg class="ic"><use href="#i-book"/></svg>学习中心</button>
+    <button class="nav-btn" data-view="lab"><svg class="ic"><use href="#i-briefcase"/></svg>求职实战</button>
+    <button class="nav-btn" data-view="quiz"><svg class="ic"><use href="#i-clipboard"/></svg>模块自测</button>
+    <button class="nav-btn" data-view="set"><svg class="ic"><use href="#i-sliders"/></svg>设置</button>
+    <div class="sidebar-foot">
+      <div class="side-note">数据存在这台浏览器里;换设备用「设置 → 多设备同步」,或导出 JSON 备份。</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 id="viewTitle">总览</h1>
+      <div class="spacer"></div>
+      <span class="streak-chip" id="tbStreak" title="连续打卡天数"><svg class="ic" style="width:15px;height:15px"><use href="#i-flame"/></svg><span class="num" id="tbStreakN">0</span></span>
+      <button class="icon-btn" id="themeBtn" aria-label="切换深浅色"><svg class="ic"><use href="#i-moon"/></svg></button>
+      <button class="icon-btn" data-goto="set" aria-label="设置" style="display:none" id="setBtn"><svg class="ic"><use href="#i-sliders"/></svg></button>
+    </header>
+
+    <main class="content">
+
+      <!-- ===== 总览 ===== -->
+      <section class="view" id="view-ov">
+        <div class="hero">
+          <div class="hero-top">
+            <h2 id="greetLine">你好</h2>
+            <span class="tag" id="dateTag"></span>
+          </div>
+          <div class="card runway">
+            <div class="eyebrow" style="margin-bottom:8px">跃迁轨道 · 12 周</div>
+            <svg id="rwSvg" viewBox="0 0 820 168" role="img" aria-label="从帆软销售到 Offer 的 12 周跃迁轨道"></svg>
+            <div class="rw-dots" id="rwDots"></div>
+          </div>
+          <div class="coach">
+            <div class="coach-ic"><svg class="ic"><use href="#i-msg"/></svg></div>
+            <div class="coach-card"><div class="who">教练 · 小跃</div><p id="coachLine"></p></div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="card stat lift"><div class="lbl">综合进度</div><div class="val num"><span id="stOverall">0</span><span class="unit">%</span></div><div class="sub" id="stOverallSub">技能 40% + 任务 40% + 自测 20%</div></div>
+          <div class="card stat lift"><div class="lbl">连续打卡</div><div class="val num" style="color:var(--orange)"><span id="stStreak">0</span><span class="unit">天</span></div><div class="sub" id="stStreakSub">去今日训练点亮第一天</div></div>
+          <div class="card stat lift"><div class="lbl">计划任务</div><div class="val num"><span id="stTasks">0</span><span class="unit" id="stTasksUnit">/ 0</span></div><div class="sub">12 周计划 + 求职大作业</div></div>
+          <div class="card stat lift"><div class="lbl">自测平均</div><div class="val num" id="stQuiz">—</div><div class="sub" id="stQuizSub">五个模块 · 每模块 5 题</div></div>
+        </div>
+
+        <div class="grid2">
+          <div class="card pad">
+            <div class="eyebrow" style="margin-bottom:10px">本周进度</div>
+            <div id="curWeek"></div>
+          </div>
+          <div class="card pad">
+            <div class="eyebrow" style="margin-bottom:10px">模块掌握度</div>
+            <div id="modBars" style="display:flex;flex-direction:column;gap:9px"></div>
+          </div>
+        </div>
+
+        <div class="card pad" style="margin-top:14px">
+          <div class="eyebrow" style="margin-bottom:10px">今日训练速览</div>
+          <div id="ovToday"></div>
+        </div>
+      </section>
+
+      <!-- ===== 今日训练 ===== -->
+      <section class="view" id="view-daily" hidden>
+        <div class="card pad" style="padding:24px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span class="eyebrow">今日训练</span>
+            <span class="tag brand" id="dailyCat">练</span>
+            <span class="spacer" style="flex:1"></span>
+            <button class="btn ghost sm" id="rerollBtn"><svg class="ic" style="width:14px;height:14px"><use href="#i-shuffle"/></svg>换一道</button>
+          </div>
+          <p id="dailyTask" style="font-size:19px;font-weight:600;line-height:1.6;margin:12px 0 4px"></p>
+          <details class="daily-how" id="dailyHow" hidden><summary>怎么做</summary><p class="small muted" id="dailyHowBody" style="margin-top:8px"></p></details>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <button class="btn primary" id="dailyBtn"><svg class="ic" style="width:16px;height:16px"><use href="#i-check"/></svg>完成今日打卡</button>
+            <span class="small muted" id="dailyNote"></span>
+          </div>
+          <p class="small muted" id="todayFeedback" style="margin-top:12px;min-height:20px"></p>
+        </div>
+        <div class="card pad" style="margin-top:14px">
+          <div class="eyebrow" style="margin-bottom:12px">最近 4 周打卡</div>
+          <div class="heat" id="heatGrid" role="img" aria-label="最近 28 天打卡记录"></div>
+          <p class="small muted" style="margin-top:12px">每天自动轮换一道 30 分钟微训练;进度保存在这台浏览器,设置里可导出备份。</p>
+        </div>
+      </section>
+
+      <!-- ===== 技能树 ===== -->
+      <section class="view" id="view-skills" hidden>
+        <p class="small muted" style="margin-bottom:14px">点击技能点切换掌握度:<span class="tag amber">听懂</span> → <span class="tag brand">能讲</span> → <span class="tag green">能演示</span>,悬停看说明。售前的及格线是「能讲」,加分线是「能演示」。</p>
+        <div id="skillsWrap"></div>
+      </section>
+
+      <!-- ===== 12 周计划 ===== -->
+      <section class="view" id="view-plan" hidden>
+        <p class="small muted" style="margin-bottom:4px">从你第一次打卡那天起算周次;勾选任务即计入综合进度。</p>
+        <p class="small" style="margin-bottom:12px">每项任务都内置学习材料:点行尾的 <svg class="ic" style="width:14px;height:14px;color:var(--brand);vertical-align:-2px"><use href="#i-book"/></svg> 图标直接学,或 <button class="btn sm" data-goto="learn">打开学习中心</button> 浏览全部材料。</p>
+        <div id="planWrap"></div>
+      </section>
+
+      <!-- ===== 求职实战 ===== -->
+      <section class="view" id="view-lab" hidden>
+        <div id="labProjects"></div>
+        <div class="hr"></div>
+        <div class="eyebrow" style="margin-bottom:4px">面试高频问答演练</div>
+        <p class="small muted" style="margin-bottom:14px">先自己想 10 秒,再点卡片翻面看参考要点;正面练完勾一条「练过了」。</p>
+        <div class="qa-grid" id="qaGrid"></div>
+        <div class="hr"></div>
+        <div class="eyebrow" style="margin-bottom:4px">目标公司投递看板</div>
+        <p class="small muted" style="margin-bottom:12px">给公司标上赛道(数据智能卖「准」,泛 AI 应用卖「自动化」),状态跟着流程走,两条赛道的进度分开统计。</p>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px">
+          <input type="text" class="field" id="coInput" placeholder="公司名,如:某数据智能 / Agent / 大模型应用公司" style="flex:1;min-width:200px;max-width:340px">
+          <select class="field" id="coTrack" style="width:auto" aria-label="赛道">
+            <option value="0">数据智能</option><option value="1">泛 AI 应用</option><option value="2">其他</option>
+          </select>
+          <button class="btn primary" id="coAdd"><svg class="ic" style="width:15px;height:15px"><use href="#i-plus"/></svg>添加</button>
+        </div>
+        <div class="sum-chips" id="coSummary"></div>
+        <div id="coList" style="display:flex;flex-direction:column;gap:7px"></div>
+      </section>
+
+      <!-- ===== 学习中心 ===== -->
+      <section class="view" id="view-learn" hidden>
+        <p class="small muted" style="margin-bottom:14px" id="learnIntro"></p>
+        <div id="learnWrap"></div>
+      </section>
+
+      <!-- ===== 模块自测 ===== -->
+      <section class="view" id="view-quiz" hidden>
+        <p class="small muted" style="margin-bottom:14px">每个模块 5 题,80 分达标;记录最佳成绩,达标后隔几天重测保持手感。</p>
+        <div id="quizMods" style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px"></div>
+        <div class="card pad" id="quizArea" aria-live="polite"><p class="muted">选一个模块,开始作答。</p></div>
+      </section>
+
+      <!-- ===== 设置 ===== -->
+      <section class="view" id="view-set" hidden>
+        <div class="card pad">
+          <div class="eyebrow" style="margin-bottom:10px">称呼</div>
+          <div style="display:flex;gap:9px;max-width:380px">
+            <input type="text" class="field" id="nameInput" maxlength="12" placeholder="教练怎么称呼你?">
+            <button class="btn" id="nameSave">保存</button>
+          </div>
+        </div>
+        <div class="card pad" style="margin-top:14px">
+          <div class="eyebrow" style="margin-bottom:10px">外观</div>
+          <div class="seg" id="themeSeg">
+            <button data-theme-opt="auto">跟随系统</button>
+            <button data-theme-opt="light">浅色</button>
+            <button data-theme-opt="dark">深色</button>
+          </div>
+        </div>
+        <div class="card pad" style="margin-top:14px">
+          <div class="eyebrow" style="margin-bottom:10px">多设备同步(LeanCloud)</div>
+          <p class="small muted" style="margin-bottom:10px">手机和电脑共用一份进度。在 LeanCloud 控制台「设置 → 应用凭证」复制三项填入;手机端填同样的配置和同步码,点「立即同步」即可接管进度。数据只存你自己的 LeanCloud 应用。</p>
+          <div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
+            <input type="text" class="field" id="lcId" placeholder="AppID(应用 ID)" autocomplete="off">
+            <input type="text" class="field" id="lcKey" placeholder="AppKey(应用 Key)" autocomplete="off">
+            <input type="text" class="field" id="lcHost" placeholder="REST API 域名,如 abcd1234.api.lncld.net" autocomplete="off">
+            <input type="text" class="field" id="lcCode" placeholder="同步码(8 位;新设备填同一个)" maxlength="8" autocomplete="off" style="font-family:var(--mono);letter-spacing:2px">
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px">
+            <button class="btn primary" id="lcSave">保存配置</button>
+            <button class="btn" id="lcGen">生成同步码</button>
+            <button class="btn" id="lcSync">立即同步</button>
+            <button class="btn ghost danger" id="lcOff">断开</button>
+          </div>
+          <p class="small muted" id="lcStatus" style="margin-top:10px;min-height:18px"></p>
+          <div id="lcConflict" class="hidden" style="margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--amber-soft)">
+            <div class="small" style="font-weight:600;margin-bottom:8px">本机与云端都有未同步的修改,选择保留哪边(另一边会被覆盖):</div>
+            <div style="display:flex;gap:9px;flex-wrap:wrap">
+              <button class="btn sm primary" id="lcKeepLocal">用本机覆盖云端</button>
+              <button class="btn sm" id="lcKeepCloud">用云端覆盖本机</button>
+            </div>
+          </div>
+        </div>
+        <div class="card pad" style="margin-top:14px">
+          <div class="eyebrow" style="margin-bottom:10px">数据</div>
+          <p class="small muted" style="margin-bottom:12px">进度存在这台浏览器;换设备或清理浏览器前,先导出一份 JSON 备份。</p>
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <button class="btn" id="exportBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-download"/></svg>导出进度</button>
+            <button class="btn" id="importBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-upload"/></svg>导入备份</button>
+            <input type="file" id="importFile" accept="application/json" class="hidden" aria-label="选择备份文件">
+            <button class="btn danger" id="resetBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-refresh"/></svg>重置全部进度</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<nav class="tabbar" aria-label="导航">
+  <button class="nav-btn on" data-view="ov"><svg class="ic"><use href="#i-home"/></svg>总览</button>
+  <button class="nav-btn" data-view="daily"><svg class="ic"><use href="#i-cal-check"/></svg>今日</button>
+  <button class="nav-btn" data-view="skills"><svg class="ic"><use href="#i-layers"/></svg>技能</button>
+  <button class="nav-btn" data-view="plan"><svg class="ic"><use href="#i-range"/></svg>计划</button>
+  <button class="nav-btn" data-view="lab"><svg class="ic"><use href="#i-briefcase"/></svg>实战</button>
+  <button class="nav-btn" data-view="quiz"><svg class="ic"><use href="#i-clipboard"/></svg>自测</button>
+</nav>
+
+<div id="drawerMask"></div>
+<aside id="drawer" aria-label="学习内容">
+  <div class="dr-head">
+    <div style="flex:1"><div class="dr-src" id="drSrc"></div><h3 id="drTitle"></h3></div>
+    <button class="icon-btn" id="drClose" aria-label="关闭学习内容"><svg class="ic" style="transform:rotate(-90deg)"><use href="#i-chev"/></svg></button>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+  <div class="dr-foot" id="drFoot"></div>
+</aside>
+
+<div id="toasts"></div>
+
+<div class="modal-mask hidden" id="onboard">
+  <div class="modal">
+    <div class="app-ic">跃</div>
+    <h3>你好,我是小跃</h3>
+    <p class="small muted" style="margin-bottom:14px">接下来 12 周,我陪你完成从帆软销售到上海 AI 售前的转岗:每天 30-45 分钟,打卡、练技能、攒作品、冲面试。先告诉我怎么称呼你。</p>
+    <input type="text" class="field" id="obName" maxlength="12" placeholder="你的称呼">
+    <button class="btn primary" id="obStart" style="width:100%;margin-top:12px">开始训练</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var KEY='yueqian.v1';
+var $=function(s,el){return (el||document).querySelector(s)};
+var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
+
+/* ================= 内容数据 ================= */
+var LVW=['未开始','听懂','能讲','能演示'];
+var STAGES=['调研中','已投递','一面','二面','终面','Offer','暂缓'];
+var TRACKS=['数据智能','泛 AI 应用','其他'];
+var MODS=[
+{id:'A',name:'AI 技术通识(售前版)',icon:'i-sparkles',nodes:[
+ {id:'A1',n:'LLM 原理与能力边界',d:'能用「读过全网资料的实习生」类比,讲清能做什么、不能做什么'},
+ {id:'A2',n:'幻觉与准确性',d:'为什么会一本正经地编,哪些场景能容忍、哪些必须兜底'},
+ {id:'A3',n:'Token、上下文与成本',d:'客户问「要花多少钱、多少算力」时,知道三件事怎么说'},
+ {id:'A4',n:'Prompt 工程',d:'角色+任务+约束+示例,现场改提示词看效果'},
+ {id:'A5',n:'RAG 检索增强',d:'为什么企业问答要先检索再生成,向量库在里面干什么'},
+ {id:'A6',n:'微调 vs RAG',d:'两条路线的适用场景,能给客户讲清选型逻辑'},
+ {id:'A7',n:'Agent 与工具调用',d:'大模型怎么「动手」:调接口、查数、跨步骤完成任务'},
+ {id:'A8',n:'部署形态与数据安全',d:'公有 API、私有化、专属模型的边界,数据不出域的讲法'}]},
+{id:'B',name:'AI 行业与格局',icon:'i-compass',nodes:[
+ {id:'B1',n:'AI 公司主要类型',d:'基础大模型、AI 应用与 Agent、数据智能 ChatBI、行业 AI SaaS、算力底座'},
+ {id:'B2',n:'各类公司的售前打法',d:'卖能力、卖场景、卖指标,不同类型公司售前角色的差异'},
+ {id:'B3',n:'数据智能与 ChatBI 赛道',d:'与帆软背景衔接最顺滑的赛道:产品形态、玩家与竞品,卖的是「准」'},
+ {id:'B4',n:'泛 AI 应用赛道',d:'Agent、行业 AI SaaS、大模型项目交付等形态的售前模式,卖的是「自动化」'},
+ {id:'B5',n:'竞品分析框架',d:'对比维度、差异话术,不贬低也不吹捧'},
+ {id:'B6',n:'上海 AI 生态',d:'模速空间等行业社区、展会与线下沙龙,求职与约同行的抓手'},
+ {id:'B7',n:'目标客户行业画像',d:'金融、制造、零售、外企对 AI 的关注点差异'}]},
+{id:'C',name:'售前硬技能',icon:'i-wrench',nodes:[
+ {id:'C1',n:'需求调研与提问',d:'探针问题清单,一页纸摸清客户痛点与数据基础'},
+ {id:'C2',n:'方案与标书写作',d:'场景、架构、边界、分期四件事写清楚'},
+ {id:'C3',n:'POC 设计与验收',d:'测试集怎么建、准确率口径怎么定、验收标准怎么写'},
+ {id:'C4',n:'Demo 演示设计',d:'3 分钟起承转合与现场互动设计'},
+ {id:'C5',n:'讲标与答辩',d:'高压场合的表达结构与异议应对'},
+ {id:'C6',n:'报价与商务配合',d:'功能边界、前置条件与商务节奏的配合'}]},
+{id:'D',name:'经验迁移与叙事',icon:'i-user-check',nodes:[
+ {id:'D1',n:'销售经验的售前翻译',d:'客户数、拜访量、行业理解,翻译成售前能力证据'},
+ {id:'D2',n:'STAR 故事库',d:'10 个结构化故事,扛得住两轮追问'},
+ {id:'D3',n:'个人定位句',d:'「懂业务客户的 AI 售前」,一句话把自己站住'},
+ {id:'D4',n:'行业知识资产化',d:'帆软积累的行业理解,变成面试弹药'},
+ {id:'D5',n:'作品集规划',d:'demo、方案、测试集三件套的证据链'}]},
+{id:'E',name:'求职实战',icon:'i-rocket',nodes:[
+ {id:'E1',n:'简历改写',d:'两版简历:数据智能向 / AI 应用向,各自过筛逻辑'},
+ {id:'E2',n:'渠道与内推',d:'BOSS、猎聘、脉脉与内推路径的分工'},
+ {id:'E3',n:'HR 面与专业面',d:'两轮面试的不同目标与应对策略'},
+ {id:'E4',n:'试讲与 demo 环节',d:'售前面试的硬仗:现场讲产品、现场答辩'},
+ {id:'E5',n:'谈 offer',d:'薪资行情、总包结构、offer 比较表'},
+ {id:'E6',n:'离职交接与背调',d:'体面离开、信息一致、不烧桥'}]}
+];
+var NN=0;MODS.forEach(function(m){NN+=m.nodes.length});
+
+var DAILY=[
+{c:'练',t:'用一个公开问数 / AI 产品连测试数据,连续问 10 个业务问题,记录 3 个答偏的 case 和原因',m:'先挑你最熟的行业数据;答偏的记三栏:问题原文、它给的口径、你预期的口径——这就是你将来的演示反例库。'},
+{c:'讲',t:'把 RAG 用「先查资料再回答」的类比讲给一位非技术朋友,让对方复述一遍',m:'别背定义。结构:一个类比 + 一个例子(员工手册问答)+ 一句边界(检索不准照样答偏)。讲完让对方复述,复述不出来就是你没讲清。'},
+{c:'写',t:'手写一个「生成经营解读」的 prompt,迭代 3 版,记录最好的一版',m:'固定背景只改指令;三版分别试:加角色、加约束、加示例。记下哪一版提升最大、为什么。'},
+{c:'写',t:'整理 5 个制造业 AI 应用场景:一句话价值 + 演示路径 + 所需数据',m:'按 生产/质量/设备/供应链 四块各想 1-2 个;每个写清:谁、在什么痛点下、会问什么。'},
+{c:'讲',t:'录 2 分钟「为什么销售能做售前」,回听并改写话术',m:'结构:客户积累 → 行业理解 → 想离方案更近。不提薪资、不抱怨,全程只往前看。'},
+{c:'学',t:'读一篇 NL2SQL 或 RAG 原理文章,画出流程图存进素材库',m:'读第一遍通读,第二遍合上文章画流程图,画不出的环节回读——流程图见第 2 周学习材料。'},
+{c:'写',t:'列出 10 个面试官可能问的 AI 问题,每个写 3 句话答案',m:'从面试官视角想四类:转型动机、AI 理解、售前技能、抗压。每题三句式:观点 + 证据 + 例子。'},
+{c:'写',t:'用大模型把一段简历经历改写成 STAR 格式',m:'按 情境/任务/行动/结果 四段重写;结果必须带数字,行动里说「我」不说「我们」。'},
+{c:'学',t:'读一份 AI 行业报告,提炼 3 个面试可引用的数据点',m:'只摘能引用的硬数据(市场规模、渗透率、增速),每个注明来源和年份——面试引用数据带出处是加分项。'},
+{c:'讲',t:'练习「不吹牛」表达:把 3 句夸张说法改写成有边界的具体承诺',m:'把「极大提升效率」改成「某环节从 X 天缩到 Y 天」;模糊词全部换成具体数字或区间。'},
+{c:'练',t:'搭一个 20 题测试集(问题+预期答案),作为 POC 底稿',m:'问题要用真实业务口吻,别写成 SQL 腔;预期答案先手算写死。方法见第 5 周学习材料。'},
+{c:'学',t:'研究一家上海 AI 公司(数据智能或泛 AI 应用):产品、客户案例、融资、在招的售前 JD',m:'四张卡:产品与客户、融资与规模、在招 JD、我的匹配点。限时 30 分钟完成一家,别陷进去。'},
+{c:'讲',t:'把一段销售经历用 90 秒讲成售前能力故事,录音回听',m:'开头一句结论,中间两行动作,结尾一个数字。录完回听删废话,目标 90 秒内讲完。'},
+{c:'练',t:'用手头 BI / AI 产品做一张带解读的看板,存为作品素材',m:'选你最熟的行业做一张;AI 解读的截图留档,面试可以直接展示。'},
+{c:'写',t:'写一段数据安全标准答复:部署形态、数据出不出域、权限怎么管',m:'三段式:部署在哪 → 数据出不出域 → 权限怎么管。写成 100 字标准答案背熟——模板在第 2 周材料里。'},
+{c:'学',t:'看 3 条目标公司售前 JD,列出共性要求和自己的差距清单',m:'把 3 条 JD 的高频要求列成表,标「有/无」;差距项回技能树找到对应技能点补。'},
+{c:'讲',t:'练 3 分钟 demo 开场:先讲业务痛点再引出产品,不超过 10 句话',m:'前两句必须是客户的痛点,不是产品名;对着镜子练,练到 10 句以内收口。'},
+{c:'练',t:'让大模型扮演面试官连问 10 题,练答辩',m:'给大模型的 prompt 里写明:扮演挑剔的技术面试官,每次只问一题,空泛就追问,最后给评分——模板在第 8 周材料。'},
+{c:'写',t:'盘点帆软经历的全部数字:客户数、拜访量、转化、大单',m:'翻 CRM 和周报,每个数字要有出处;记不清的标区间,绝不编。模板在第 4 周材料。'},
+{c:'写',t:'把本周所学写成 200 字内部分享,也是面试素材',m:'按「一个概念 + 一个例子 + 一个用法」写;写完删掉三分之一,留下的才是精华。'},
+{c:'学',t:'研读一份售前方案范本,标出哪句是承诺、哪句是边界',m:'双色笔标承诺句和边界句;数一数一页里有几处「包括但不限于」——承诺越克制越专业。'},
+{c:'讲',t:'一句话讲清 AI 项目落地三步走,练到脱口而出',m:'试点 → 扩面 → 常态化;每步带周期和投入量级,练到别人问不倒。'},
+{c:'练',t:'同一个问题分别给模型 0 条和 10 条业务背景,对比输出质量',m:'同一个问题跑两遍,把差异截图存档——这是给客户讲 RAG 价值的现成素材。'},
+{c:'写',t:'复盘一次投递或面试,把暴露的短板写进补强清单',m:'24 小时内写,只记事实不记情绪;每个短板转成下周一个具体动作。'},
+{c:'学',t:'对比一家 ChatBI 公司和一家 Agent 公司的售前 JD,列出能力要求差异',m:'对比「数据准备/口径」与「流程/集成」出现的频率——差异就是两条赛道的备考差异。'},
+{c:'写',t:'为两条赛道各写一版 3 分钟 demo 开场白(数据智能向 / 泛 AI 应用向)',m:'数据智能版从「问数准不准」切入,Agent 版从「这流程几个人在做」切入;各 300 字,完整示例在大作业①材料里。'}
+];
+
+var PHASES=[
+{name:'阶段一 · 打底',ws:[
+ {id:'w1',t:'大模型通识入门',tasks:['精读 2 篇大模型入门长文,各写 3 句总结','每天用公有大模型实操 20 分钟(提问、追问、让它总结)','背熟幻觉、Token、上下文、RAG、微调、Agent 六个词的通俗解释','完成自测:模块 A ≥ 80 分']},
+ {id:'w2',t:'企业 AI 落地原理',tasks:['脱稿讲 3 分钟:RAG 和微调怎么选','读 1 篇 NL2SQL 原理文章并画流程图','讲清三种部署形态(公有 API / 私有化 / 专属)与数据安全讲法','整理 5 个「光有模型不够、要靠工程」的例子']},
+ {id:'w3',t:'售前基本功',tasks:['拆一份完整售前方案范本的结构','练需求调研提问清单:15 个探针问题','给朋友讲 15 分钟 AI 通识,收集 3 个问题','完成自测:模块 A、C 复查 ≥ 80 分']}]},
+{name:'阶段二 · 定位与作品',ws:[
+ {id:'w4',t:'经验盘点与定位',tasks:['盘点销售经历的全部数字:客户数、拜访量、转化、大单','提炼 10 个 STAR 故事,每个标注证明的能力','打磨一句话售前定位,改 3 版','对「数据智能 / ChatBI」与「泛 AI 应用(Agent、行业 AI SaaS)」两条赛道各做一轮调研,定主攻与备选']},
+ {id:'w5',t:'作品集制作',tasks:['用公开或手头 AI 产品做一个完整 demo 并录屏','写一份含 AI 章节的行业方案','建 20 题测试集(问题+预期答案)作 POC 底稿','完成自测:模块 B、C ≥ 80 分']},
+ {id:'w6',t:'简历与渠道',tasks:['产出 2 版简历:数据智能向 / AI 应用向','BOSS、猎聘、脉脉资料完整化,头像与简介重写','两个赛道各列约 15 家目标公司,加进投递看板(共 30 家)','找到 5 个可内推的人(同事、客户、社区)']}]},
+{name:'阶段三 · 投递与面试',ws:[
+ {id:'w7',t:'首批投递',tasks:['两条赛道各投 5 家试水,记录渠道与响应率','每场面试后 24 小时内完成复盘','按面试暴露的问题改话术']},
+ {id:'w8',t:'面试题库',tasks:['面试十一问 + 高频 30 问答案全部成稿','大模型模拟面试两轮通关','录音回听,改 3 处表达']},
+ {id:'w9',t:'试讲与 demo 冲刺',tasks:['3 分钟自我介绍练到脱稿','试讲 demo 打磨 3 版,找人对练','情景题演练:客户现场变卦、技术细节被追问怎么接']},
+ {id:'w10',t:'密集面试期',tasks:['稳住每周 2-3 场面试的节奏与复盘','异议库按真实面试持续迭代','每轮结束给面试官发跟进致谢']}]},
+{name:'阶段四 · Offer 与过渡',ws:[
+ {id:'w11',t:'offer 谈判',tasks:['摸底上海售前薪资行情(同行、脉脉、猎头)','建 offer 比较表:底薪、绩效、期权、赛道与稳定性','确定背调人选,理清前东家关系']},
+ {id:'w12',t:'交接与上岗准备',tasks:['原公司体面交接,不烧桥','列入职前产品学习清单并预学','写 90 天上手计划草稿','全模块自测 ≥ 80 分,作品集收尾']}]}
+];
+
+var PROJECTS=[
+{id:'p1',name:'① 售前作品集',goal:'目标:有一套可验证的售前证据,两条赛道各有弹药',tasks:['主攻赛道用公开或手头 AI 产品做出完整 demo 并录屏','写一份含 AI 章节的行业方案','建 20 题测试集(问题+预期答案)作 POC 底稿','两条赛道各写一版 demo 开场白,主攻版练到脱稿','全部作品打包成一页作品集索引']},
+{id:'p2',name:'② 售前简历与故事库',goal:'目标:简历能过筛、故事能扛追问',tasks:['盘点销售经历的全部数字(客户数、拜访量、转化、大单)','写 10 个 STAR 故事,每个标注证明的能力','产出 2 版简历:数据智能向 / AI 应用向','找 2 个人盲审简历并完成修订']},
+{id:'p3',name:'③ 面试通关',goal:'目标:三轮面试都有底稿',tasks:['面试十一问参考要点全部内化成自己的话','3 分钟自我介绍 + 试讲 demo 打磨 3 版','完成两轮模拟面试(朋友或大模型扮演)并复盘','建立「每场面试 24 小时复盘」的记录模板']}
+];
+
+var QA=[
+{q:'你没做过售前,凭什么能胜任?',a:['用证据不用态度:客户数、拜访量、行业理解,加上已经做出的作品集(demo、方案、测试集)','讲清迁移逻辑:销售和售前都吃客户理解与临场表达,你只是从「推签约」换到「推方案」','给一个试用期可验证的承诺:第一个月内独立支撑 N 场客户交流','切忌空喊「我学习能力强」']},
+{q:'为什么离开帆软?是不是干不下去了?',a:['往前看不往后踩:行业判断(AI 是数据服务的自然延伸,我想站到技术更前端)+ 对帆软的具体感谢','强调是主动选择不是逃避:离开是为了去 AI 落地一线,不是为了躲业绩','切忌抱怨前东家、同事或薪酬——面试官会想象你以后怎么说他们']},
+{q:'你对大模型了解多少?给我们讲讲 RAG。',a:['三层讲法:是什么(先检索资料再生成)、为什么(企业知识要新鲜、可溯源)、怎么用(知识库问答、内部助手)','补一个自己的用法:你怎么用大模型做方案、练面试,证明是真用户不是背书','诚实划边界:工程细节会请架构师补位,但选型逻辑与效果边界我清楚']},
+{q:'客户现场问的技术细节你答不上来怎么办?',a:['标准动作:记录问题 → 给出跟进思路和时间 → 会后闭环,绝不现场编','平时建「技术后援清单」:哪些问题归架构师、哪些自己补','举一个真实的兜底案例,证明有闭环能力而不是嘴上说']},
+{q:'你的优势是什么?用一句话。',a:['定位句:「懂业务客户的 AI 售前」——既懂客户怎么用数据做决策,又懂 AI 的能力边界','马上接 10-20 秒证据链支撑,不让定位句悬空','提前打磨 3 版,面试时看对方角色微调']},
+{q:'期望薪资多少?',a:['先摸行情区间再报区间不报死数,给谈判留空间','锚定总包结构:底薪 + 绩效 / 提成 + 期权,别只盯底薪','用「更看重平台和赛道」降低对抗,但心里有底线数字','上海 AI 售前的行情先去脉脉、猎头、同行那里问三轮']},
+{q:'AI 行业现在这么卷,你怎么看?',a:['展示判断力:卷的是通用能力,缺的是行业落地——落地方向反而缺人','带出自己:帆软几年攒下行业客户视角,这正是落地最稀缺的','不悲观不吹捧,给一个有依据的判断就好']},
+{q:'你怎么快速学会一个完全陌生的产品?',a:['给方法论:文档 → demo 环境上手 → 给自己讲一遍录音 → 找老售前要讲标录像 → 两周内输出一版自己的讲稿','用真实例子证明学得快:帆软时期多快上手的某产品线','落到承诺:入职两周内可以支撑内部演练']},
+{q:'给你一个陌生行业客户,三天后要拜访,你怎么准备?',a:['行业速览(报告、年报)→ 客户业务(官网、招投标、新闻)→ 同行案例 → 准备 5 个业务问题 + 1 个 demo → 预设异议与兜底','强调输出物:一页客户速览 + 提问清单,而不是「我会好好准备」','展示的是结构化准备能力,不是勤奋表态']},
+{q:'你还有什么想问我们的?',a:['不先问薪资福利,问业务:团队售前模式(跟单型 / 方案型)、赢单率、产品路线图','问成功标准:这个岗位前 6 个月做到什么样算优秀','问成长:售前在这里的职业路径,有没有方案专家 / 售前负责人的先例','问出专业度,这题是送分也是送命题']},
+{q:'你想投数据智能类,还是泛 AI 应用类公司?为什么?',a:['两条赛道都备一版答案,并能讲出差异:数据智能卖「准」,Agent / 应用卖「自动化」','主攻选择要有理由:帆软背景在数据智能赛道是直接加分,泛应用要补行业场景理解','表达成策略而不是犹豫:主攻一条、备选一条,显得目标清晰']}
+];
+
+var QUIZ={
+A:[
+ {q:'客户说大模型「一本正经地胡说八道」,这种现象通常叫什么?',o:['过拟合','幻觉','死循环','数据过期'],ans:1,ex:'幻觉指模型生成流畅但与事实不符的内容;售前要主动帮客户建立对准确性的正确预期。'},
+ {q:'企业知识库问答普遍采用 RAG,核心目的是什么?',o:['让模型参数更多','替代数据仓库','让模型基于检索到的企业资料作答,降低编造风险','加快模型训练'],ans:2,ex:'RAG 先检索相关资料再生成回答,答案有出处、可更新,而不是全靠模型记忆。'},
+ {q:'客户想「让模型学会我们行业的术语」,更常见的低成本做法是?',o:['从头训练一个大模型','RAG / 提示词注入行业知识,必要时再考虑微调','换更贵的显卡','多买几份许可证'],ans:1,ex:'绝大多数行业适配先用 RAG 与提示词,微调是数据量大、效果稳定后的选项。'},
+ {q:'Agent(智能体)与普通大模型对话的核心区别是什么?',o:['回答速度更快','参数量更大','不需要提示词','能规划步骤并调用工具,完成多步任务'],ans:3,ex:'Agent 的价值在「能干活」:调接口、查数、跨系统跑流程。'},
+ {q:'下列哪类任务最适合当前大模型直接承担?',o:['精确到分的财务核算','法规符合性的最终判定','数据解读与报告初稿撰写','替代 ERP 完成记账'],ans:2,ex:'语言生成与总结类任务最适合;精确计算与合规判定必须有系统和流程兜底。'}],
+B:[
+ {q:'同在应用层,数据智能(ChatBI)售前与 Agent / 行业 AI SaaS 售前,重点差异在哪?',o:['没有本质差异,讲法完全一样','ChatBI 重数据与口径准备,Agent / 应用重流程场景与集成边界界定','ChatBI 不需要 demo','Agent 类产品只能卖 API'],ans:1,ex:'一条卖「准」:数据、口径、准确率验收;一条卖「自动化」:流程、集成、边界与稳定性。两套弹药都要备。'},
+ {q:'企业客户上 AI 项目,最常被低估的环节是?',o:['模型参数大小','模型发布会','办公室装修','数据准备与场景选择'],ans:3,ex:'数据与口径决定效果上限;售前要在早期把这块讲透,避免后期扯皮。'},
+ {q:'数据智能 / ChatBI 类公司的售前,演示前最关键的准备是?',o:['用客户业务口径准备数据模型与测试问题','背熟公司 PPT','多加动画','升级演示电脑'],ans:0,ex:'演示的说服力来自「像客户自己的数据」。'},
+ {q:'想在上海 AI 圈找机会、约见同行,更有效的线下抓手是?',o:['海投简历等电话','只在招聘软件上等','行业社区、展会与沙龙的线下活动','闭门自学'],ans:2,ex:'AI 圈线下活动密度高,内推效率远高于海投;模速空间等行业社区是重要入口。'},
+ {q:'从售前视角判断一家 AI 公司值不值得去,最该看?',o:['融资新闻热度','办公室装修','发布会排场','产品真实落地案例与客户复购'],ans:3,ex:'落地案例和复购说明产品能交付,售前进去才有弹药。'}],
+C:[
+ {q:'3 分钟 AI demo 的合理结构是什么?',o:['先讲公司发展历史','业务痛点 → 现场演示出数 → 归因解读 → 价值小结','把所有功能挨个演示一遍','只放宣传视频'],ans:1,ex:'先痛点后价值,让客户看到「自己的问题被解决」。'},
+ {q:'POC 测试集应该怎么建?',o:['随手编 5 个问题','只挑最简单的问题','用客户真实数据与真实业务问题,逐题写明预期答案与统计口径','让客户现场随便问,答不上算输'],ans:2,ex:'测试集是 POC 的标尺,也是保护你自己。'},
+ {q:'方案书的 AI 章节必须写清楚什么?',o:['只写愿景','适用场景、前置条件、能力边界与分期建设','只放架构图','竞品的缺点'],ans:1,ex:'把边界写清,售前才不会在交付期背锅。'},
+ {q:'需求调研阶段,下面哪个问题最有效?',o:['「现在哪些取数、做报告、写材料的活最花时间?」','「你们想不想上大模型?」','「你们了解 Transformer 吗?」','「预算多少?」'],ans:0,ex:'从高频重复劳动切入,需求最真实,也最容易映射到方案。'},
+ {q:'客户数据很乱但又急着要效果,建议怎么做?',o:['直接拒绝客户','答应一周内全部上线','选小场景切入,数据准备并行推进,分期交付','建议客户先别做了'],ans:2,ex:'小步快跑比大承诺更可信。'}],
+D:[
+ {q:'把「维护了 80 家客户」写成售前简历语言,最好的处理是?',o:['原样照抄数字','提炼成能力叙事:深入制造、零售一线,理解数据决策流程,支撑高频方案沟通,并附证据','删掉这条经历','写成「打杂」'],ans:1,ex:'数字是证据,叙事是能力;售前岗筛的是「能不能面对客户讲方案」。'},
+ {q:'STAR 法则的四个字母指?',o:['情境、任务、行动、结果','产品、价格、渠道、促销','计划、执行、检查、处理','优势、劣势、机会、威胁'],ans:0,ex:'STAR 是把经历讲成能力证据的标准结构。'},
+ {q:'售前面试自我介绍的最佳结构是?',o:['从小学讲到大学','只讲兴趣爱好','定位句 + 证据链 + 与岗位的匹配点','背公司简介'],ans:2,ex:'前 30 秒决定面试官听不听你后面的话。'},
+ {q:'简历上的 AI 关键词应该怎么处理?',o:['能堆多少堆多少','只写真懂的,每个都经得起两轮追问','全靠形容词','写错也没人查'],ans:1,ex:'面试官一定会追问;一条「能讲两层」的关键词胜过十条虚的。'},
+ {q:'售前作品集最该包含什么?',o:['生活照','证书扫描件','朋友圈截图','demo 录屏 + 一份方案 + 一个测试集,全是可验证证据'],ans:3,ex:'没有售前工牌,就用作品集当能力证明。'}],
+E:[
+ {q:'HR 面问离职原因,最佳策略是?',o:['细数前东家的问题','往前看,讲行业判断与成长逻辑,不抱怨前东家','就说钱没给够','说随便看看'],ans:1,ex:'面试官在评估你以后怎么说新公司。'},
+ {q:'面试官问的技术细节答不上来,标准动作是?',o:['现场编一个','保持沉默','记录问题、给出跟进思路,必要时诚实划边界并约定补充','反问面试官'],ans:2,ex:'不过度承诺、有闭环,反而建立信任。'},
+ {q:'谈 offer 时更稳的做法是?',o:['报一个死数不松口','先摸行情,报区间并锚定总包结构,留谈判空间','让对方随便给','只看底薪不看结构'],ans:1,ex:'AI 公司总包里期权与绩效占比可能很高,必须看结构。'},
+ {q:'背调阶段最需要注意的是?',o:['提前跟前同事打招呼统一口径','夸张原薪资','保持与前东家的体面关系,信息前后一致','隐瞒经历'],ans:2,ex:'背调查的是一致性与口碑;销售岗的客户口碑同样是资产。'},
+ {q:'面试尾声主动提「入职后 90 天计划」的价值是?',o:['显得着急','占用时间','没有价值','展示上岗思路与确定性,是资深度的加分项'],ans:3,ex:'售前入职最重要的是快速产弹药,90 天计划正好证明这一点。'}]
+};
+
+/* ================= 内置学习材料 ================= */
+var LESSONS={
+"w1.0":{t:"精读 2 篇大模型入门长文",time:"约 2 小时",why:"后面所有话术、面试回答、方案写作的地基。面试官考察转型者,第一题几乎都是「你对大模型的理解是什么」——这三篇文章就是你的答案库。",
+mat:[
+{k:"长文 1",n:"大模型第一课:它到底是个什么东西(售前版)",b:"## 一个类比先记住\n大模型就像一位「读过全网资料的实习生」:知识面极广、语言流畅、反应快,但没进过你们公司、记性不可靠、会为了把话说完而编造。这个类比能解释它的大部分行为,也能帮你预判客户的失望点。\n## 它是怎么被训练出来的\n训练分两步。第一步预训练:在海量文本上玩「文字接龙」——给定前文,预测下一个词;预测得多了,它学会了语法、事实和推理的风格。第二步对齐:用人工标注的问答和人类反馈再调,让它学会按指令回答、承认不知道。你不需要懂数学,但要记住:它的能力来自「读得多」,不是「理解世界」。\n## 涌现:量变带来的质变\n小模型只会接话,大模型突然会推理、写代码、做翻译——这叫涌现能力。它解释了两件事:为什么各家拼命卷参数和算力;以及客户用小模型试完的失望,不能外推到大模型,反之亦然。\n## 它真正擅长的五件事\n语言生成(报告初稿、邮件)、总结提炼(纪要、摘要)、转换改写(翻译、语气调整)、分类抽取(打标签、提字段)、辅助分析(给框架、找角度)。共同点:对精确要求低、对通顺要求高。\n## 它做不好的四件事\n精确计算(数字要靠工具算)、实时信息(训练截止日之后的事不知道)、可靠记忆(会幻觉)、合规判定(责任不能交给概率)。售前的价值,就是把客户的期待从这四件事上挪开,放到它擅长的事上。"},
+{k:"长文 2",n:"从 ChatGPT 到企业落地:能与不能",b:"## 企业用 AI 的四个层级\nL1 聊天问答(通用知识)→ L2 知识库问答(RAG,答案有出处)→ L3 生成查询(NL2SQL,数字来自系统)→ L4 智能体(Agent,跨系统干活)。层级越高越可信也越难;售前方案的本质,是帮客户选对层级,而不是堆功能。\n## 场景四象限:容错 × 结构化\n- 低容错+高结构化(财务对账):传统系统为主,AI 辅助\n- 低容错+低结构化(法务判定):人主导,AI 辅助\n- 高容错+高结构化(取数、报表):AI 主导,最先落地\n- 高容错+低结构化(文案、初稿):已成熟\n推荐场景永远从「高容错+高结构化」这个象限开始。\n## 客户问成本时说什么\n成本三块:调用/算力费(随 token 用量)、部署与集成(一次性)、数据治理与运维(长期)。公有 API 最便宜但数据出域;私有化最贵但数据不出域;专属介于两者。你的动作:讲结构不报价,拉架构师接。\n## 五个常见误区\n「换个更大的模型就准了」「AI 能自己理解口径」「先买模型再找场景」「demo 好等于生产好」「一次交付永久有效」。每一条都是会议室里要当场拆的雷。\n## 给售前的三条纪律\n不承诺具体准确率数字,承诺验收方法;不贬低客户自研,给成本对比;不吹通用能力,只讲客户场景里的具体收益。"},
+{k:"长文 3",n:"一张图记住大模型技术版图",b:"## 五层版图(从下往上)\n第 1 层 基础模型:预训练出的大模型本体,决定能力上限。国内外多家,迭代极快,售前不需要背榜单,只需要知道「模型可替换」。\n第 2 层 推理与增强:提示词、思维链、检索增强(RAG)、微调——不换模型,把同一个模型用出十倍效果,工程性价比最高的一层。\n第 3 层 工具与执行:函数调用、代码解释器、连接器——让模型能读数据库、调接口、跑代码,从「会说」变「会做」。\n第 4 层 编排与记忆:Agent 框架、工作流、长期记忆——把单次问答组装成多步骤任务。\n第 5 层 应用与场景:ChatBI、知识助手、行业 SaaS——客户真正买单的一层。\n## 这张图怎么用\n客户说「我们买个模型就行」:指着第 2-4 层说,模型只是地基,价值在这三层工程里。客户问「你们和别家模型有什么区别」:把比较从第 1 层拉到第 5 层——客户买的不是模型,是场景里的落地效果。\n## 一句话总结\n第 1 层卷得最凶,第 2-4 层最见功力,第 5 层才收费。"},
+{k:"方法",n:"精读怎么读才不白读",b:"- 第一遍通读,画出每篇的结构(几个部分、各讲什么)\n- 第二遍摘抄:每篇摘 3 句能直接对客户说的话\n- 第三遍脱稿讲 5 分钟,讲给空气听;卡壳处回读\n> 检验标准:你能不看原文,用实习生类比讲清「它为什么会胡说八道」,并画出五层版图。"}],
+how:["三篇长文各读两遍,第三遍脱稿复述","把 12 句能对客户说的话摘进素材库","卡壳的段落标记,明天再讲一次"],
+out:"每篇 3 句总结存进素材库;五层版图能默画——面试被问「聊聊你对大模型的理解」时直接调用。"},
+"w1.1":{t:"每天实操 20 分钟",time:"每天 20 分钟 × 7 天",why:"面试官判断你是「背概念的人」还是「真用户」,三个问题就能问出来。每天 20 分钟,一周后你就是后者。",
+mat:[
+{k:"清单",n:"五天练习循环",b:"- 总结日:丢给它一份长文或会议记录,让它出三句摘要 + 行动项\n- 改写日:同一段话改三种语气(给领导/给客户/给同事),比较差异\n- 追问日:连续追问 5 层深挖一个话题,观察它什么时候开始含糊\n- 角色日:让它扮演挑剔客户或面试官,和你对练 10 分钟\n- 约束日:限定字数/格式/受众重做任务,体会约束的价值"},
+{k:"教程",n:"提示词工程完整入门",b:"## 五要素详解\n角色:告诉它「你是谁」,决定视角和口吻。例:你是一位制造业数字化顾问。\n任务:一个动词开头的目标。例:把下面需求清单改写成方案目录。\n背景:对方需要知道的前因。例:客户是年营收 20 亿的离散制造,刚换了厂长。\n约束:字数、格式、禁项、输出结构。例:不超过 500 字,先结论后论据,不用形容词。\n示例:给它一个样板,它就会照着做。例:参考这个格式输出。\n## 追问五式\n- 换角度:换个身份再答一遍\n- 挑毛病:请你批评上面这段话最弱的论点\n- 给反例:举两个不符合这个结论的例子\n- 要步骤:把结论展开成可执行步骤\n- 压缩:把以上压缩成三句话\n## 六个常见错误\n不给背景;一次问三件事;不复核输出;把首次答案当终稿;不限定格式导致没法用;敏感数据直接贴(先脱敏)。"},
+{k:"小抄",n:"一个完整提示词示例",b:"角色:你是一位制造业售前顾问。\n任务:请把下面这段方案摘要改写成给财务负责人看的一页纸。\n背景:客户是年营收 20 亿的离散制造企业,最关心成本与投入产出。\n约束:不超过 500 字;先结论后论据;分「现状/方案/分期投入/预期收益」四节;不用营销形容词。\n示例:参考这种句式——「目前 X 环节每年消耗 Y 人天,方案后预计降为 Z」。\n原料:(贴方案摘要)"}],
+how:["按五天循环练,每天换一种","每天记录最好与最差的一次输出,写一句差在哪"],
+out:"一周后你能脱口而出三个自己的真实使用案例,并且能现场手写一个五要素齐全的提示词——这是面试硬通货。"},
+"w1.2":{t:"背熟六个词的通俗解释",time:"约 40 分钟",why:"幻觉、Token、上下文、RAG、微调、Agent——六个必考词。背熟的不是定义,是「讲给外行听」的版本。",
+mat:[
+{k:"词卡",n:"六个词 × 通俗解释 × 售前用法",b:"## 幻觉\n模型不是查数据库,是按语言概率「续写」,所以会一本正经地编。售前话术:它像一位读过全网资料但记性不可靠的实习生,所以要配审核与兜底。\n## Token\n模型按「片段」读写文字,一个汉字约 1-2 个 token;计费、上下文上限、限速都按 token 算。客户问成本,从 token 说起。\n## 上下文窗口\n模型一次能「记住」的对话长度上限,超了会忘开头。所以企业场景要摘要、要检索,不能无限聊。\n## RAG\n先从你的资料库里检索相关内容,再让模型「看着材料回答」。答案有出处、可更新,是企业问答的主流方案。\n## 微调\n用你的数据继续训练,改变模型的风格与倾向;贵、慢,适合量大稳定的任务。先试 RAG,不行再谈微调。\n## Agent\n给模型配工具和流程,让它「会干活」:查数、调接口、跑多步任务。演示的高光时刻。"},
+{k:"讲稿",n:"六词 90 秒连环讲(背熟)",b:"「这六个词其实是三个问题。第一个问题:它靠什么说话——Token 是它的计量单位,上下文是它的记忆容量,超了就忘,这是它的物理极限。第二个问题:它不可靠怎么办——幻觉是它的天性,所以企业方案里要用 RAG 让它看着材料回答,微调让它更像你的员工,但都除不了根,必须配审核。第三个问题:它能不能干活——Agent 就是给它配手和脚,能查数、调系统、跑流程。我们卖的不是它多聪明,是我们怎么把它管好用好。」"},
+{k:"对照",n:"每词配一个客户问题",b:"| 词 | 客户会怎么问 |\n| 幻觉 | 它会不会一本正经胡说? |\n| Token | 用一次要花多少钱? |\n| 上下文 | 能不能把我们十年文档全喂给它? |\n| RAG | 答案有出处吗?资料更新了怎么办? |\n| 微调 | 要不要拿我们数据训练一个自己的? |\n| Agent | 它能直接帮我把这事办了吗? |"}],
+how:["每个词配一个客户问题,自问自答一遍","90 秒连环讲录音,回听删废话"],
+out:"六词各一句通俗版 + 90 秒连环讲脱稿。"},
+"w1.3":{t:"模块 A 自测 ≥ 80 分",time:"约 20 分钟",why:"用题目倒逼查漏。80 分不是目的,答错后能回到材料把原理讲清才是。",
+mat:[{k:"考点",n:"模块 A 五考点与回看索引",b:"| 考点 | 答错回看 |\n| 幻觉定义与应对 | 长文 1 · 它是怎么被训练出来的 |\n| RAG 目的与机制 | 长文 2 · 四个层级;第 2 周 RAG 深入 |\n| 行业适配默认路线 | 提示词与 RAG 优先于微调(第 2 周微调小百科) |\n| Agent 与对话区别 | 长文 3 · 第 3、4 层 |\n| 适合/不适合任务 | 长文 1 · 擅长五件事、做不好四件事 |"}],
+how:["先测一遍,答错按索引回看,隔两天重测","连续两次 80+ 才算稳"],
+out:"模块 A 最佳成绩 ≥ 80,错题全部回讲一遍。"},
+"w2.0":{t:"脱稿讲 3 分钟:RAG 和微调怎么选",time:"约 90 分钟",why:"专业面出现率最高的一题。讲得清,你就从「销售转岗」变成「懂落地的售前」。",
+mat:[
+{k:"长文",n:"RAG 深入:从原理到评估",b:"## 为什么企业离不开 RAG\n模型只知道训练截止日之前、公开世界的事;企业要它答内部知识,而且知识每天都在变。重新训练模型不现实,所以把资料放在外面、提问时现查——这就是 RAG(检索增强生成)。\n## 五步流水线\n问题进来 → 把问题转成向量、去资料库检索相似片段 → 取回 Top N 段(通常 3-10)→ 拼进提示词让模型「只根据这些材料回答」→ 附上出处。向量库(如 Milvus、pgvector 等)就是按「语义相似度」存取片段的仓库。\n## 三件决定成败的工程活\n切片:文档切成多大的一段?切太大检索不准,切太小丢上下文;常见 300-800 字,带重叠。\n检索:光靠向量相似不够,常加关键词混合检索和重排(先用粗筛捞 50 段,再用小模型精排取 5 段)。\n更新:资料变了要重新入库,所以要有人管、有流程——知识库不是建完就完。\n## 怎么评估好坏\n两问:该找到的找到没有(召回),答的和材料一致没有(忠实)。企业做法就是建测试集:50 组「问题 + 标准出处」,每次调优跑一遍,用数字说话。\n## 三种典型失败\n检索不到(资料没入库或切坏了)、检索错了(相似但不相关)、模型没听话(弃材料自由发挥)。每种失败都有对应修法,这就是售前能讲出「工程感」的地方。"},
+{k:"小百科",n:"微调:什么时候值得",b:"微调用你的数据继续训练模型,改的是「风格与倾向」,不是「知识」。值得做的三种情况:格式高度固定的任务(单据提取)、语气/术语必须像自己人、同一任务量极大摊薄成本。前提:至少几千条高质量标注样本、明确的评估集、可承受的迭代周期。风险:贵、慢、模型升级要重做、除不了幻觉。口诀:能用提示词解决的别用 RAG,能用 RAG 解决的别用微调。"},
+{k:"逐字稿",n:"3 分钟讲稿(背熟后改成自己的话)",b:"开场:客户问我「要不要拿我们的数据训练一个自己的模型」,我一般用图书馆和师徒制打比方。\nRAG 是图书馆:书(企业资料)放在架子上,来问题了先查再答。特点:资料当天更新当天生效,答案有出处,适合知识问答、制度查询、报告引用。\n微调是师徒制:老师傅(模型)跟着你的案例学,学完不带书也会按你的风格做事。特点:改的是习惯不是知识,适合固定格式的单据处理、稳定的输出风格;但贵、慢,知识更新要重新练。\n选择三问:知识更新快不快?要的是准确引用还是风格统一?预算和数据量够不够?——绝大多数企业场景,先 RAG 后微调。\n收尾一句边界:微调解决不了幻觉,它只是让模型更像你,不是更像真相。"},
+{k:"追问",n:"高频追问与接法",b:"- 「RAG 就一定准吗?」→ 检索错了照样答偏,所以要做切片调优和测试集评估\n- 「能不能两个都上?」→ 能;RAG 打底,微调做风格\n- 「我们数据少能微调吗?」→ 高质量样本少于几千条效果不稳定,先别\n- 「向量库要自己建吗?」→ 看产品形态,成熟产品内置,客户通常只管喂数据"}],
+how:["先读长文,再背逐字稿,脱稿讲并录音","用图书馆/师徒制类比讲给一个外行听,让对方复述"],
+out:"一段 3 分钟、不看稿、能应付四类追问的讲解。"},
+"w2.1":{t:"读 NL2SQL 原理并画流程图",time:"约 90 分钟",why:"问数类产品(ChatBI)的技术底座就是 NL2SQL。客户问「它是怎么算出来的」,你的答案就是这张流程图和语义层。",
+mat:[
+{k:"长文",n:"NL2SQL 与语义层完整入门",b:"## 是什么\n把「上季度华东销售额多少」翻译成数据库能执行的 SQL,由数据库算出真实数字——模型负责翻译,不负责记数。数字永远来自系统,这是它和「直接问模型」的本质区别。\n## 七步流程(就画这张图)\n用户提问 → 意图理解 → 检索相关表和指标(语义层)→ 生成 SQL → 引擎执行 → 出数 → 模型解读。\n## 为什么表多就乱,语义层为什么救场\n直接把几百张表丢给模型,它经常挑错表、用错口径。语义层的做法:先把「指标」定义清楚——销售额=回款表.含税金额,维度=区域/产品线/时间——问数时只检索这些定义好的指标,而不是裸表。企业级产品都走这条路,这就是「答案在你们手里,不只在模型手里」。\n## 一个指标定义长什么样\n指标:销售额。口径:财务回款口径,含税。来源:回款表.金额字段,状态=已核销。维度:区域、产品线、月份。负责人:财务部张三。——有这四样,问数才答得准;没有,同一个词各说各话。\n## 两个流派\n提示词派(快,表一多就乱)vs 语义层派(先建口径层,准而稳)。企业级基本走向语义层。\n## 答偏了怎么归因\n表命名混乱/字段无注释/指标无口径/问题超纲(多条件嵌套)/样例不足——不是换个更大的模型就能解决。"},
+{k:"话术",n:"归因对照表(答偏时的现场用法)",b:"| 现象 | 原因 | 现场话术 |\n| 数字对但口径怪 | 指标定义缺失 | 这个词贵司有两种算法,我们把口径定下来它就稳了 |\n| 张冠李戴 | 表/字段命名不清 | 命名贴业务一点,准确率立刻上一个台阶 |\n| 直接说不知道 | 超出已定义范围 | 这是好事,它没编;把这类问题补进指标库 |\n| 多条件就乱 | 复杂度超纲 | 先拆成两问,分期把复杂查询做进去 |"},
+{k:"画图",n:"流程图怎么画 + 怎么用",b:"画七个框加箭头;在「检索相关表和指标」框下标注:这一步就是 RAG 思想在数据领域的应用——检索的是指标定义而不是文档段落。\n> 面试用法:被问「ChatBI 准确率怎么样」时,先画这张图,再指着「语义层」框说:上限在数据治理,我们方案里带了口径梳理。"}],
+how:["读完合上文章画流程图,画不出处回读","给流程图每个框准备一句话解释","把一个指标的定义写出来(照长文模板)"],
+out:"一张流程图 + 七句话解释 + 一个指标定义示例。"},
+"w2.2":{t:"三种部署形态与数据安全讲法",time:"约 60 分钟",why:"金融、国企、外企客户的第一问永远是数据安全。这题答砸,后面全白讲。",
+mat:[
+{k:"对照表",n:"三种部署形态对照",b:"| 维度 | 公有 API | 专属云/专属模型 | 私有化部署 |\n| 数据 | 出域(加密传输) | 部分隔离 | 完全不出域 |\n| 成本 | 按 token 付费,起步最低 | 中,包月/包年 | 最高,含算力 |\n| 周期 | 当天可用 | 1-2 周 | 1-3 个月起 |\n| 模型升级 | 跟随厂商,最快 | 定期升级 | 自主控制,较慢 |\n| 适合 | 内部尝试、低敏场景 | 中大型企业主流 | 强监管行业 |"},
+{k:"话术",n:"数据安全三段式答复",b:"第一段讲在哪:模型部署在哪里,数据就在哪里处理。\n第二段讲边界:敏感字段可脱敏、可字段级拦截;权限沿用现有账号和行级权限,AI 不越权。\n第三段讲合同:保密条款、数据用途范围、删除机制写进交付边界。\n> 纪律:不承诺「绝对安全」,承诺「机制 + 可审计」。"},
+{k:"长文",n:"企业数据安全与合规要点(售前必读)",b:"## 数据分级先行\n售前第一步不是讲产品,是问分级:哪些数据是核心(客户名单、财务、生产参数)、哪些可内部流转、哪些可出测试环境。分级不清,方案无从谈起。\n## 四个通用机制\n脱敏:手机号、证件号、姓名在进入模型前变形,常用可逆/不可逆两种。\n权限:AI 的权限永远小于等于人的权限——某人只能看本部门数据,他问 AI 也不能看到更多。行级/列级权限沿用现有体系,而不是重建一套。\n审计:谁在什么时候问了什么、AI 检索了哪些资料、给了什么答案,全留痕,可回放。\n物理隔离:强监管客户常见要求——模型和数据库都关在客户机房或专属 VPC 里,断外网。\n## 合规红线常识\n个人信息要有授权与最小必要原则;重要数据出境有评估要求;行业(金融/医疗)另有细则。售前不背法条,但要会说「这块我们方案里对应的是XX机制,法务细节请合规团队把关」。\n## 常见客户疑问三连\n「模型会不会把我们的数据学进去帮别人?」——讲训练与推理的区别:推理阶段不更新模型参数,标准合同里明确不用于训练。\n「万一泄了谁负责?」——责任条款+保险+审计三件套。\n「能不能完全不联网?」——能,私有化+离线更新包,代价是升级慢。"}],
+how:["对照表背到能默写","三段式写成 100 字标准答案","长文过两遍,能复述四个机制"],
+out:"一张对照表 + 100 字安全答复 + 四个机制各一句解释。"},
+"w2.3":{t:"整理 10 个「光有模型不够」的例子",time:"约 45 分钟",why:"客户最容易高估模型、低估工程。这十个故事是你把期待拉回地面的工具,也是「懂落地」的最快证明。",
+mat:[{k:"例子库",n:"十个现成例子(换成你的口吻)",b:"- 口径:销售问「营收」,财务算含税、销售算回款——模型没定义就会答偏。答得准靠指标口径,不靠模型大小。\n- 权限:实习生问出了只有 CEO 能看的数,不是模型聪明,是权限没管住。\n- 实时:模型只知道训练截止日;今天的库存它不知道,要靠查询接口。\n- 验收:没有测试集,「感觉挺准」三个月后变成「感觉不准」,谁都说不清。\n- 运维:上线没人管切片、没人补新资料,三个月后知识库变成古董。\n- demo 与生产:演示用 20 个问题调到全对,生产环境一天 2000 问,没治理一定翻车。\n- 无 Owner:项目交付后业务和 IT 互相以为对方在管,半年后没人说得出系统还准不准。\n- 过度承诺:销售期说「什么都能问」,交付期变成「这些不能问」,客户信任崩塌。\n- 数据脏:字段叫「X1/X2」,注释为空,再强的模型也只能猜。\n- 一次交付:业务在变、口径在变,没有运营机制的 AI 项目是逆水行舟。\n> 用法:每个例子配一个开头句(「您这个担心特别真实,我们见过...」),挑三个练到 30 秒讲完。"}],
+how:["挑三个最贴近你行业的例子,练到 30 秒版","全部存进异议库"],
+out:"十个例子入库,三个能脱口讲。"},
+"w3.0":{t:"拆一份完整售前方案范本",time:"约 90 分钟",why:"方案写作是售前的看家本领。先拆别人的,再写自己的——最快的路径。",
+mat:[
+{k:"模板",n:"标准方案结构 + 每章看什么",b:"| 章节 | 看什么 |\n| 背景与理解 | 是否复述了客户的话;有没有写错客户名 |\n| 需求分析 | 需求是分了优先级,还是罗列 |\n| 总体架构 | 一张图讲清数据流;有没有说不清的框 |\n| 场景方案 | 每个场景是否 痛点→方案→价值 三段闭环 |\n| 实施路径 | 有没有分期;第一期范围是否克制 |\n| 服务保障 | 承诺了什么;边界写在哪 |\n> 评审口诀:方案不是功能清单,是「客户的问题 → 我们的回答」。"},
+{k:"示例",n:"一份 12 页方案的样子",b:"P1 封面(客户名+项目名+日期) P2 目录 P3 背景与理解(半页复述客户原话) P4-5 需求分析(三档优先级表格) P6 总体架构图(数据从哪来到哪去) P7-9 三个场景方案(每个一页,痛点/方案/价值) P10 实施路径(三期甘特) P11 服务保障与边界 P12 公司简介。规律:客户名字出现 ≥ 5 次的方案,赢面大;一次没有的,是模板。"},
+{k:"对照",n:"差方案 vs 好方案(三组句对照)",b:"差:本产品采用业界领先的 AI 引擎。好:针对贵司质检数据的三个高频问题,系统先做口径定义,再接入问数,预计首期覆盖 70% 的日常取数。\n差:系统功能强大,支持无限扩展。好:本期支持 50 个并发提问,扩容按模块计价,边界见第十页。\n差:提升企业数字化转型水平。好:质量周报从 3 天缩短到 10 分钟,涉及 X、Y 两个岗位共 6 人。"}],
+how:["找一份真实方案按表逐章拆","用双色笔标:承诺句(红)、边界句(蓝)","对照三组句,给自己的旧材料改写三句"],
+out:"一张拆解笔记 + 你总结的章节模板 + 三句改写练习。"},
+"w3.1":{t:"需求调研:15 个探针问题",time:"约 60 分钟",why:"需求调研决定方案质量。带着清单进场;不带清单,只能听客户念 PPT。",
+mat:[
+{k:"清单",n:"五组 15 问",b:"## 现状\n- 目前取数、做报表、写分析报告,分别花谁多少时间?\n- 现在用什么工具?最不满意的一点是什么?\n- 数据存在哪几个系统?谁在维护?\n## 痛点\n- 哪三个报表或数字,领导最常催?\n- 上一次因为数据出错或不及时吃亏是什么时候?\n## 数据与口径\n- 核心指标(如销售额)有书面定义吗?归谁管?\n- 数据更新频率?最老的数据多少年?\n## 组织\n- 这个项目的发起人是谁?最想看到什么变化?\n- IT、业务、采购里,谁可能反对?为什么?\n## 预算与节奏\n- 预算大概什么量级?今年必须花掉还是明年规划?\n- 有没有竞品在谈?卡在哪?"},
+{k:"技巧",n:"三个追问心法",b:"沉默法:问完就闭嘴,客户填补沉默时说出的往往才是真话。\n数字法:把形容词逼成数字——「慢」是多慢?「贵」是预算多少?\n例外法:问「哪次例外了」——规律讲场面话,例外讲真问题。\n> 调研的产出不是记录,是一页「速览+疑问清单」。"},
+{k:"模板",n:"一页纸调研记录格式",b:"客户与参会人 | 一句话现状 | 三个痛点(带数字) | 数据与口径现状 | 关键人的诉求 | 我方机会点 | 下一步与时间。\n面谈结束前当场填完,会后 24 小时内发给对方确认——这个动作本身就是专业度。"}],
+how:["15 问背熟结构(5 组 × 3 问),现场按组抽问","每个心法配一次模拟练习"],
+out:"一页打印版探针清单 + 一页纸记录模板。"},
+"w3.2":{t:"给朋友讲 15 分钟 AI 通识",time:"约 90 分钟",why:"能讲给外行听,才是真的懂。这场练习还会暴露你以为懂了的模糊点。",
+mat:[
+{k:"逐字稿",n:"15 分钟讲稿精简版",b:"(0-2 分钟)开场:今天不讲产品,讲清楚一件事——AI 到底能替你干什么。先说结论:它是一位读过全网资料的实习生。\n(2-6 分钟)实习生怎么来的:文字接龙预训练 + 对齐调教;涌现能力解释了为什么突然变聪明。擅长五件事:写、总结、改写、提取、给框架。做不好四件事:精确计算、实时、可靠记忆、合规判定。\n(6-9 分钟)企业怎么用:四个层级,聊天→知识库→问数→智能体;每升一级,可信度升一级,难度也升一级。选场景用四象限:从容错高、结构化强的先上。\n(9-12 分钟)落地三步走:试点(一个域+测试集)→扩面(复制到兄弟部门)→常态化(口径运营机制)。每步的周期和投入量级。\n(12-15 分钟)答疑。三个钩子穿插:「你们最花时间的是哪类报表?」「如果能当场答,你第一句问什么?」「你们最担心它什么?」"},
+{k:"兜底",n:"答不上来的三句话",b:"第一句:这个问题好,我想确认一下您问的是 A 还是 B。\n第二句:我的理解是...(讲已知部分),更底层的细节我确认后书面给您。\n第三句(收尾):今天记下三个问题,会后 48 小时统一答复——然后真的做到。"}],
+how:["讲之前把大纲发给对方","讲完收集 3 个没答上的问题,补进话术库","录音回听一次"],
+out:"3 个真实听众的问题 + 你的补答 + 一份能复用的讲稿。"},
+"w4.0":{t:"盘点销售经历的全部数字",time:"约 60 分钟",why:"转型的底气不是态度,是数字。数字盘不出来,简历和面试全是空话。",
+mat:[
+{k:"模板",n:"数字盘点表(含示例行)",b:"| 指标 | 数字 | 怎么来的 | 证明什么 |\n| 覆盖客户 | 80+ 家 | CRM 客户归属 | 客户沟通量与广度 |\n| 年拜访 | 400+ 次 | 周报汇总 | 勤奋与一线感 |\n| 大单 | 单笔 60 万 | 合同 | 复杂商机操盘 |\n| 续约率 | 90% | 客户名单 | 长期信任 |\n| 回款 | 年 XXX 万 | 财务对账 | 结果导向 |\n> 纪律:每个数字有出处;记不清写区间,不编。"},
+{k:"方法",n:"去哪找数字(冷启动)",b:"CRM:客户归属、商机金额、阶段转化。周报/月报:拜访量、推进动作。合同与回款记录:单笔规模、年度总额。老邮件与群聊:被点名感谢、救火记录。同事口碑:找两位老同事互相补——你会想起自己忘掉的高光。\n找完按上表填,再补一列「面试怎么用」一句话。"},
+{k:"翻译",n:"销售指标 → 售前语言",b:"| 销售指标 | 售前翻译 |\n| 客户 80 家 | 深入 2 个行业的一线需求现场 |\n| 年拜访 400 | 高频次需求倾听与方案沟通 |\n| 续约率 90% | 长期信任与交付口碑 |\n| 从 0 拓新行业 | 行业方法论可复制 |\n| 救火保单 | 高压场景的方案应变 |"}],
+how:["翻 CRM、周报、合同逐项填表","每个数字标注一句:面试怎么用","请一位老同事帮你补盲区"],
+out:"一张至少 8 行、带出处的盘点表 + 翻译后的表达。"},
+"w4.1":{t:"提炼 10 个 STAR 故事",time:"约 2 小时",why:"面试 80% 的问题最终都会落到「讲一个例子」。故事库的厚度,决定面试的从容度。",
+mat:[
+{k:"方法",n:"STAR 四步与常见病",b:"情境(S):一句话背景,让对方有画面。任务(T):要达成什么,最好带数字。行动(A):你具体做的 2-3 个动作,讲「我」不讲「我们」。结果(R):量化结果 + 一句沉淀。\n> 常见病:背景讲太久、行动讲成团队、结果没有数字、没有沉淀句。"},
+{k:"故事库",n:"10 个完整故事(按此改写成你的)",b:"## 1 攻坚大单\nS:跟进六个月的制造客户被竞品贴身,年框指标 50 万。T:必须拿下并守住。A:摸清新厂长最痛的三个报表;拉售前用客户真实口径做演示;先做测试数据验证再谈商务。R:签 60 万,续约三年。沉淀:痛点画像 + 方案先行。\n## 2 拓新行业\nS:公司从未进入医药行业,要求半年破零。T:从 0 到 1。A:扫 30 家列前五;借行业展会约见;把制造方案改写成医药版话术。R:签下 1 家标杆,复制 3 家。沉淀:行业切入方法论。\n## 3 救火挽留\nS:交付延期,客户高层扬言退款。T:保住客户。A:一周驻场;每天一页进展通报;把投诉整理成需求清单逐项销项。R:客户留下并增购。沉淀:把冲突变需求。\n## 4 跨部门协作\nS:客户要的行业方案需要产研支持,排期已满。T:两周内出 demo。A:把需求拆成「现成能力+小改动」两块;自己扛走文案与测试;只请产研做两小时接口。R:按期交付,方案进入公司模板库。沉淀:会拆需求的人不缺资源。\n## 5 带教新人\nS:组里来了应届销售,三个月不出单要走。T:留住并带出来。A:把客户分成「练手/观察/保护」三级;每周复盘一次录音;带他复盘一单输赢。R:第四个月开单,一年成骨干。沉淀:教是最好的学。\n## 6 数据驱动\nS:拜访量大但转化下滑。T:找出原因。A:把 200 条拜访记录按客户规模/行业/触点分类统计;发现中等客户转化最高;调整优先级。R:人均产出升 30%。沉淀:用数据找杠杆。\n## 7 拒绝不合理需求\nS:大客户要求免费定制开发,金额大但成本更高。T:不伤关系地拒绝。A:算出定制真实成本当面摊开;给替代方案(标准功能+流程微调);请产研出面背书。R:客户接受替代方案并续约。沉淀:拒绝要带着方案。\n## 8 最失败的一单\nS:志在必得的标杆单,演示当天环境崩溃。T:复盘止血。A:当晚写事故复盘;建立演示双环境与彩排制;亲自向客户补了一场。R:丢了单,但该客户第二年回来。沉淀:流程比运气可靠。\n## 9 学新东西最快的一次\nS:公司新推产品线,两周后要客户路演。T:从零到能讲。A:三天啃文档并跑通 demo;录音给自己讲;找售前要讲标录像拆结构;产出自己的讲稿。R:路演当场被客户邀请二次交流。沉淀:我的学习闭环文档-上手-输出。\n## 10 与售前配合最好的一次\nS:复杂竞标,五家比拼。T:赢下。A:和售前分工——我管客户与商务情报,他管方案与技术答辩;每晚对齐一次;我把客户每个评委的关注点整理成一页给他。R:技术分第一,中标。沉淀:好售前是销售最该投资的资源——这也是我想成为他的原因。"}],
+how:["按 10 个故事框架替换成你的真实经历","每个录 90 秒音频版,删到没废话","每场面试前按 JD 挑 3 个重点过一遍"],
+out:"10 个你自己的 STAR 故事 + 90 秒音频版。"},
+"w4.2":{t:"打磨一句话售前定位",time:"约 40 分钟",why:"「你是谁」讲不清,面试官就只能用「想转行的销售」定义你。",
+mat:[
+{k:"示例",n:"定位句三版演变 + 五个不同背景的示例",b:"V1(太泛):懂 AI 的销售。\nV2(聚焦):懂制造行业客户的 AI 售前。\nV3(差异化):在制造一线泡了几年、能把 AI 能力边界讲给业务听懂的售前——既懂客户怎么用数据做决策,也懂 AI 什么能做什么不能做。\n> 其他背景参考:零售背景→「懂门店与商品决策的 AI 售前」;金融背景→「懂合规与风控语言的 AI 售前」;技术转销售→「能自己跑通 demo 的业务型售前」。"},
+{k:"方法",n:"电梯测试法",b:"写 10 版;对 3 个人各说一遍,问他们记住了哪个词;票数最高的词进入终稿;终稿后接 20 秒证据链(一个数字 + 一个作品)。练到脱口而出,并准备正装版(面试用)和轻松版(社交用)。"}],
+how:["写 10 版筛 3 版,对 3 个人测试","终稿 + 证据链录音练熟"],
+out:"一句定位 + 20 秒证据链。"},
+"w4.3":{t:"双赛道调研,定主攻与备选",time:"约 2.5 小时",why:"「你想投哪类公司」是必考题。答案不能是感觉,是调研结论。",
+mat:[
+{k:"长文",n:"四类 AI 公司与售前角色详解",b:"## 基础大模型厂商\n卖能力(API/算力)。客户是开发者与大企业;售前更像解决方案架构师,技术门槛最高,薪资上限高。对转型者:除非技术底子好,否则先绕开。\n## Agent / 中间平台\n卖「自动化」。帮客户把流程交给 AI 跑;售前核心是流程拆解与集成边界;岗位数量增长最快。对转型者:友好,但要补流程知识。\n## 行业 AI SaaS / 交付商\n卖「行业场景」。金融/制造/零售垂直应用;售前既讲产品也讲行业;客户关系重。对转型者:最吃你的行业积累,重点考虑。\n## 数据智能 / ChatBI\n卖「准」。让业务自己问数;售前核心是数据口径、POC、测试集;与 BI 背景衔接最顺。对转型者:天然加分项,主攻首选。\n## 判断一家公司的三个硬指标\n有没有敢给你打的客户案例(能说出名字那种);售前 JD 里写「支撑赢单」还是「写标书」(前者有地位);面试时对方能否讲清产品边界(能讲清的公司不靠忽悠)。\n## 融资常识速览\n轮次:天使/种子→A→B→C...;B 轮前后产品基本成型,是转型者的安全区;C/D 轮看现金流与裁员新闻;造血能力>融资新闻。"},
+{k:"方法",n:"调研卡片(每家公司一张)",b:"产品与客户:主打产品、标杆客户、落地案例真实度\n融资与规模:轮次、人数、售前团队规模\n在招 JD:售前岗位要求里的高频词(也是你的差距清单)\n匹配点:我的行业经验、数据经验能对上哪条\n> 来源:公司官网与公众号、招聘软件、行业榜单、脉脉、展会参展商名单。"},
+{k:"决策",n:"主攻决策表",b:"| 维度 | 数据智能 | 泛 AI 应用 |\n| 背景加分 | 直接 | 需翻译 |\n| 岗位数量 | 中 | 多 |\n| 薪资上限 | 中高 | 高但波动 |\n| 学习成本 | 低 | 中 |\n结论写法:主攻 X(理由),备选 Y(保持每周一次投递)。"}],
+how:["两条赛道各调研 5 家,填卡片","按决策表打分,写下主攻结论和理由(面试直接用)"],
+out:"10 张调研卡 + 一段 60 秒的主攻陈述。"},
+"w5.0":{t:"做一个完整 demo 并录屏",time:"约 3.5 小时",why:"作品集的核心。没有售前工牌,demo 录屏就是你的能力证明。",
+mat:[
+{k:"逐字稿",n:"完整示例:制造业问数 demo 全文",b:"(开场 15 秒)「王总,您上次说,各产线的日合格率要等三天才能看到。今天我不用报表,直接问它:昨天各产线合格率。」\n(第一问)提问:昨天各产线的合格率。——出数,一句解读:「3 号线 96.2%,比上周降了 1.8 个点。」\n(第二问·加深)那 3 号线昨天都生产了哪些批次,哪个班次最低?——下钻展示。\n(第三问·归因)把 3 号线昨天的次品按原因分一下。——分类汇总,指出最大的两项。\n(边界演示 30 秒)「如果我问『上个月质量怎么样』——您看,它会反问我口径:是良率还是直通率?这就是不瞎猜。」\n(收尾 15 秒)「三天变十秒,而且口径是您定义的。下一步,我们可以挑贵司最关心的 10 个指标先跑试点。」"},
+{k:"清单",n:"脚本模板与录制 checklist",b:"脚本五段:痛点引入(20s)→由浅入深三连问(60s)→下钻归因(40s)→边界演示(30s)→价值收尾(15s)。\nchecklist:数据口径命名贴近行业;提前跑通全部问题;备两个备用问题;环境/字体/网速提前 30 分钟查;录两遍取第二遍;字幕加上,静音也能看懂。"},
+{k:"应对",n:"演示翻车五种现场与应对",b:"| 翻车 | 应对 |\n| 答非所问 | 太好了,正好演示它的边界——看它怎么澄清 |\n| 转圈很慢 | 边等边讲架构:「这一步在查您的口径定义」 |\n| 数据空 | 切备用问题,绝不当场修 |\n| 环境崩 | 掏出录屏:「我准备了完整版视频,我们看这个」 |\n| 客户摇头 | 停下问:「哪里和您的预期不一样?」——把演示变调研 |"}],
+how:["先写脚本再动手,不即兴","录完给一个人看,问他记住了一句什么"],
+out:"一段 3 分钟、带字幕的 demo 录屏 + 完整脚本。"},
+"w5.1":{t:"写一份含 AI 章节的行业方案",time:"约 3.5 小时",why:"面试笔试和试讲的常客。AI 章节写得好,直接拉开和应届生的差距。",
+mat:[
+{k:"成稿",n:"AI 章节完整示例全文(质量分析场景)",b:"## 4.2 智能问数与异常归因\n【场景】质量工程师目前每周需从 QMS、MES、ERP 三套系统手工汇总检验数据约 6 小时,异常批次追溯平均耗时 2 天,月末分析报告常延后一周。【方案】通过智能问数组件对接现有三套系统,工程师以自然语言提问即可获得跨系统汇总、趋势与排名;对异常批次自动关联批次号、班次、供应商与变更记录,形成一页归因视图;支持一键导出为周报初稿。【边界】涉及责任判定的结论仍需人工复核;问数准确性依赖指标口径定义,建议首期完成良率、直通率、次品原因码等 10 个核心指标的口径梳理;复杂多条件查询建议列入二期。【分期】第一期:1 个事业部,10 个指标,20 题测试集验收(完全正确率 ≥ 85%);第二期:扩展三个事业部并接入来料检验;第三期:预警自动归因与报告自动生成。\n> 这一节 400 字,胜过十页功能清单——场景、方案、边界、分期四件事全齐。"},
+{k:"模板",n:"四段式骨架与写法要点",b:"场景:写客户的事(谁、多久、多痛),禁止出现产品名。方案:能力映射到场景,一句一个动作。边界:至少三条(人工复核项/依赖项/排除项),这是专业度的来源。分期:第一期必须克制(一个域、少量指标、测试集验收),让客户赢在第一步。"},
+{k:"目录",n:"全方案页序参考",b:"P1 封面 P2 目录 P3 背景与理解 P4-5 需求分级 P6 总体架构 P7-9 场景方案(AI 章节嵌此) P10 实施路径 P11 服务与边界 P12 公司简介(详见第 3 周拆方案材料)。"}],
+how:["按骨架先搭全方案,再填 AI 章节","场景素材直接调用「行业场景手册」(学习中心 · 工具书)","边界段至少写 3 条","找一个懂行的人评审一轮"],
+out:"一份 10-12 页行业方案,AI 章节四段齐全。"},
+"w5.2":{t:"建 20 题测试集",time:"约 2 小时",why:"测试集是 POC 的标尺,也是保护你的合同武器。会建测试集的转型者,面试官会记住。",
+mat:[
+{k:"题库",n:"20 题示例(按此替换为你的业务)",b:"## 简单(10)\n- 上个月总销售额是多少?〔口径:回款含税〕\n- 上季度华东区域销量排名前五的产品?\n- 今年以来月度销售额趋势?\n- 上周各门店客流量?\n- 昨天生产线的不良品数量?\n- 上月新客户数量?\n- 本季度毛利率是多少?\n- 去年同期对比今年 Q1 销售额?\n- 当前库存周转天数?\n- 上月退货金额与原因分布?\n## 中等(7)\n- Q1 华东与华南的毛利率差异,主要来自哪些产品?\n- 上季度销量前 10 但毛利为负的 SKU 清单?\n- 近三个月 3 号产线各班次的良率对比?\n- 上月客单价下降的主要原因拆解?\n- 各区域回款周期排名与变化?\n- 上半年促销活动对毛利的影响?\n- 昨天各渠道的转化漏斗数据?\n## 刁钻(3)\n- Q1 各区域毛利率排名,剔除试销品\n- 去年 12 月与今年 1 月可比口径的销售额环比\n- 找出上季度「高销量低毛利且库存周转慢」的产品"},
+{k:"方法",n:"建集五步与验收条款",b:"五步:选 1 个业务域列 10 个核心指标 → 从业务口吻出题 → 每题手写预期答案与口径依据 → 分层 10/7/3 → 请业务同事审题真实性。\n验收条款示例:「以双方确认的 20 题测试集为准,完全正确率 ≥ 85%、口径偏差 ≤ 10% 视为通过;口径偏差指数值正确但口径与定义不符;未通过项双方联合归因并给予一次调优期。」——把验收标准写进 POC 文档,是对双方的保护。"}],
+how:["20 题全部带预期答案与口径","请业务同事审一遍真实性","把验收条款改写成你的版本"],
+out:"一页 20 题测试集 + 一段可签字的验收条款。"},
+"w5.3":{t:"模块 B、C 自测 ≥ 80 分",time:"约 25 分钟",why:"进入作品期前的知识体检。",
+mat:[{k:"考点",n:"B/C 考点详解",b:"B 五考点:两赛道售前差异(ChatBI 重口径,Agent 重流程集成)/被低估环节(数据准备与场景选择)/ChatBI 演示准备(客户口径)/上海线下抓手(行业社区展会)/判断公司(落地案例与复购)。\nC 五考点:demo 结构(痛点→演示→归因→价值)/POC 测试集(真实数据+预期答案)/AI 章节四件事(场景方案边界分期)/有效调研问题(高频劳动切入)/数据乱对策(小场景分期)。\n> 答错任一条,回到对应周材料回讲一遍再测。"}],
+how:["先测,错题回看,隔天重测"],
+out:"两个模块最佳成绩 ≥ 80。"},
+"w6.0":{t:"产出两版简历",time:"约 2.5 小时",why:"同一份经历,投两条赛道要有两套讲法。简历是敲门砖,也是你定位的检验。",
+mat:[
+{k:"成稿",n:"简历示例全文(数据智能向)",b:"张三 | AI 售前(数据智能方向)| 上海 | 138-xxxx | 链接:作品集\n定位:懂制造行业客户的 AI 售前——4 年 BI 销售,80 家制造客户一线需求经验,自制智能问数 demo 与 20 题测试集。\n经历一(2018-2022 某数据公司销售):\n- 维护制造/零售客户 80 家,年拜访 400+,续约率 90%,年回款 300 万+\n- 将客户高频取数需求整理为 3 套行业需求画像,被售前团队采纳为标准问卷\n- 主导 3 次 50 万级竞标的技术方案协作,技术分均列第一\n- 自学大模型与 ChatBI 原理,产出制造业问数 demo(20 题逐题验证)与行业方案一份\n技能:需求调研 / 方案写作 / ChatBI 原理与口径梳理 / demo 设计 / 大模型通识(RAG、Agent、部署形态,均可两轮追问)\n作品集:问数 demo 录屏 / 行业方案 PDF / 测试集\n> AI 应用向差异:经历里突出「流程耗时多少人天、推动工具化、量化节省」,定位句换成「懂业务流程的 AI 应用售前」。"},
+{k:"公式",n:"改写公式与三组示例",b:"动作 + 对象 + 数字 + 结果。\n原:负责客户维护 → 改:维护制造/零售客户 80 家,年拜访 400+,续约率 90%。\n原:配合售前做方案 → 改:主导 3 次竞标方案协作,技术分均列第一,中标率 67%。\n原:学习 AI 知识 → 改:自制问数 demo 覆盖 20 个业务问题,逐题验证准确率。"},
+{k:"规则",n:"过筛规则",b:"- 一页;关键词只写真懂的,每个都能扛两轮追问\n- 首屏三件套:定位句、三行数字、作品集链接\n- 招聘软件检索词命中:「售前」「解决方案」「AI」「ChatBI」「智能问数」至少出现三个\n- 文件名:姓名-售前-数据智能向.pdf;两个版本分开存,投错版本是硬伤"}],
+how:["先做数据智能版,再做 AI 应用版","两版各给一个外行看 10 秒,问记住什么","按过筛规则逐条自查"],
+out:"两版一页简历 PDF + 作品集链接。"},
+"w6.1":{t:"求职渠道资料完整化",time:"约 70 分钟",why:"渠道资料就是你的第二份简历,猎头和内推人都会先看它。",
+mat:[
+{k:"话术",n:"BOSS 打招呼三版全文",b:"投递版:「您好,看到贵司 AI 售前岗位。帆软 4 年销售、制造行业 80 家客户,转 AI 售前方向,已备问数 demo 与行业方案作品集,可发您 3 分钟看看?」\n猎头版:「X 姐,我在看 AI 售前(数据智能/Agent)方向,上海,期望到手工薪区间 X-Y。有匹配的岗位随时招呼,简历最新版发您?」\n内推版:「X 哥,贵司在招的售前岗和我的行业背景挺匹配,我做过问数 demo 和行业方案,方便发你看看吗?不合适也完全理解。」"},
+{k:"要点",n:"三平台优化清单 + 猎头合作要点",b:"BOSS:首句给价值;在线时段早 10 晚 8;已读不回 48 小时后跟进一次即止。猎聘:行业标签补全;薪资写区间;猎头主动聊先问岗位再说期望。脉脉:简介放定位句;加 AI 售前圈;匿名区核实薪资与公司口碑。\n猎头三问:这岗位open多久了?团队什么背景?面到第几轮了?——问得专业,猎头才把你当认真候选人。多家猎头推同一岗位要报备,避免简历撞车。"}],
+how:["三平台资料逐项过一遍","三版打招呼话术改成自己的口吻"],
+out:"三个平台资料完整 + 一套话术。"},
+"w6.2":{t:"两个赛道各列 15 家目标公司",time:"约 2 小时",why:"投递不能从「今天刷到谁投谁」开始。清单在手,节奏自己控制。",
+mat:[{k:"方法",n:"清单构建法 + 两赛道画像",b:"来源四路:招聘软件搜「AI 售前/解决方案」城市榜;行业媒体年度榜单;展会参展商名单;脉脉同行所在公司。\n表格字段:公司 | 赛道 | 产品 | 客户行业 | JD 链接 | 内推人 | 状态\n> 数据智能向画像:BI 厂商的 AI 产品线、ChatBI 创业公司、云厂商数据智能部门,约 15 家。泛应用向画像:Agent 平台、行业 AI SaaS(金融/制造/零售)、大模型厂商行业交付团队,约 15 家。上海聚集特点:大模型与 Agent 团队多在张江与徐汇滨江区;数据智能类多在市区写字楼;行业 SaaS 按行业聚集(金融在陆家嘴周边)。用地图软件把 30 家标一遍,通勤也就有了底。"}],
+how:["每赛道 15 家填进表格,进投递看板","标注每家的第一内推候选,没有就标待找"],
+out:"30 家清单进看板,每家有赛道标记。"},
+"w6.3":{t:"找到 5 个内推人",time:"约 70 分钟",why:"内推的简历通过率数倍于海投。前同事、前客户、行业群里的人,都是路径。",
+mat:[
+{k:"话术",n:"首触 + 二触模板",b:"首触:「X 哥,冒昧打扰。我在看 AI 售前方向的机会,贵司的 XX 岗位和我的行业背景挺匹配。我做过一个问数 demo 和一份行业方案,方便发你花 3 分钟看看吗?觉得靠谱想请你内推;不合适也完全理解,顺便想听听你对这个赛道的看法。」\n已读不回 5 天后二触:「X 哥,不打扰你,上周说的岗位我已直投,流程里了。你之前做的那个行业分享我很受用,回头请你咖啡。」——给台阶,留关系,不断联。\n被婉拒:「理解,岗位确实挑背景。我先把作品集留在你这儿,后面有合适的想着我,感谢!」"},
+{k:"方法",n:"关系三层盘点 + 维护清单",b:"第一层前同事(最容易):列 10 人,标 3 个最热心的。第二层前客户(最值钱):挑 2 位关系好且在新公司的。第三层行业社群:展会换过名片、群里活跃的,挑 3 位。\n维护三动作:每月给对方一条有用信息(文章/人脉/机会);求助时先给价值;内推成功或失败都要正式道谢。"}],
+how:["三层各标 3-5 人,按模板发出首批 5 条","记录每条状态:已发/已回/已看作品/已推"],
+out:"5 个已联系的内推候选,至少 2 个看过你的作品。"},
+"w7.0":{t:"两赛道各投 5 家试水",time:"一周内完成",why:"用市场反馈代替自我猜测。响应率数据会告诉你主攻哪条更顺。",
+mat:[{k:"方法",n:"A/B 对照法 + 响应率常识",b:"两版简历各投 10 家(每赛道 5 家 + 备用),同渠道同时段,记录:浏览率、回复率、约面率。\n行业常识基线:直投回复率 10-20% 属正常,内推 50%+,猎头 30%+。低于基线先改首屏三件套(定位句/数字/作品集链接),不是急着多投。\n周五汇总:两赛道分开算回复率——哪个赛道约面率高,第 8 周就把火力压过去,这就是「用数据定主攻」。\n> 记录字段:公司 | 渠道 | 投递日 | 响应日 | 响应类型(拒/约/默) | 备注。"}],
+how:["严格分赛道分版本记录","每收一个拒绝,看能否礼貌问一句原因"],
+out:"看板 10 家进入「已投递」以上 + 一张响应率对照表。"},
+"w7.1":{t:"每场面试 24 小时内复盘",time:"每场 30 分钟",why:"不复盘的面试,连输都不知道输在哪。24 小时内记忆最完整。",
+mat:[
+{k:"模板",n:"复盘 5 问",b:"- 面试官最关心什么?(记下他反复追问的点)\n- 哪个问题我最卡?原话记下来\n- 我暴露的最大短板是什么?\n- 下一场我要改的一件事(只选一件)\n- 这家还跟吗?下一步动作与时间"},
+{k:"示例",n:"一场真实复盘长什么样",b:"场次:某 ChatBI 公司一面(技术合伙人,50 分钟)。\n反复追问点:微调数据量级、测试集怎么建——他在挖真实动手能力。\n最卡问题:「微调要多少数据」——我只答了个大概区间,没敢展开。\n暴露短板:技术细节的量级感不足。\n下一场改一件:把三个量级数字背熟(微调样本量/向量库常见规模/POC 周期)。\n跟进:当晚发补答邮件 + 一页口径治理笔记。结论:继续跟,周三前跟进结果。"}],
+how:["面完当场写,别等回家","卡壳问题当晚补答,进异议库"],
+out:"每场一页复盘,累计成面试错题本。"},
+"w7.2":{t:"按面试反馈改话术",time:"约 40 分钟",why:"话术不迭代,同样的坑每周踩一次。",
+mat:[{k:"方法",n:"话术库结构与迭代三步",b:"库结构字段:问题 | 场景 | 三句式答案(观点/证据/落地) | 效果 | 改进 | 版本号。\n迭代三步:卡壳记录(原话)→ 按三句式改写 → 练 3 遍录音。\n> 改好了的标准:下一场同类问题,10 秒内开口,90 秒内收尾,且对方没有追问第三层。\n示例:原答「准确率还挺高的」→ 改「准确率取决于口径清晰度(观点);我自己的 demo 20 题过了 18 题,错的两题都是口径歧义(证据);贵司场景我建议先建 20 题测试集实测(落地)。」"}],
+how:["从本周复盘挑 3 个最卡的问题迭代入库"],
+out:"3 条 v2 话术入库。"},
+"w8.0":{t:"高频 30 问成稿",time:"约 4 小时",why:"实战页十一问 + 这 30 问,覆盖面试 90% 的题源。每题三句式:观点、证据、落地。",
+mat:[
+{k:"题库",n:"30 问清单(先自测再对照)",b:"## 转型动机(5)\n为什么转售前 / 为什么离开 / 为什么是 AI / 为什么是我们 / 五年规划\n## AI 认知(5)\n讲讲大模型 / RAG 和微调 / 幻觉怎么办 / Agent 是什么 / 怎么看开源闭源\n## 售前能力(6)\n怎么调研需求 / 怎么写方案 / demo 现场失败怎么办 / 怎么和销售配合 / 讲标经历 / POC 怎么设计\n## 经验证据(6)\n最有成就的单子 / 最难缠的客户 / 失败案例 / 和 IT 怎么协作 / 带过人吗 / 数据敏感度举例\n## 稳定性与薪资(4)\n能接受出差吗 / 抗压举例 / 期望薪资 / 手上还有哪些机会\n## 反问(4)\n问团队模式 / 问成功标准 / 问产品路线 / 问成长路径"},
+{k:"答案",n:"全部 30 问参考答案(三句式)",b:"## 转型动机\n| 问题 | 观点 / 证据 / 落地 |\n| 为什么转售前 | 我最享受的是「把方案讲进客户心里」那一段;四年里最好赢的单都是我主导方案协作;转岗是把长板变成主业 |\n| 为什么离开 | 行业判断:AI 是数据服务的自然延伸,我想站到落地一线;感谢帆软给我的行业底子;这是主动选择不是逃避 |\n| 为什么是 AI | 客户的问题从「要报表」变成「要答案」;我已经自己补了原理并做出 demo;这个方向值得我 all in 十年 |\n| 为什么是我们 | 贵司产品在 XX 场景有真实落地案例(举一个);我的行业客户资源和这个方向正好互补;我想在这里把售前做深 |\n| 五年规划 | 一到两年做硬售前,独立带 POC 和讲标;三年成为某个行业的方案专家;五年带团队或做行业产品负责人 |\n## AI 认知\n| 问题 | 观点 / 证据 / 落地 |\n| 讲讲大模型 | 是读过全网资料的实习生:广、快、但会编;它擅长生成总结改写,做不好精确计算与合规判定;企业用要配工程与兜底 |\n| RAG 和微调 | 先检索再生成 vs 用数据继续训练;知识更新快选 RAG,风格统一选微调;绝大多场景先 RAG 后微调 |\n| 幻觉怎么办 | 承认是天性,不回避;工程上让它「看着材料答」并低置信度时澄清;关键结论人工复核,写进方案边界 |\n| Agent 是什么 | 给模型配上工具与流程,从会说变会做;能查数、调接口、跑多步任务;演示最出效果但边界要讲清 |\n| 开源闭源怎么看 | 客户场景决定选型:强合规私有化常选开源,要服务与效果选闭源 API;我不站队,帮客户按四要素选(合规/成本/能力/运维) |\n## 售前能力\n| 问题 | 观点 / 证据 / 落地 |\n| 怎么调研需求 | 带探针清单进场,五组十五问;先把形容词逼成数字;产出一页速览加疑问清单,24 小时内回发确认 |\n| 怎么写方案 | 方案是问题到回答的映射不是功能清单;场景方案边界分期四件事必须齐;我的行业方案作品集里有完整示例 |\n| demo 现场失败 | 我有两层保险:双环境加彩排,外加录屏备份;真失败就顺势讲边界把它变调研;我经历过环境崩溃,后来建了彩排制 |\n| 怎么和销售配合 | 我做过四年销售,最清楚他要什么;售前管「为什么买」,销售管「为什么现在买»;提前对齐赢率判断,不做陪标工具人 |\n| 讲标经历 | 讲标是结构战:开场三分钟定调,演示留钩子,答辩预设十问;我主导过三次竞标技术分第一;有完整评分表方法论 |\n| POC 怎么设计 | 测试集先行,20 题 85% 线;口径与验收写进文档双方签字;POC 目标是验证也筛需求,不是免费干活 |\n## 经验证据\n| 问题 | 观点 / 证据 / 落地 |\n| 最有成就的单子 | 六个月被竞品贴身的大单;摸清新厂长三个痛点报表,用客户口径做演示;签 60 万续三年 |\n| 最难缠的客户 | 交付延期扬言退款的客户;驻场一周每天一页进展,把投诉变需求清单;客户留下并增购 |\n| 失败案例 | 演示日环境崩溃丢了标杆单;当晚写复盘,建立双环境与彩排制;该客户第二年回来了 |\n| 和 IT 怎么协作 | 把 IT 当第一客户不当工具人;方案先过 IT 可行性再上会;协作最好的一次技术分第一中标 |\n| 带过人吗 | 带过应届销售三个月开单;方法是把客户分级加每周录音复盘;教是最好的学 |\n| 数据敏感度举例 | 分析过自己 200 条拜访记录找出转化规律;中等客户转化最高,调整优先级后人均产出升 30%;好售前先会用数据说自己 |\n## 稳定性与薪资\n| 问题 | 观点 / 证据 / 落地 |\n| 能接受出差吗 | 售前的价值一半在现场;我销售期出差常态,每周 2-3 天没问题;家里也支持这个转型 |\n| 抗压举例 | 交付危机驻场那一周最有代表性;每天一页通报把不确定变确定;压力我靠节奏和闭环化解 |\n| 期望薪资 | 我摸过行情,我的预期区间是 X-Y;更看重总包结构和平台;具体数字愿意结合贵司体系谈 |\n| 手上还有哪些机会 | 有两三家在流程里,坦诚说;但贵司是我优先级最高的,原因是XX;不会拿 offer 互相压价,一周内给你们明确答复 |\n## 反问(挑两个问)\n| 问题 | 为什么这么问 |\n| 团队售前模式 | 听跟单型还是方案型,判断岗位含金量 |\n| 前六个月怎样算优秀 | 拿到成功标准,入职就照着做 |\n| 产品路线图 | 判断是卖愿景还是卖产品 |\n| 售前的成长路径 | 有没有方案专家/负责人的先例 |\n> 用法:先盖住右列自测,再对照改写;答案里的 XX 必须替换成你的真实数字与公司名,禁止背诵原文。"}],
+how:["每天一组(六天过完),先自测再对照","全部 XX 替换成真实信息","每题口述录音 90 秒版"],
+out:"30 问个人化答案库 v1。"},
+"w8.1":{t:"大模型模拟面试两轮",time:"每轮 30 分钟",why:"大模型是被你调教的免费面试官,比同学更狠、更不知疲倦。",
+mat:[
+{k:"prompt",n:"面试官调教模板(直接复制)",b:"你是一位上海 AI 公司的售前负责人,正在面试一位从 BI 销售转型 AI 售前的候选人(我)。规则:1) 每次只问一个问题;2) 我的回答如果空泛、没有数字、没有例子,你要追问「能举个具体例子吗」;3) 连续两轮答不好,直接指出问题;4) 面试 10 题后,给我逐题评分和 3 条改进建议。先从「请用 3 分钟介绍你自己」开始。"},
+{k:"题单",n:"第二轮·技术合伙人追问清单(10 题)",b:"RAG 的检索失败有哪些模式?/ 向量库选型看什么?/ 微调样本量级与成本量级?/ NL2SQL 为什么会答偏?/ 语义层包含哪些对象?/ 私有化部署的资源清单?/ 测试集怎么分层怎么算分?/ Agent 的边界与失败兜底?/ 幻觉在企业场景的三种兜底?/ 客户问「准确率 99%」你怎么接?\n> 每题先自答,再让它评分,把答不到两层的标记回看第 2 周材料。"}],
+how:["第一轮通用,第二轮技术向","被追问倒的点全部记进复盘"],
+out:"两轮模拟记录 + 改进清单。"},
+"w8.2":{t:"录音回听,改 3 处表达",time:"约 40 分钟",why:"自己听录音是进步最快的笨办法。你会找到口头禅、绕圈子和超时。",
+mat:[{k:"方法",n:"回听三查 + 十项自查表",b:"三查:一查口头禅(数「就是说/然后/其实」次数,目标减半);二查结构(每段第一句是不是结论);三查时长(自我介绍 ≤ 3 分钟,任何回答 ≤ 2 分钟)。\n十项自查:结论先行 / 有数字 / 有例子 / 没有贬低前东家 / 没有绝对化承诺 / 语速稳 / 停顿自然 / 听完再答 / 承认不知道时从容 / 收尾有下一步。\n> 每次只改 3 处,改完再录一遍对照。"}],
+how:["挑一段 10 分钟录音逐条对照","写出改前改后三组对照句"],
+out:"3 处具体修改(对照形式)。"},
+"w9.0":{t:"3 分钟自我介绍脱稿",time:"约 2.5 小时",why:"自我介绍是全场定调。背稿会僵,脱稿靠结构。",
+mat:[
+{k:"逐字稿",n:"3 分钟完整版全文(按此改写)",b:"(我是谁,20 秒)「面试官好,我是张三,做了四年帆软销售,服务八十家制造和零售客户,现在转向 AI 售前,方向是数据智能。」\n(为什么转,40 秒)「转行的念头来自客户的变化——他们的问题从『给我一张报表』变成『这个数为什么涨』。为了回答好这个问题,我从今年开始系统补大模型和问数产品的原理,不是看公众号,是自己动手:跑通了 demo,建了测试集,写了一份行业方案。」\n(凭什么行,80 秒)「三点。第一,行业理解:四年一线,我最清楚制造客户每天被哪三个报表催。第二,表达能力:我最好赢的三个单,都是我主导方案协作,技术分第一。第三,学习闭环已验证:我的问数 demo 二十个业务问题逐题验证过,这份作品集您可以看。」\n(为什么是你们,30 秒)「贵司的智能问数在制造业有 X 客户这样的落地案例,和我的客户群高度重合。我带来的不只是售前技能,还有四年攒下的行业语感。希望有机会用第一个九十天证明这一点。」"},
+{k:"压缩版",n:"90 秒电梯版全文",b:"「我是张三,四年帆软销售转 AI 售前。八十家制造零售客户教会我一件事:客户要的不是报表,是答案。所以我系统补了 ChatBI 原理,自己做了一个问数 demo,二十题逐题验证。我懂客户怎么用数据做决策,也懂 AI 的边界在哪——这正是售前该干的事。作品集在这儿,给我三分钟您就知道我行不行。」"}],
+how:["写稿 → 删到 300 字 → 按结构脱稿练 → 录音回听","再备 90 秒压缩版(电梯、电话、开场救场用)"],
+out:"3 分钟版 + 90 秒版,都能脱稿。"},
+"w9.1":{t:"试讲 demo 打磨 3 版",time:"约 3.5 小时",why:"很多 AI 售前面试有试讲环节:给你产品资料,一周后讲 15 分钟。现在练,到时候不慌。",
+mat:[
+{k:"结构",n:"15 分钟试讲逐页大纲(11 页)",b:"P1 封面(一句话主张) 30 秒:P2 议程 30 秒:P3 客户痛点场景 90 秒(最重要,讲一个具体的人);P4 方案总览图 90 秒;P5-7 三个能力各一页,每页 讲 60 秒 + 演示 60 秒交替;P8 边界与前置条件 60 秒(评委加分页);P9 实施路径 60 秒;P10 价值量化 45 秒;P11 收尾 + 钩子问题 45 秒。\n规律:讲和演交替,任何一段不超过 90 秒;边界页是老售前和新售前的分水岭。"},
+{k:"评分表",n:"评委用 6 维评分表",b:"| 维度 | 及格线 |\n| 痛点引入 | 前 1 分钟出现客户场景 |\n| 逻辑结构 | 有清晰的路线图页 |\n| 演示节奏 | 讲-演-总结交替,不连点 5 分钟 |\n| 价值表达 | 每个功能后跟一句业务价值 |\n| 应答 | 被问住时有兜底动作 |\n| 时间 | 15±1 分钟 |\n> 打磨法:v1 求通顺,v2 砍时间,v3 找真人试讲并录像。"}],
+how:["按 11 页大纲做自己的版本","3 版每版都录像,对比回看","请一人按评分表打分"],
+out:"15 分钟试讲定稿 + 录像。"},
+"w9.2":{t:"情景题演练",time:"约 70 分钟",why:"情景题考的不是标准答案,是你慌不慌。",
+mat:[{k:"剧本",n:"六个高频情景 + 应对",b:"情景1 客户当场要求换数据集演示:不慌不拒——「可以,不过新数据需要先接口径;我先演示同类场景,会后 48 小时内用您的数据补一版。」把事故变成服务承诺。\n情景2 技术细节被连续追问:答到两层后诚实收口:「更底层的实现我确认后,今天下班前给您书面答复。」记下问题,别现场编。\n情景3 客户领导质疑价值「这就是个玩具吧」:先认同成本视角,再回到他自己的数字——「您上周提的三个报表,现在各要多久?我们现场试一个。」\n情景4 被要求当场承诺准确率:「我不敢给您 99%,那是不负责任;我敢给的是一套验收方法——20 题测试集,85% 过线,不达标不收尾款。」\n情景5 团队里有人质疑你背景:「让四年销售做售前?」:「对,所以我花了三个月做了一份售前的作品集——demo、方案、测试集,请您按售前的标准挑毛病。」\n情景6 客户临时把会议砍到 10 分钟:砍掉功能页,只留痛点 + 一个演示 + 价值——「十分钟版」要提前备好。\n通用框架:认(承认合理)→ 转(把问题转到事实/方法)→ 给(给可验证的下一步)。"}],
+how:["每个情景和人对练一次,练到第一句话定住"],
+out:"六个情景的开口第一句 + 通用框架。"},
+"w10.0":{t:"稳住每周 2-3 场面试节奏",time:"持续",why:"面试是状态活,停一周手感就凉。节奏本身就是策略。",
+mat:[{k:"模板",n:"面试周时间块 + 状态管理",b:"- 周一:投递 + 跟进(2 小时)\n- 周二/周四:面试日(每场预留 2 小时:准备 0.5 + 面试 1 + 当场复盘 0.5)\n- 周三:补短板(按上周复盘第一优先)\n- 周五:复盘汇总 + 下周排期\n状态管理:连续被拒的一周,停止新增投递,只做两件事——回看错题本 + 约一个内推人喝咖啡;把「被拒」记为数据点而不是评价;每周留半天完全不碰求职。\n> 纪律:同一天不排两场重要面试;每场前 30 分钟不看新资料,只过自己的稿。"}],
+how:["按模板排下周日历","连续两周执行后再调整"],
+out:"一张排期表 + 连续两周执行记录。"},
+"w10.1":{t:"异议库迭代",time:"约 40 分钟",why:"异议库是你在面试战场上的弹药库,要用真实炮火养它。",
+mat:[
+{k:"模板",n:"异议库表格 + 3 示例行",b:"| 问题 | 场景 | 我的回答 | 效果 | 改进 |\n| 你没做过售前 | HR一面 | 作品集+迁移逻辑 | 面试官点头 | 补一句试用期承诺 |\n| 讲讲RAG | 技术面 | 图书馆类比 | 被夸讲得清 | 补检索不准的兜底 |\n| 期望薪资 | HR面 | 报了区间 | 对方没还价 | 先摸行情再压上限 |"},
+{k:"归因",n:"他问这个,其实在考察什么(15 条)",b:"为什么离开 → 稳定性与情商;为什么转售前 → 动机纯度;讲讲 RAG → 是背的还是用的;失败案例 → 自我认知;和销售配合 → 团队位认知;期望薪资 → 自我定位与行情感;手上机会 → 诚信与优先级;出差 → 现实确认;五年规划 → 稳定性二次确认;你有什么问我们 → 重视程度与水平。\n> 每收录一个新问题,先写「他在考察什么」,再写答案——答不到考察点的答案都是自嗨。"}],
+how:["每周新问题入库,旧答案标版本号迭代"],
+out:"异议库 ≥ 20 行且每周更新。"},
+"w10.2":{t:"面试后跟进致谢",time:"每场 10 分钟",why:"一封得体的跟进,能让边缘候选人变成备选第一。",
+mat:[{k:"模板",n:"三个场景的跟进模板",b:"常规(24 小时内):「X 总,感谢昨天的交流。您提到的『售前要能接住业务随口一问』对我触动很大,我回来把口径治理的做法整理了一页(附件),也是我 demo 里测试集的思路。期待继续,无论结果都感谢。」\n终面后:「X 总,终面聊完更确定想来。两点补充:一是您关心的行业资源,我整理了一页可对接的客户画像;二是入职 90 天计划已拟好草稿,随时可看。等您消息。」\n被拒求反馈:「感谢告知和这段时间。方便的话想问一句:主要差距在哪一点?下个机会我想补上。也随时欢迎您有合适岗位想到我。」\n要点:引用对方原话(证明你在听)+ 给增量价值 + 不卑不亢。"}],
+how:["每场 24 小时内发对应模板","记录每条的回复情况"],
+out:"每场都有跟进记录。"},
+"w11.0":{t:"摸底上海售前薪资行情",time:"约 70 分钟",why:"谈薪前不知道行情,等于蒙眼报价。",
+mat:[
+{k:"方法",n:"三路摸底法",b:"猎头路:同时聊 3 个猎头,问「我这个背景,贵司在招岗位的带宽大概多少」——猎头愿意说区间。\n同行路:脉脉匿名发「AI 售前 offer 求比」,或约两位已转岗同行咖啡。\n数据路:招聘软件岗位披露薪资 × 脉脉职友区交叉验证。\n> 产出:底薪与总包两个区间,各分保守/合理/上限三档。"},
+{k:"话术",n:"谈薪对话脚本(完整示例)",b:"HR:「你的期望薪资是多少?」\n我:「想先请教下,这个岗位的薪资带宽大概什么范围?(先问再答)\nHR:「X 到 Y。」\n我:「了解。我的预期在带宽中上部——理由有两点:一是带行业客户资源进来,二是已备好作品集,上手期短。具体数字我更倾向结合总包结构谈,绩效和期权怎么设计的?」\nHR:(解释结构)\n我:「那我的底线是总包不低于 Z,在这个前提下具体构成我灵活。」\n纪律:先问再答;报区间不报死数;锚总包不锚底薪;永远给理由;不当场接受也不当场拒绝,「我考虑一天」。"}],
+how:["三路各走一遍,汇总三档区间","谈薪脚本改成自己的数字演练一遍"],
+out:"一张三档薪资区间表 + 一份谈薪脚本。"},
+"w11.1":{t:"建 offer 比较表",time:"约 40 分钟",why:"offer 之间永远不是只差钱。一张表防止你被单一亮点带偏。",
+mat:[
+{k:"模板",n:"比较表字段 + 权重示例",b:"| 维度 | 权重 |\n| 总包结构(底薪/绩效/期权) | 25% |\n| 赛道与产品成熟度 | 20% |\n| 直属上级靠谱度 | 20% |\n| 出差强度 | 10% |\n| 团队氛围(面试观察) | 10% |\n| 通勤与办公地 | 10% |\n| 涨薪与晋升空间 | 5% |\n> 上级靠谱度 = 面试时他问你的问题质量;团队氛围 = 面试等候区观察 + 脉脉口碑。"},
+{k:"常识",n:"期权三句话常识",b:"期权是彩票不是现金:按 0 估值做底线测算,期权涨了是惊喜。三个必问:行权价与总池占比?归属期多久、离职未归属怎么处理?最近一轮估值多少?如果对方答不清或回避,再打个折。"}],
+how:["每个 offer 逐项打分(1-5)× 权重"],
+out:"一张可计算的 offer 比较表。"},
+"w11.2":{t:"背调准备与前东家关系",time:"约 40 分钟",why:"背调查的是一致性。销售岗,客户口碑也在里面。",
+mat:[{k:"清单",n:"背调准备 + 常见问题与口径",b:"提前告知直属前主管(给足面子与信息一致性);备 2 位平级同事 + 1 位 HR 联系人;简历时间线、职级、离职原因三处口径统一;在职纠纷自查,若有主动书面说明。\n背调常见六问与你的口径:工作起止时间(与简历一致)/ 职级与汇报对象(如实)/ 业绩表现(准备好一两个事实)/ 离职原因(向前看的版本)/ 团队协作(举协作正面例)/ 有无违纪(无)。\n> 离职沟通三原则:当面谈、感谢加交接承诺、不发负面朋友圈。"}],
+how:["逐项打钩,口径写成一页纸","给背调联系人提前打招呼并致谢"],
+out:"背调联系人名单 + 口径一页纸。"},
+"w12.0":{t:"体面交接",time:"交接期内",why:"行业比你想的小。今天怎么退场,决定明天谁愿意为你背书。",
+mat:[
+{k:"清单",n:"交接四件套",b:"客户:一封得体的客户告知信,重点客户当面或电话告别\n文档:客户档案、进行中商机、历史方案归档到公司知识库\n账号:权限逐项移交;退所有群之前留一句感谢\n知识转移:给接手人一场 30 分钟交接会 + 一页 FAQ\n> 不烧桥三不做:不删数据、不说东家坏话、不带走客户承诺。"},
+{k:"模板",n:"客户告知信全文",b:"「王总您好,感谢四年来的信任。因个人职业规划,我将于 X 月 X 日离开现公司,之后由同事李四继续为您服务(联系方式见下)。您在数据化上的任何问题,欢迎随时找我交流;新岗位上若有能帮到您的地方,更是我的荣幸。祝您和团队一切都好。——张三」\n要点:只感谢与交接,不挖角、不贬低、不推销新公司。这封信三年后可能变成你的单子。"}],
+how:["按四件套列交接清单,逐项销项","重点客户逐一告别"],
+out:"交接清单全勾 + 前主管一句「交接得非常专业」。"},
+"w12.1":{t:"入职前预学清单",time:"入职前 1-2 周",why:"入职前两周的预习,等于把试用期第一个月的印象分提前拿掉一半。",
+mat:[
+{k:"模板",n:"预学四件套",b:"产品:官方文档过一遍 + demo 环境上手,能跑通 3 个核心场景\n讲法:找售前团队要 2 份讲标录像,记录他们的开场与应答\n客户:官网案例页前 10 个,每个记一句「这个案例卖的什么价值」\n节奏:列出入职第一周想认识的 5 个人和要问的问题"},
+{k:"题单",n:"第一周必问清单(分对象)",b:"问上级:这个岗位前六个月怎样算优秀?团队现在最大的短板是什么?您希望我先补哪块?\n问同事(售前/销售各一):赢单率大概多少?最常丢在哪一步?新人最容易犯什么错?\n问产研:路线图下两个季度什么最值得期待?客户最常提的三个需求是什么?\n问 HR:试用期考核节点?内网资源地图?——把答案记成入职笔记,第一个月你就会被当成「来过的人」。"}],
+how:["四件套逐项完成,做一页预习笔记"],
+out:"一页预习笔记 + 3 个跑通的场景 + 第一周问题清单。"},
+"w12.2":{t:"写 90 天上手计划",time:"约 70 分钟",why:"终面最后抛出它,是资深度的临门一脚;入职后它就是你的路线图。",
+mat:[
+{k:"结构",n:"30/60/90 结构要点",b:"30 天 · 学:产品过手(3 个场景脱稿)、跟 3 场客户会、认全协作链路\n60 天 · 助:独立写 1 份方案初稿、独立支撑 2 场客户交流、建自己的异议库\n90 天 · 立:独立带 1 个 POC 或讲标、沉淀 1 套行业 demo、向团队做复盘分享\n> 每条带可验证产出,别写「熟悉了解」这类无法验收的词。"},
+{k:"成稿",n:"完整示例全文(改写即用)",b:"入职 90 天计划(张三 · AI 售前)\n第一个月·学习期:跑通产品 3 个核心场景并脱稿演示(产出:3 段练习录屏);跟随资深售前参加 3 场客户会议,每场产出一页会议纪要与观察;完成产品认证与内网知识库通读。\n第二个月·辅助期:独立撰写 1 份行业方案初稿并请团队评审;独立支撑 2 场客户交流,收集反馈;建立个人异议库 v1(不少于 15 条真实问题)。\n第三个月·独立期:独立带 1 个 POC:含测试集设计与验收报告;沉淀 1 套制造业 demo 场景包供团队复用;向团队做一次 30 分钟复盘分享(含 3 条可复制经验)。\n风险与依赖:需要产品 demo 环境账号(第 1 周)、导师指定(第 1 周)、1 个适合练手的 POC 机会(第 6 周前)。\n验收方式:每月底与上级对一次进度,按本计划逐条核对。\n> 面试时说:「这是我草拟的 90 天计划,细节想入职后和您对齐」——杀伤力在于你把不确定性变成了确定性。"}],
+how:["按结构写一页,每条附验证方式","风险与依赖段必写"],
+out:"一页 90 天计划(面试可展示版)。"},
+"w12.3":{t:"全模块自测与作品集收尾",time:"约 2 小时",why:"毕业检查:知识、作品、话术三线全部到位,带着弹药进场。",
+mat:[
+{k:"清单",n:"结业 10 查",b:"- 5 个模块自测全部 ≥ 80\n- 核心 8 个技能点到「能演示」\n- demo 录屏 + 行业方案 + 测试集 三件套齐\n- 两版简历定稿\n- 30 问答案库 + 异议库 ≥ 20 行\n- 3 分钟与 90 秒自我介绍脱稿\n- offer 比较表模板在手\n- 90 天计划成稿\n- 投递看板在用\n- 前东家关系收尾干净"},
+{k:"清单",n:"面试前最后一晚 checklist",b:"查三遍:公司(产品/客户/融资/JD 逐条过)、路线(时间/地点/着装/通勤余量)、自己(定位句/三个 STAR/两反问/作品集链接能打开)。\n带三样:简历纸质 3 份、作品集一页纸、笔和小本。\n禁三件:熬夜背新知识、贬低任何前同事、在等候区刷手机不看观察团队。"}],
+how:["逐项打钩,未完成项定完成日期"],
+out:"结业清单全勾,进入实战。"},
+"p1.0":{t:"主攻赛道 demo 制作",time:"约 3.5 小时",why:"作品集之首,面试前必须到位。",
+mat:[
+{k:"路径",n:"五步法",b:"选题(主攻赛道的典型场景)→ 备数据(口径命名贴近行业)→ 写脚本(用第 5 周逐字稿模板)→ 录制(两遍取第二遍)→ 剪辑(去等待、加字幕)。\n工具:录屏 OBS 或系统自带;剪辑剪映即可;导出 1080p。"},
+{k:"细节",n:"录制与剪辑要点",b:"时长 3 分钟封顶,2 分半最佳;开场 15 秒必须出现业务痛点;字幕全程(静音也能看懂);鼠标移动放慢,关键数字停 2 秒;文件命名:张三-问数demo-制造业-3min.mp4;另存一个 45 秒精华版(发聊天工具用)。"}],
+how:["严格按脚本录,不即兴","留两个备用片段","给一人试看,问记住了一句什么"],
+out:"一段 3 分钟带字幕录屏 + 45 秒精华版。"},
+"p1.1":{t:"含 AI 章节的行业方案",time:"约 3.5 小时",why:"证明你能写,不只敢讲。",
+mat:[{k:"骨架",n:"AI 章节四段式(浓缩版,全文见第 5 周)",b:"场景:写客户的事(谁、多久、多痛),不出现产品名。\n方案:能力映射场景,一句一个动作。\n边界:至少三条——人工复核项 / 依赖项 / 排除项。\n分期:第一期克制(一个域、10 个指标、20 题测试集验收)。\n全方案 10-12 页,页序参考:封面/目录/背景/需求分级/架构/三个场景/实施路径/服务与边界/公司简介。行业选你最有客户记忆的,案例数字用区间脱敏。"}],
+how:["先搭全方案结构,再填 AI 章节","找懂行的人评审一轮"],
+out:"10 页左右方案 PDF。"},
+"p1.2":{t:"20 题测试集",time:"约 2 小时",why:"POC 底稿,也是面试里最亮的专业附件。",
+mat:[{k:"结构",n:"分层结构与建集五步",b:"分层:简单 10 / 中等 7 / 刁钻 3;每题带预期答案与口径依据。\n五步:选 1 个业务域列 10 个核心指标 → 业务口吻出题 → 手写预期答案 → 分层 → 请业务同事审真实性。20 题示例题库与验收条款全文见第 5 周「建 20 题测试集」。"}],
+how:["请业务同事审一遍题目真实性"],
+out:"一页测试集表格 + 验收条款。"},
+"p1.3":{t:"两版 demo 开场白",time:"约 60 分钟",why:"主攻版脱稿,备选版熟读——被追问「投哪类公司」时现场就能演。",
+mat:[{k:"示例",n:"两版开场白全文",b:"数据智能版:「王总,换个问法——您现在每个月花在『等报表』上的时间有多少?我今天不演示报表多漂亮,只演示一件事:您随口问,它当场答,而且口径是您定义的。」\nAgent 版:「李总,您上周说合同审核要 3 个人看两天。如果 AI 先过一遍、人只复核它标红的 10%,这个流程会变成什么样?我们现场跑一个。」\n> 差异:一个从「问数准不准」切入,一个从「这流程几个人在做」切入。\n打磨三问:第一句是不是客户的痛点?十五秒内有没有钩子?收尾有没有下一步动作?"}],
+how:["主攻版练到脱稿,备选版读熟"],
+out:"两段 30 秒开场白。"},
+"p1.4":{t:"作品集索引页",time:"约 40 分钟",why:"让面试官 3 分钟看完你的全部证据。",
+mat:[{k:"模板",n:"一页纸结构 + 托管建议",b:"顶部:定位句 + 一行数字。三栏:demo 录屏(二维码或链接)| 行业方案(PDF)| 测试集(表格)。底部:两版开场白摘句 + 联系方式。\n托管:文件放网盘生成短链;二维码用任意生成器,印在简历右上角;两版(数据智能向 / AI 应用向)各自把主推作品放最前;每月检查链接有效性。"}],
+how:["做两版,主推作品放最前","发给一个人测:3 分钟能否看懂你是谁"],
+out:"一页作品集索引(PDF + 链接 + 二维码)。"},
+"p2.0":{t:"数字盘点",time:"约 60 分钟",why:"简历与故事的弹药库。",
+mat:[{k:"清单",n:"8 个必盘数字 + 表格",b:"覆盖客户数 / 年拜访量 / 最大单笔 / 年回款 / 续约率 / 从 0 拓的新行业数 / 救火保下的单数 / 带出的人数。\n表格:指标 | 数字 | 怎么来的 | 证明什么 | 面试怎么用。来源:CRM、周报、合同、老邮件、老同事补盲。记不清写区间,不编。"}],
+how:["逐项填表,请老同事补盲"],
+out:"8 行以上盘点表。"},
+"p2.1":{t:"10 个 STAR 故事",time:"约 2 小时",why:"面试 80% 问题的答案源。",
+mat:[{k:"主题",n:"10 个故事主题 + 2 个完整示例",b:"主题:攻坚大单 / 拓新行业 / 救火挽留 / 跨部门协作 / 带教新人 / 数据驱动决策 / 拒绝不合理需求 / 最失败的一单 / 学新东西最快的一次 / 与售前配合最好的一次。\n示例(跨部门协作):S:客户要的行业方案需要产研支持,排期已满。T:两周内出 demo。A:把需求拆成「现成能力+小改动」;自己扛文案与测试;只请产研做两小时接口。R:按期交付,方案进公司模板库。沉淀:会拆需求的人不缺资源。\n示例(数据驱动):S:拜访量大但转化下滑。T:找原因。A:把 200 条拜访记录按客户规模/行业/触点分类统计,发现中等客户转化最高,调整优先级。R:人均产出升 30%。沉淀:用数据找杠杆。\n> 其余 8 个完整故事见第 4 周「提炼 10 个 STAR 故事」,按你的经历替换数字与细节。"}],
+how:["10 个全部替换成你的真实经历,各录 90 秒版"],
+out:"10 个故事 + 音频。"},
+"p2.2":{t:"两版简历",time:"约 2.5 小时",why:"敲门砖。",
+mat:[{k:"要点",n:"两版差异 + 三组改写示例",b:"数据智能向:突出数据需求理解、口径梳理、与 IT 协作;AI 应用向:突出流程耗时、工具化推动、量化节省。首屏三件套相同:定位句 / 三行数字 / 作品集链接。\n改写示例:负责客户维护→维护制造零售客户 80 家,年拜访 400+,续约率 90%;配合售前做方案→主导 3 次竞标方案协作,技术分均第一;学习 AI→自制问数 demo,20 题逐题验证。完整简历示例全文见第 6 周。"}],
+how:["外行 10 秒测试:两版各给一人看,问记住什么"],
+out:"两版 PDF。"},
+"p2.3":{t:"盲审简历",time:"约 40 分钟",why:"自己看不出的问题,盲审一眼就见。",
+mat:[{k:"清单",n:"盲审 5 问 + 修订法",b:"发给审的人(不给背景):10 秒内你记住了一个什么人?你会约他面试吗,为什么?哪句话让你怀疑真实性?AI 关键词里哪个最虚?和岗位 JD 比缺什么?\n修订法:两人意见相同的立即改;只提一次的记下待定;改完回审一轮确认。找两人:一个懂行(技术/售前),一个外行(HR 视角)。"}],
+how:["找 2 个人盲审,汇总修订"],
+out:"两份盲审意见 + 修订版。"},
+"p3.0":{t:"十一问内化",time:"约 2 小时",why:"实战页的十一问,从「看过」到「是我的话」。",
+mat:[{k:"方法",n:"内化三步 + 四天排程",b:"三步:读参考要点 → 合上卡片用自己的话录 90 秒 → 对照补漏。标准:10 秒开口,90 秒收尾,不背原句。\n排程:第一天动机类 4 题;第二天 AI 类 4 题;第三天售前与经历类;第四天反问与收尾。每天录音回听一遍。"}],
+how:["按排程四天过完,每题留录音"],
+out:"11 题全部有个人化录音版。"},
+"p3.1":{t:"自我介绍 + 试讲",time:"约 3.5 小时",why:"定调与硬仗。",
+mat:[{k:"要点",n:"两套核心结构",b:"自我介绍(3 分钟):我是谁 20 秒 → 为什么转 40 秒 → 凭什么行 80 秒 → 为什么是你们 30 秒;完整逐字稿与 90 秒压缩版见第 9 周。\n试讲(15 分钟 11 页):痛点 90 秒 → 方案总览 → 三能力讲演交替 → 边界页(加分) → 路径 → 价值 → 钩子;评分表同第 9 周。"}],
+how:["各留最终录像","请一人按评分表打分"],
+out:"两个定稿录像。"},
+"p3.2":{t:"两轮模拟面试",time:"每轮 30 分钟",why:"上场前的实弹演习。",
+mat:[{k:"方法",n:"两轮设计 + 复盘模板",b:"第一轮通用向:用第 8 周面试官 prompt,10 题。第二轮技术向:同 prompt 换「技术合伙人」,追问技术合伙人清单 10 题(同第 8 周)。\n复盘模板:被追问倒的问题原话 | 当时答到第几层 | 正确姿势 | 回看哪份材料 | 下次模拟验证。两轮之间至少隔一天,把第一轮的坑补完再打第二轮。"}],
+how:["两轮各 30 分钟,坑补完再打第二轮"],
+out:"两轮记录 + 改进清单。"},
+"p3.3":{t:"24 小时复盘模板",time:"约 20 分钟",why:"把复盘变成肌肉记忆。",
+mat:[{k:"模板",n:"复盘表字段 + 示例行",b:"- 字段:场次/日期、面试官角色、最卡的问题(原话)、我的表现 1-5、暴露短板、下一场改一件事、跟进动作\n- 示例:某 ChatBI 公司 / 技术合伙人 / 「微调要多少数据」 / 3 / 技术深度 / 背熟量级数字 / 当晚已发补答邮件\n> 表格建在手机备忘录也行,关键是面完 24 小时内必填,每周五汇总一次。"}],
+how:["做一张表,每场一行"],
+out:"复盘表模板 + 前两场记录。"},
+"ref.industry":{t:"行业场景手册(双赛道版)",time:"约 90 分钟 · 随查随用",why:"面试必问「你懂我们行业吗」,方案和 demo 也全靠场景弹药。这本手册按四个行业给出双赛道场景卡,是你最常翻的一本工具书。",
+mat:[
+{k:"手册",n:"四大行业 × 双赛道场景卡",b:"## 制造业\nChatBI(卖「准」):\n- 质量异常归因——昨天 3 号线次品为什么多。痛点:质量工程师追溯平均 2 天。演示:按产线→班次→原因码下钻。数据:QMS+MES 检验与批次。难点:原因码口径要先治理。\n- 设备效率问数——上周哪台设备拖了产能。演示:OEE 排名→停机原因拆解。数据:设备台账+点检工单。难点:停机分类标准统一。\n- 齐套与缺料——哪些订单有停线风险。演示:齐套率+在途料。数据:ERP 库存+订单+BOM。难点:BOM 层级复杂。\nAgent(卖「自动化」):\n- 质检周报自动生成:检验数据自动汇总成周报初稿+异常摘要,质量工程师复核后发出,6 小时变 30 分钟。\n- 供应商对账助手:采购/入库/发票三单自动匹配,差异标红人审。\n## 金融\nChatBI:\n- 分支机构经营问数——哪家网点日均下降最快,为什么。难点:同名字典(网点/机构层级)。\n- 风险指标异动解读——逾期率为什么升,拆到产品与客群。\n- 监管报表口径核对——同一指标多系统对不齐时快速定位差异。\nAgent:\n- 信贷材料预审:材料齐备性检查+要素初筛,人终审(合规红线必须人签字)。\n- 客服知识库助手:实时检索话术与制度,给建议不代答。\n> 金融共性难点:强合规、全留痕、私有化刚需——这三条主动讲,客户安全感拉满。\n## 零售 / 消费\nChatBI:\n- 门店商品交叉排名——动销×毛利四象限,答「哪些商品该下架」。难点:多渠道口径统一(线上/线下/经销)。\n- 促销效果复盘——活动前后对比+品类拆解。\n- 会员画像速查——客群贡献与复购速答。\nAgent:\n- 评价分析助手:多平台评论自动归类(品质/物流/服务)+情绪趋势,人定动作。\n- 门店周报自动生成:POS+会员数据→周报初稿。\n## 医药 / 器械(合规行业通用)\nChatBI:\n- 纯销与流向分析——商业公司流向数据→纯销推算。难点:流向数据在外部,口径极复杂。\n- 医院覆盖进度——目标医院开发到哪一步。\n- 效期预警解读——临期库存按品种/区域拆解。\nAgent:\n- 情报摘要助手:文献/竞品/政策动态自动摘要给市场部。\n- 合规初审辅助:宣传物料初筛风险词,人终审(医药红线:绝不承诺 AI 判合规)。"},
+{k:"方法",n:"场景卡模板 + 手册三用法",b:"场景卡八要素:行业 / 场景名 / 一句话价值 / 痛点(谁·多久·多痛) / 演示路径(问什么) / 所需数据 / 难点 / 赛道归属。\n三用法:\n- 面试:被问「懂我们行业吗」,挑两个场景讲到痛点级,再补一句难点——难点才是懂行的证明。\n- demo:按演示路径准备口径与测试题。\n- 方案:场景卡直接填进四段式的「场景」与「边界」段。\n> 自建指引:用你四年积累的客户记忆,把每个场景的痛点换成真实数字;你的行业版本越具体,杀伤力越大。"}],
+how:["通读一遍,标出你最有客户记忆的三个场景","按八要素模板自建 3 张你的行业卡"],
+out:"一本随查的场景弹药库 + 3 张你的自建场景卡。"},
+"ref.agent":{t:"Agent 落地入门:从流程拆解到人机协作",time:"约 60 分钟",why:"泛 AI 应用赛道的核心功课。面试聊到 Agent,客户和面试官都在等你说出「什么该交给它、什么不该」——这题答好了,赛道就立住了。",
+mat:[
+{k:"长文",n:"Agent 落地完整入门",b:"## 一句话定义\n能自己规划步骤、调用工具、跨系统干活的 AI——从「会说」到「会做」。\n## 什么流程适合交给 Agent(三特征)\n规则说不清但案例多(判断靠经验);步骤多但每步都简单;有系统接口可调。反例三连:强合规判定(责任不能交)、纯精确计算(工具该干的)、没接口的纸质流程(先数字化)。\n## 拆解五步\n1. 画现状流程:谁在哪几步花多少时间(现场问出来的,不是猜的)\n2. 标步骤类型:判断型(审单、分类、回复)vs 操作型(查询、填单、通知)\n3. 分工:判断型配上下文交给模型,操作型给工具;写操作默认人审\n4. 设计人机协作点:哪几步必须人签字,给审核者一屏看全上下文\n5. 定成功指标:处理时长、一次通过率、人工退回率——上线前后对比\n## 工具与集成边界\n能调什么必须白名单化(先只读后写);每个动作留痕可回放;对外发送类动作一律人审。\n## 失败兜底三件\n超时或工具失败→重试与降级路径;低置信→主动转人工;循环失控→步数上限熔断。演示时一定当着客户演示一次「它主动转人工」——把兜底演成卖点。\n## 演示要点\n选一条真实流程跑全(如报销预审、对账),展示人审环节而不是藏起来;价值只用时长对比说:3 人 2 天 → 1 人半天。\n## 常见误区\n把 Agent 当全自动化卖;不给退出机制;拿开放任务(「帮我做运营」)当场景——场景必须是具体流程。"},
+{k:"追问卡",n:"客户三连问与应答",b:"「和 RPA 有什么区别?」→ RPA 按固定脚本跑,流程一变就断;Agent 理解意图,步骤自己编排;成熟做法是 Agent 大脑+RPA 手脚,不是二选一。\n「它会不会乱发单?」→ 白名单+写操作人审+全程留痕,三道闸,演示给你看。\n「出错谁负责?」→ 分层:工具层故障厂商兜,判断层结果人签字,合同写清楚人审点——我们把责任界面画进方案。"}],
+how:["读长文一遍,对着你客户的一条真实流程做一次五步拆解练习","追问卡三题口述到 10 秒开口"],
+out:"一份五步拆解练习(你的客户流程)+ 三问应答脱稿。"},
+"ref.metrics":{t:"指标体系与口径治理",time:"约 60 分钟",why:"问数准不准,上限不在模型,在指标。能把口径治理讲清楚的售前,客户立刻把你归为懂行的——这是 ChatBI 赛道的核心功课。",
+mat:[
+{k:"长文",n:"指标体系与口径治理入门",b:"## 为什么这是核心功课\n客户问「你们为什么答得准」,弱售前讲模型,强售前先讲指标字典。同一个词同一个数,是问数产品的地基。\n## 指标体系怎么搭\n从北极星开始:公司级一两个指标(营收、良率、GMV)。往下拆两层:部门指标(支撑北极星)→过程指标(每天可动手改的)。拆解用树:营收 = 客流 × 转化 × 客单,每一层都要落到一张表、一个字段。树画得出来,问数就答得准。\n## 指标字典模板\n| 字段 | 说明 | 示例 |\n| 指标名 | 业务叫法 | 销售额 |\n| 业务定义 | 用业务话说清 | 财务回款口径,含税 |\n| 技术口径 | 表.字段+条件 | 回款表.金额 where 状态=已核销 |\n| 维度 | 可切的视角 | 区域/产品线/月 |\n| 负责人 | 口径归谁 | 财务部 张三 |\n| 更新频率 | T+1 或实时 | 日更 |\n| 敏感级 | 权限要求 | 高(部门级) |\n## 口径治理流程\n谁定:业务定口径,IT 定落地,双方签字入字典。谁审:新指标与变更走 15 分钟评审。谁改:变更留版本号,历史报表标注口径版本。一句话:业务定、评审进、版本管。\n## 从 0 到 1 三步\n先盘 10 个高频指标建字典 → 接问数跑 20 题验证 → 之后每月按流程新增入库。第一期克制,字典先小而准。\n## 四个常见坑\n同名不同义(销售的销售额 vs 财务的销售额);同义不同名(良率 vs 直通率);口径改了没人通知;指标无主——每条坑你都该有一个客户故事。"},
+{k:"用法",n:"面试与现场用法",b:"面试:「你们问数凭什么准」→ 先讲字典与治理流程,再讲模型,顺序不能反。\n现场:能在白板上当场画一棵客户业务的指标拆解树,是售前的硬通货——拿你自己的行业练一棵(制造:良率→产线×班次×原因码)。"}],
+how:["读完给客户的行业画一棵指标拆解树","按字典模板写 3 个真实指标的定义"],
+out:"一棵指标拆解树 + 3 条字典级指标定义。"},
+"ref.prep":{t:"数据准备自查清单",time:"约 30 分钟 · POC 前必用",why:"客户问「上这套之前我们要准备什么」,这张清单就是标准答案;也是 POC 前把丑话说在前面、避免背锅的护身符。",
+mat:[
+{k:"清单",n:"六项自查表",b:"| 项 | 自查问题 | 合格标准 | 不合格怎么办 |\n| 表结构 | 核心业务是否落表、主键清晰 | 能画出核心 ER 图 | 先建宽表或中间层 |\n| 命名注释 | 字段名与注释业务可读吗 | 业务人员看得懂 | 做命名映射+补注释 |\n| 指标口径 | 高频指标有书面定义吗 | 有指标字典 | 用字典模板先建 10 个 |\n| 权限 | 有行/列级权限体系吗 | 沿用现有账号体系 | 首期先做部门级简化 |\n| 数据质量 | 空值率、核心表完整性 | 核心字段空值 <5% | 列清洗专项,别硬上 |\n| 更新频率 | T+0 / T+1 还是月更 | 与场景时效匹配 | 如实写进方案边界 |"},
+{k:"方法",n:"准备会怎么开",b:"带清单去,和客户逐项打钩,产出一页《数据准备度报告》:几项合格、几项待改、谁改、何时改完。不合格项不要含糊——写成方案里的「前置条件」,这既是专业度,也是交付期的免责边界。\n开场话术:「准备度决定第一期效果,我们先花二十分钟对一遍清单,哪些齐了、哪些要补,一目了然。」"}],
+how:["清单过一遍,给你的测试数据按六项打一次分"],
+out:"一张准备度报告模板 + 一次实测打分。"},
+"ref.compete":{t:"竞品类型对比与应答",time:"约 45 分钟",why:"面试和客户现场都会被拿来和竞品比。会答的关键不是贬低对方,是有一张自己的对比地图和一套「认可+差异+可验证」的话术。",
+mat:[
+{k:"地图",n:"四类玩家对比表",b:"| 类型 | 特征 | 优势 | 弱点 | 差异化打法 |\n| 传统 BI + AI 线 | 老牌报表厂商加问数 | 存量客户多、交付稳 | AI 原生度低、体验一般 | 打原生体验与口径方法论 |\n| ChatBI 创业公司 | 专注问数单品 | 轻、快、体验好 | 生态薄、复杂报表弱 | 打端到端与行业深度 |\n| 云厂商数据智能 | 平台化组件 | 生态与算力 | 贵、绑生态、行业理解浅 | 打行业理解与性价比 |\n| 大模型厂商行业线 | 模型能力强 | 模型天花板高 | 应用层薄、交付贵 | 打场景打磨与落地周期 |\n> 用法:先想清楚你要投的公司属于哪类、它怕谁——面试时「你们和 X 比怎么样」的回答,就从这张表里取材。"},
+{k:"话术",n:"三道竞品必考题",b:"「Power BI Copilot 比你们强吧?」→ 认可产品力(微软生态确实强);差异三连:中文业务问数与口径理解、中国式复杂报表、私有化与本地服务;收口:建议用同一套 20 题测试题实测,数据说话。\n「客户自己接开源模型行不行?」→ 完全可行,模型只是两成;语义层、集成、权限、运维是大头;给 TCO 对比(自建人力与试错 vs 产品化周期),再把指标字典这套讲出来——这正是自建最难啃的。\n「直接拿 GPT 连我们数据库?」→ 权限(越权)、口径(答非所问)、安全(数据出域)三个坑;给受控接入路线:语义层+行级权限+审计。\n纪律:永远「认可 + 差异 + 可验证」,不贬低竞品一句——贬低出口,信任掉一地。"},
+{k:"框架",n:"自用对比五维度",b:"给任何两家产品做对比,就用这五维:准确率方法论(有没有测试集打法)/ 行业案例真实度 / 交付周期 / 三年总拥有成本 / 服务响应等级。把五维画成一页给客户,你就是最专业的那个。"}],
+how:["对比表过一遍,判断目标公司属于哪类","三道必考题口述到 10 秒开口"],
+out:"一张竞品地图 + 三题应答脱稿。"}
+};
+
+var SRC={};
+PHASES.forEach(function(p){p.ws.forEach(function(w){w.tasks.forEach(function(_,i){SRC[w.id+'.'+i]={src:p.name,wk:'第 '+w.id.slice(1)+' 周 · '+w.t}})})});
+PROJECTS.forEach(function(p){p.tasks.forEach(function(_,i){SRC[p.id+'.'+i]={src:'求职大作业',wk:p.name}})});
+var REFS=["ref.industry","ref.agent","ref.metrics","ref.prep","ref.compete"];
+var SKILL_LESSON={A1:"w1.0",A2:"w1.2",A3:"w1.0",A4:"w1.1",A5:"w2.0",A6:"w2.0",A7:"ref.agent",A8:"w2.2",B1:"w4.3",B2:"w4.3",B3:"w2.1",B4:"ref.agent",B5:"ref.compete",B6:"w6.2",B7:"ref.industry",C1:"w3.1",C2:"w3.0",C3:"w5.2",C4:"w5.0",C5:"w9.1",D1:"w4.0",D2:"w4.1",D3:"w4.2",D4:"ref.industry",D5:"p1.4",E1:"w6.0",E2:"w6.1",E3:"w8.0",E4:"w9.1",E5:"w11.0",E6:"w11.2"};
+
+function md(s){
+ var lines=String(s).split('\n'),html='',list=null;
+ function closeL(){if(list){html+='</ul>';list=null}}
+ function closeT(){if(md.tbl){html+='</tbody></table>';md.tbl=false}}
+ lines.forEach(function(ln){
+  if(ln.indexOf('## ')===0){closeL();closeT();html+='<h5>'+esc(ln.slice(3))+'</h5>'}
+  else if(ln.indexOf('- ')===0){closeL();closeT();if(!list){html+='<ul>';list=true}html+='<li>'+esc(ln.slice(2))+'</li>'}
+  else if(ln.charAt(0)==='>'){closeL();closeT();html+='<blockquote>'+esc(ln.slice(1).trim())+'</blockquote>'}
+  else if(ln.charAt(0)==='|'){
+   closeL();
+   var cells=ln.split('|').slice(1,-1).map(function(x){return x.trim()});
+   if(!md.tbl){html+='<table><thead><tr>';cells.forEach(function(c){html+='<th>'+esc(c)+'</th>'});html+='</tr></thead><tbody>';md.tbl=true}
+   else{html+='<tr>';cells.forEach(function(c){html+='<td>'+esc(c)+'</td>'});html+='</tr>'}
+  }
+  else if(ln===''){closeL();closeT()}
+  else{closeL();closeT();html+='<p>'+esc(ln)+'</p>'}
+ });
+ closeL();closeT();
+ return html;
+}
+var DRL=null;
+function secT(t){return '<div class="sec-t">'+t+'</div>'}
+function learnItem(id,L){
+ return '<button type="button" class="learn-item" data-lesson="'+esc(id)+'">'+icon('i-book')+'<span style="flex:1;text-align:left">'+esc(L.t)+'</span><span class="small muted">'+esc(L.time||'')+'</span></button>';
+}
+function renderLearn(){
+ var matN=0;for(var k in LESSONS)matN+=(LESSONS[k].mat||[]).length;
+ var intro=$('#learnIntro');
+ if(intro)intro.textContent='内置学习教材: '+Object.keys(LESSONS).length+' 个主题 · '+matN+' 份材料(长文 / 模板 / 话术 / 题库),每份都按「为什么 → 材料 → 怎么做 → 完成标志」组织,点开即学,离线可用。';
+ var html='';
+ PHASES.forEach(function(p){
+  html+='<div class="phase-head"><h3>'+esc(p.name)+'</h3></div>';
+  p.ws.forEach(function(w){
+   html+='<div class="learn-week small muted" style="margin:12px 0 7px">第 '+w.id.slice(1)+' 周 · '+esc(w.t)+'</div>';
+   w.tasks.forEach(function(_,i){var id=w.id+'.'+i;if(LESSONS[id])html+=learnItem(id,LESSONS[id])});
+  });
+ });
+ html+='<div class="phase-head"><h3>求职大作业</h3></div>';
+ PROJECTS.forEach(function(p){p.tasks.forEach(function(_,i){var id=p.id+'.'+i;if(LESSONS[id])html+=learnItem(id,LESSONS[id])})});
+ html+='<div class="phase-head"><h3>工具书 · 跨周参考</h3></div>';
+ REFS.forEach(function(id){if(LESSONS[id])html+=learnItem(id,LESSONS[id])});
+ $('#learnWrap').innerHTML=html;
+}
+function openLesson(id){
+ var L=LESSONS[id];if(!L)return;
+ DRL=id;
+ var src=SRC[id]||{};
+ $('#drSrc').textContent=src.src?src.src+' · '+src.wk+' · '+(L.time||''):(L.time||''); $('#drTitle').textContent=L.t;
+ var b='';
+ if(L.why)b+=secT('为什么做')+'<div class="md"><p>'+esc(L.why)+'</p></div>';
+ if(L.mat){
+  b+=secT('学习材料');
+  L.mat.forEach(function(m,i){
+   b+='<details class="mat"'+(i===0?' open':'')+'><summary><span class="tag brand">'+esc(m.k)+'</span><b style="font-size:14px;flex:1;min-width:140px">'+esc(m.n)+'</b><svg class="ic chev" style="width:14px;height:14px"><use href="#i-chev"/></svg></summary><div class="md">'+md(m.b)+'</div></details>';
+  });
+ }
+ if(L.how)b+=secT('怎么做')+'<div class="md"><ul>'+L.how.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div>';
+ if(L.out)b+=secT('完成标志')+'<div class="md"><blockquote>'+esc(L.out)+'</blockquote></div>';
+ $('#drBody').innerHTML=b;
+ $('#drBody').scrollTop=0;
+ var foot=$('#drFoot');
+ if(SRC[id]){
+  foot.innerHTML=S.checks[id]?'<span class="small" style="color:var(--green);font-weight:600">✓ 这项任务已完成</span>':'<button class="btn primary" id="drDone">'+icon('i-check')+'学完了,标记任务完成</button>';
+ }else foot.innerHTML='';
+ $('#drawer').classList.add('on');
+ $('#drawerMask').classList.add('on');
+ document.body.style.overflow='hidden';
+}
+function closeLesson(){
+ $('#drawer').classList.remove('on');
+ $('#drawerMask').classList.remove('on');
+ document.body.style.overflow='';
+ DRL=null;
+}
+function markLessonDone(){
+ var id=DRL;if(!id)return;
+ var inp=document.querySelector('[data-check="'+id+'"]');
+ if(inp&&!inp.checked){inp.checked=true;inp.dispatchEvent(new Event('change',{bubbles:true}))}
+ toast('学完并计入进度,漂亮。','i-check','green');
+ closeLesson();
+}
+
+/* ================= 状态 ================= */
+function defaults(){return {name:'',theme:'auto',skills:{},checks:{},days:[],quiz:{},co:[],start:null,reroll:{},mil:{},rev:0,pushedRev:0,pushedAt:'',lc:null}}
+var S=defaults();
+var REDUCE=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function normalize(raw){
+ if(!raw||typeof raw!=='object')return;
+ if(typeof raw.name==='string')S.name=raw.name.slice(0,12);
+ if(raw.theme==='light'||raw.theme==='dark'||raw.theme==='auto')S.theme=raw.theme;
+ if(Array.isArray(raw.days))S.days=raw.days.filter(function(x){return typeof x==='string'}).slice(-400);
+ if(raw.skills&&typeof raw.skills==='object'){var o1={};for(var k in raw.skills){var v=raw.skills[k];if(typeof v==='number'&&v>=0&&v<=3)o1[k]=v}S.skills=o1}
+ if(raw.checks&&typeof raw.checks==='object'){var o2={};for(var k2 in raw.checks){if(raw.checks[k2])o2[k2]=true}S.checks=o2}
+ if(raw.quiz&&typeof raw.quiz==='object'){var o3={};for(var k3 in raw.quiz){var v3=raw.quiz[k3];if(typeof v3==='number'&&v3>=0&&v3<=100)o3[k3]=Math.round(v3)}S.quiz=o3}
+ if(Array.isArray(raw.co))S.co=raw.co.filter(function(x){return x&&typeof x.n==='string'&&x.n}).slice(0,60).map(function(x){
+   var s=(typeof x.s==='number')?Math.floor(x.s):0,t=(typeof x.t==='number')?Math.floor(x.t):0;
+   return {n:x.n.slice(0,40),s:(s>=0&&s<STAGES.length)?s:0,t:(t>=0&&t<TRACKS.length)?t:0}});
+ if(raw.reroll&&typeof raw.reroll==='object'){var o4={};for(var k4 in raw.reroll){if(typeof raw.reroll[k4]==='number')o4[k4]=raw.reroll[k4]}S.reroll=o4}
+ if(raw.mil&&typeof raw.mil==='object'){var o5={};for(var k5 in raw.mil){if(raw.mil[k5])o5[k5]=true}S.mil=o5}
+ if(typeof raw.start==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(raw.start))S.start=raw.start;
+ if(raw.lc&&typeof raw.lc==='object'){var lc={};['id','key','host','code'].forEach(function(f){if(typeof raw.lc[f]==='string')lc[f]=raw.lc[f].slice(0,160)});S.lc=lc}
+ if(typeof raw.rev==='number'&&raw.rev>=0)S.rev=Math.floor(raw.rev);
+ if(typeof raw.pushedRev==='number'&&raw.pushedRev>=0)S.pushedRev=Math.floor(raw.pushedRev);
+ if(typeof raw.pushedAt==='string')S.pushedAt=raw.pushedAt.slice(0,40);
+}
+try{var saved=localStorage.getItem(KEY);if(saved)normalize(JSON.parse(saved))}catch(e){}
+var saveTimer=null,pushTimer=null;
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){
+ S.rev=(typeof S.rev==='number'?S.rev:0)+1;
+ clearTimeout(saveTimer);
+ saveTimer=setTimeout(persist,250);
+ schedulePush();
+}
+function schedulePush(){
+ if(!lcOK())return;
+ if(navigator&&!navigator.onLine)return;
+ clearTimeout(pushTimer);
+ pushTimer=setTimeout(function(){pushNow(false,true)},5000);
+}
+
+/* ================= 工具 ================= */
+function pad(n){return (n<10?'0':'')+n}
+function dateStr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function todayStr(){return dateStr(new Date())}
+function dayNum(t){return Math.floor(Date.parse(t+'T12:00:00')/864e5)}
+function hasDay(t){return S.days.indexOf(t)>=0}
+function streakCount(){
+ var d=new Date();
+ if(!hasDay(dateStr(d)))d.setDate(d.getDate()-1);
+ var n=0;while(hasDay(dateStr(d))){n++;d.setDate(d.getDate()-1)}
+ return n;
+}
+function currentWeek(){
+ if(!S.start)return null;
+ var diff=Math.floor((dayNum(todayStr())-dayNum(S.start))/7)+1;
+ return Math.min(12,Math.max(1,diff));
+}
+function sumLevels(){var s=0;for(var k in S.skills)s+=S.skills[k];return s}
+function modPct(m){var s=0;m.nodes.forEach(function(nd){s+=(S.skills[nd.id]||0)});return Math.round(s/(3*m.nodes.length)*100)}
+function taskCounts(){
+ var total=0,done=0;
+ PHASES.forEach(function(p){p.ws.forEach(function(w){w.tasks.forEach(function(_,i){total++;if(S.checks[w.id+'.'+i])done++})})});
+ PROJECTS.forEach(function(p){p.tasks.forEach(function(_,i){total++;if(S.checks[p.id+'.'+i])done++})});
+ return {total:total,done:done};
+}
+function quizAvg(){
+ var ks=Object.keys(S.quiz);if(!ks.length)return null;
+ var s=0;ks.forEach(function(k){s+=S.quiz[k]});return Math.round(s/ks.length);
+}
+function overallPct(){
+ var sp=sumLevels()/(3*NN)*100;
+ var tc=taskCounts();var tp=tc.total?tc.done/tc.total*100:0;
+ var qa=quizAvg()||0;
+ return Math.round(sp*0.4+tp*0.4+qa*0.2);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function icon(id,cls){return '<svg class="ic'+(cls?' '+cls:'')+'" aria-hidden="true"><use href="#'+id+'"/></svg>'}
+
+/* toast */
+var toastTimer={};
+function toast(msg,ic,cls){
+ var box=$('#toasts');
+ var el=document.createElement('div');
+ el.className='toast'+(cls?' '+cls:'');
+ el.innerHTML=icon(ic||'i-msg')+'<span>'+esc(msg)+'</span>';
+ box.appendChild(el);
+ var k='t'+Date.now()+Math.random();
+ toastTimer[k]=setTimeout(function(){el.classList.add('out');setTimeout(function(){el.remove()},320)},3600);
+ while(box.children.length>3)box.firstChild.remove();
+}
+/* 里程碑 */
+function checkMilestones(){
+ var queue=[];
+ var s=streakCount(),ov=overallPct();
+ [[3,'连续打卡 3 天 —— 热身完毕,轨道启动了。','i-flame','orange'],
+  [7,'连续 7 天!这已经不是三分钟热度了。','i-flame','orange'],
+  [14,'连续 14 天,习惯已经长出来了。','i-flame','orange'],
+  [30,'连续 30 天,你已经是自己的教练了。','i-trophy','green'],
+  [25,'综合进度 25%,打底阶段应该快收尾了。','i-zap',''],
+  [50,'赛程过半!作品集和简历该成型了。','i-zap',''],
+  [75,'75% 了,面试冲刺就在眼前。','i-zap','orange'],
+  [100,'100%!轨道跑完,接下来去面试里把它兑现。','i-trophy','green']
+ ].forEach(function(m){
+  var key=(m[0]<=30?'d':'p')+m[0];
+  if(((m[0]<=30&&s>=m[0])||(m[0]>30&&ov>=m[0]))&&!S.mil[key]){S.mil[key]=true;queue.push(m)}
+ });
+ if(queue.length){
+  save();
+  var last=queue[queue.length-1];
+  queue.forEach(function(m,i){setTimeout(function(){toast(m[1],m[2],m[3])},i*900)});
+  renderTop();
+ }
+}
+/* 教练台词 */
+function pick(arr,seed){return arr[seed%arr.length]}
+var PRAISE=['今日份完成,轨道又往前挪了一点。','这 30 分钟,面试官抢不走。','漂亮,就是这种不起眼的积累最吓人。','记下了。你比昨天的自己多储备了一发弹药。','稳稳的一天。别小看打卡,它筛掉了 90% 的同行。','完成!奖励你自己一句:你正在变成难被替代的人。','又一天,连续记录在涨,焦虑在跌。','好的节奏。跳槽拼的不是爆发,是续航。'];
+function coachLine(){
+ var w=currentWeek(),tc=taskCounts();
+ if(!S.start)return '第一次打卡或勾选任意任务,我就开始为你记周次。今天可以从「今日训练」那道题开始。';
+ if(!hasDay(todayStr())&&S.days.length&&dayNum(todayStr())-dayNum(S.days.slice().sort().pop())>=2)
+   return '两天没见了——不追进度,先把今天的 30 分钟捡起来,轨道不会跑,我们慢慢追。';
+ if(w){
+  var flat=[];PHASES.forEach(function(p){p.ws.forEach(function(x){flat.push(x)})});
+  var wk=flat[w-1];
+  var unchecked=0;wk.tasks.forEach(function(t,i){if(!S.checks[wk.id+'.'+i])unchecked++});
+  if(unchecked===0)return '第 '+w+' 周的任务已经全部清空,干净利落。看看「技能树」里还有没有可以推到「能演示」的。';
+  return '第 '+w+' 周「'+wk.t+'」还剩 '+unchecked+' 项。先挑最小的一件,开个头比什么都重要。';
+ }
+ return pick(PRAISE,dayNum(todayStr()));
+}
+/* typewriter → 平滑淡入 */
+var typeTimer=null;
+function typeInto(el,text){
+ el.textContent=text;
+ el.classList.remove('fadein');
+ void el.offsetWidth;
+ el.classList.add('fadein');
+}
+function countUp(el,to,suffix){
+ if(REDUCE){el.textContent=to;return}
+ var from=0,t0=null,dur=650;
+ function step(t){
+  if(!t0)t0=t;
+  var p=Math.min(1,(t-t0)/dur);
+  el.textContent=Math.round(from+(to-from)*(1-Math.pow(1-p,3)));
+  if(p<1)requestAnimationFrame(step);
+ }
+ requestAnimationFrame(step);
+}
+
+/* ================= 主题 ================= */
+var mq=window.matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(){
+ var eff=S.theme==='auto'?(mq.matches?'dark':'light'):S.theme;
+ document.documentElement.dataset.theme=eff;
+ $('#themeBtn').innerHTML='<svg class="ic"><use href="#'+(eff==='dark'?'i-sun':'i-moon')+'"/></svg>';
+ $$('#themeSeg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-theme-opt')===S.theme)});
+}
+mq.addEventListener('change',function(){if(S.theme==='auto')applyTheme()});
+
+/* ================= 视图切换 ================= */
+var TITLES={ov:'总览',daily:'今日训练',skills:'技能树',plan:'12 周计划',learn:'学习中心',lab:'求职实战',quiz:'模块自测',set:'设置'};
+function go(v){
+ $$('.nav-btn[data-view]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-view')===v)});
+ $$('.view').forEach(function(s){s.hidden=s.id!=='view-'+v});
+ $('#viewTitle').textContent=TITLES[v]||'';
+ window.scrollTo({top:0,behavior:REDUCE?'auto':'smooth'});
+ if(v==='ov')renderHero();
+ if(v==='daily')renderDaily();
+ if(v==='lab')renderCo();
+ if(v==='set')renderSyncCard();
+}
+$$('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-view'))})});
+$$('[data-goto]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-goto'))})});
+
+/* ================= 跃迁轨道 ================= */
+var RW={
+ path:'M 30 138 C 210 132 330 104 440 80 C 550 56 660 34 790 20',
+ fr:[0,.25,.5,.75,1],
+ labels:['打底','定位与作品','投递面试','Offer 冲刺']
+};
+function buildRunway(){
+ var svg=$('#rwSvg');
+ svg.innerHTML='<defs><linearGradient id="rwg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="var(--brand)"/><stop offset="1" stop-color="var(--brand-2)"/></linearGradient></defs>'+
+  '<path id="rwBase" d="'+RW.path+'" fill="none" stroke="var(--line-strong)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 7"/>'+
+  '<path id="rwDone" d="'+RW.path+'" fill="none" stroke="url(#rwg)" stroke-width="4" stroke-linecap="round"/>'+
+  '<g id="rwPts"></g><g id="rwMrk"></g>';
+ var pts=$('#rwPts'),L=0;
+ var base=$('#rwBase');L=base.getTotalLength();
+ RW.len=L;
+ RW.fr.forEach(function(f,i){
+  var p=base.getPointAtLength(f*L);
+  if(i<RW.labels.length){
+   var y=p.y-14;
+   pts.innerHTML+='<text class="rw-phase" data-rl="'+i+'" x="'+p.x+'" y="'+y+'" text-anchor="middle">'+RW.labels[i]+'</text>';
+  }
+  pts.innerHTML+='<circle data-rp="'+i+'" cx="'+p.x+'" cy="'+p.y+'" r="'+(i===0||i===4?6:5)+'" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="2"/>';
+ });
+ pts.innerHTML+='<text class="rw-flag" x="782" y="8" text-anchor="end">OFFER</text>';
+ pts.innerHTML+='<text class="rw-phase" x="30" y="160" text-anchor="start">帆软销售</text>';
+ updateRunway();
+ var dots=$('#rwDots');dots.innerHTML='';
+ PHASES.forEach(function(p,i){
+  var done=0,total=0;
+  p.ws.forEach(function(w){w.tasks.forEach(function(_,j){total++;if(S.checks[w.id+'.'+j])done++})});
+  dots.innerHTML+='<span class="tag'+(total&&done===total?' green':'')+'">'+esc(p.name)+' '+done+'/'+total+'</span>';
+ });
+}
+function updateRunway(){
+ var w=currentWeek();
+ var f=w?(w-0.5)/12:0;
+ f=Math.max(0,Math.min(1,f));
+ var done=$('#rwDone'),base=$('#rwBase'),L=RW.len;
+ if(!L)L=base.getTotalLength();
+ done.setAttribute('stroke-dasharray',(f*L)+' '+L);
+ $$('#rwPts [data-rp]').forEach(function(c,i){
+  var reached=f>=RW.fr[i]-0.001||i===0;
+  c.setAttribute('fill',reached?'var(--brand)':'var(--surface)');
+  c.setAttribute('stroke',reached?'var(--brand)':'var(--line-strong)');
+ });
+ $$('#rwPts .rw-phase').forEach(function(t,i){t.classList.toggle('done',f>=RW.fr[i]-0.001)});
+ var mrk=$('#rwMrk');
+ var p=base.getPointAtLength(f*L);
+ mrk.innerHTML='<circle cx="'+p.x+'" cy="'+p.y+'" r="11" fill="var(--brand-soft)"><animate attributeType="SVG" attributeName="r" values="9;14;9" dur="2.2s" repeatCount="indefinite"/></circle>'+
+  '<circle cx="'+p.x+'" cy="'+p.y+'" r="5.5" fill="var(--orange)" stroke="#fff" stroke-width="2"/>';
+ /* 起点标签始终高亮 */
+}
+
+/* ================= 总览 ================= */
+function renderHero(){
+ var h=new Date().getHours();
+ var hello=h<5?'夜深了':h<9?'早上好':h<12?'上午好':h<14?'中午好':h<18?'下午好':'晚上好';
+ $('#greetLine').innerHTML=hello+(S.name?',<em>'+esc(S.name)+'</em>':',<em>准售前</em>');
+ $('#dateTag').textContent=todayStr()+' · 距离 Offer 还有 '+Math.max(0,84-(S.start?(dayNum(todayStr())-dayNum(S.start)):0))+' 天';
+ typeInto($('#coachLine'),coachLine());
+ var tc=taskCounts();
+ countUp($('#stOverall'),overallPct());
+ countUp($('#stStreak'),streakCount());
+ countUp($('#stTasks'),tc.done);
+ $('#stTasksUnit').textContent=' / '+tc.total;
+ var qa=quizAvg();
+ $('#stQuiz').textContent=qa==null?'—':qa+' 分';
+ $('#stQuizSub').textContent=Object.keys(S.quiz).length?('已测 '+Object.keys(S.quiz).length+'/5 个模块 · 取最佳成绩'):'五个模块 · 每模块 5 题';
+ var s=streakCount();
+ $('#stStreakSub').textContent=s?('连续 '+s+' 天 · 累计 '+S.days.length+' 天'):'去今日训练点亮第一天';
+ $('#stOverallSub').textContent='技能 40% + 任务 40% + 自测 20%';
+ renderCurWeek();renderModBars();renderOvToday();
+ renderTop();
+}
+function renderTop(){
+ $('#tbStreakN').textContent=String(streakCount());
+}
+function renderCurWeek(){
+ var el=$('#curWeek');
+ if(!S.start){el.innerHTML='<p class="small muted">还没有开始记录 —— 去「今日训练」完成第一次打卡,或在「12 周计划」勾选任意任务,轨道即刻出发。</p>';return}
+ var w=currentWeek();
+ var flat=[];PHASES.forEach(function(p){p.ws.forEach(function(x){flat.push({w:x,ph:p.name})})});
+ var cur=flat[w-1];if(!cur){el.innerHTML='';return}
+ var unchecked=[];cur.w.tasks.forEach(function(t,i){if(!S.checks[cur.w.id+'.'+i])unchecked.push(t)});
+ var html='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><span class="tag brand">第 '+w+' / 12 周</span><b style="font-size:14.5px">'+esc(cur.w.t)+'</b><span class="small muted">'+esc(cur.ph)+'</span><button class="btn ghost sm" data-goto="plan" style="margin-left:auto">查看计划</button></div>';
+ if(unchecked.length){
+  html+='<div style="display:flex;flex-direction:column;gap:2px">'+unchecked.slice(0,3).map(function(t){return '<div class="small" style="display:flex;gap:7px;align-items:baseline"><span style="color:var(--brand)">›</span>'+esc(t)+'</div>'}).join('')+'</div>';
+  if(unchecked.length>3)html+='<div class="small muted" style="margin-top:6px">还有 '+(unchecked.length-3)+' 项未完成</div>';
+ }else html+='<p class="small" style="color:var(--green)">本周任务已全部完成,漂亮。</p>';
+ el.innerHTML=html;
+}
+function renderModBars(){
+ $('#modBars').innerHTML=MODS.map(function(m){
+  var p=modPct(m);
+  return '<div class="bar-row"><span class="bl">'+esc(m.name)+'</span><div class="track"><div class="fill" style="width:'+p+'%"></div></div><span class="pc num">'+p+'%</span></div>';
+ }).join('');
+}
+function renderOvToday(){
+ var idx=dailyIdx();
+ var item=DAILY[idx];
+ $('#ovToday').innerHTML='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="tag brand">'+esc(item.c)+'</span><span style="flex:1;min-width:200px">'+esc(item.t)+'</span><button class="btn sm primary" data-goto="daily">去打卡</button></div>';
+}
+function dailyIdx(){
+ var t=todayStr();
+ if(S.reroll&&typeof S.reroll[t]==='number')return S.reroll[t];
+ return ((dayNum(t)%DAILY.length)+DAILY.length)%DAILY.length;
+}
+
+/* ================= 今日训练 ================= */
+function renderDaily(){
+ var item=DAILY[dailyIdx()];
+ $('#dailyCat').textContent=item.c;
+ $('#dailyTask').textContent=item.t;
+ $('#dailyHowBody').textContent=item.m||'';
+ $('#dailyHow').hidden=!item.m;
+ var done=hasDay(todayStr()),btn=$('#dailyBtn');
+ if(done){btn.classList.remove('primary');btn.innerHTML=icon('i-check')+'今日已打卡 · 撤销'}
+ else{btn.classList.add('primary');btn.innerHTML=icon('i-check')+'完成今日打卡'}
+ $('#dailyNote').textContent='已连续 '+streakCount()+' 天 · 累计 '+S.days.length+' 天';
+ var grid='',recent=0;
+ for(var i=27;i>=0;i--){
+  var d=new Date();d.setDate(d.getDate()-i);
+  var dt=dateStr(d),on=hasDay(dt);
+  if(on)recent++;
+  grid+='<i class="'+(on?'on':'')+(i===0?' today':'')+'" title="'+dt+(on?' · 已打卡':' · 未打卡')+'"></i>';
+ }
+ $('#heatGrid').innerHTML=grid;
+ $('#heatGrid').setAttribute('aria-label','最近 28 天打卡记录,共 '+recent+' 天');
+}
+function toggleToday(){
+ var t=todayStr();
+ if(hasDay(t)){
+  S.days=S.days.filter(function(x){return x!==t});
+  toast('已撤销今日打卡,随时回来。','i-refresh');
+  $('#todayFeedback').textContent='';
+ }else{
+  S.days.push(t);
+  if(!S.start)S.start=t;
+  var praise=pick(PRAISE,Math.floor(Math.random()*PRAISE.length));
+  $('#todayFeedback').textContent='小跃:'+praise;
+  toast(praise,'i-flame','orange');
+ }
+ save();
+ renderDaily();updateRunway();renderHero();
+ if(hasDay(t))checkMilestones();
+}
+
+/* ================= 技能树 ================= */
+function renderSkills(){
+ var html='';
+ MODS.forEach(function(m,mi){
+  if(mi)html+='<div class="hr"></div>';
+  html+='<div class="mod-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:'+(mi?'0 0 10px':'0 0 10px')+'">'+
+   '<h3 style="display:flex;align-items:center;gap:8px;font-size:15.5px">'+icon(m.icon)+esc(m.id+' · '+m.name)+'</h3>'+
+   '<span class="small muted" data-mq="'+m.id+'">自测未测</span>'+
+   '<span class="tag num" data-mb="'+m.id+'" style="margin-left:auto">0%</span></div><div class="skill-grid">';
+  m.nodes.forEach(function(nd){
+   var lv=S.skills[nd.id]||0;
+   var lid=SKILL_LESSON[nd.id];
+   html+='<div class="chip-skill lv'+lv+'" data-chip="'+nd.id+'"><button type="button" class="sk-main" data-skill="'+nd.id+'" title="'+esc(nd.d)+'"><span class="nm">'+esc(nd.n)+'</span><span class="lv">'+LVW[lv]+'</span></button>'+
+    (lid&&LESSONS[lid]?'<button type="button" class="lesson-btn sk-learn" data-lesson="'+lid+'" aria-label="学习内容:'+esc(nd.n)+'" title="学习内容">'+icon('i-book')+'</button>':'')+
+    '</div>';
+  });
+  html+='</div>';
+ });
+ $('#skillsWrap').innerHTML=html;
+ MODS.forEach(function(m){updateModBadge(m.id)});
+}
+function updateModBadge(mid){
+ var m=MODS.filter(function(x){return x.id===mid})[0];
+ var b=$('[data-mb="'+mid+'"]');if(b&&m)b.textContent=modPct(m)+'%';
+ var q=$('[data-mq="'+mid+'"]');if(q)q.textContent=S.quiz[mid]!=null?('自测最佳 '+S.quiz[mid]+' 分'):'自测未测';
+}
+var UP_WORDS={1:'听懂了,不错。',2:'升到「能讲」——找个人讲一遍巩固一下。',3:'「能演示」!这是售前的硬通货。'};
+function cycleSkill(id){
+ var chip=$('[data-chip="'+id+'"]');
+ if(!chip)return;
+ var cur=S.skills[id]||0,nv=(cur+1)%4;
+ if(nv===0)delete S.skills[id];else S.skills[id]=nv;
+ chip.classList.remove('lv0','lv1','lv2','lv3');
+ chip.classList.add('lv'+nv,'pop');
+ $('.lv',chip).textContent=LVW[nv];
+ updateModBadge(id.charAt(0));
+ if(nv>0)toast(UP_WORDS[nv],nv===3?'i-check':'i-zap',nv===3?'green':'');
+ save();renderModBars();
+ if(!S.start){S.start=todayStr();buildRunway();renderHero()}
+ renderHero();
+ checkMilestones();
+ setTimeout(function(){chip.classList.remove('pop')},260);
+}
+
+/* ================= 12 周计划 ================= */
+function checkboxHtml(id,label){
+ var btn=LESSONS[id]?'<button type="button" class="lesson-btn" data-lesson="'+esc(id)+'" aria-label="学习内容:'+esc(label)+'" title="学习内容">'+icon('i-book')+'</button>':'';
+ return '<div class="tsk"><label class="form-check"><input type="checkbox" data-check="'+esc(id)+'"'+(S.checks[id]?' checked':'')+'><span style="font-size:13.5px">'+esc(label)+'</span></label>'+btn+'</div>';
+}
+function renderPlan(){
+ var html='',w=currentWeek();
+ PHASES.forEach(function(p,pi){
+  var pd=0,pt=0;
+  p.ws.forEach(function(x){x.tasks.forEach(function(_,i){pt++;if(S.checks[x.id+'.'+i])pd++})});
+  html+='<div class="phase-head"><h3>'+esc(p.name)+'</h3><div class="track"><div class="fill" style="width:'+(pt?Math.round(pd/pt*100):0)+'%"></div></div><span class="small muted num">'+pd+'/'+pt+'</span></div>';
+  p.ws.forEach(function(wk){
+   var done=0;wk.tasks.forEach(function(_,i){if(S.checks[wk.id+'.'+i])done++});
+   html+='<details class="wk'+(w&&wk.id==='w'+w?' here':'')+'" data-wid="'+wk.id+'"><summary>'+icon('i-chev','chev')+'<span>第 '+wk.id.slice(1)+' 周 · '+esc(wk.t)+'</span>'+(w&&wk.id==='w'+w?'<span class="tag brand">本周</span>':'')+'<span class="tag num" data-wb="'+wk.id+'" style="margin-left:auto">'+done+' / '+wk.tasks.length+'</span></summary><div class="wk-body">';
+   wk.tasks.forEach(function(t,i){html+=checkboxHtml(wk.id+'.'+i,t)});
+   html+='</div></details>';
+  });
+ });
+ $('#planWrap').innerHTML=html;
+}
+function updateBadgesFor(el){
+ var det=el.closest('details.wk');
+ if(det){
+  var ins=$$('[data-check]',det),done=ins.filter(function(i){return i.checked}).length;
+  var b=$('[data-wb="'+det.getAttribute('data-wid')+'"]');if(b)b.textContent=done+' / '+ins.length;
+  return;
+ }
+ var proj=el.closest('[data-pid]');
+ if(proj){
+  var ins2=$$('[data-check]',proj),done2=ins2.filter(function(i){return i.checked}).length;
+  var b2=$('[data-pb="'+proj.getAttribute('data-pid')+'"]');if(b2)b2.textContent=done2+' / '+ins2.length;
+ }
+}
+
+/* ================= 求职实战 ================= */
+function renderLab(){
+ var html='';
+ PROJECTS.forEach(function(p,pi){
+  if(pi)html+='<div class="hr"></div>';
+  var done=0;p.tasks.forEach(function(_,i){if(S.checks[p.id+'.'+i])done++});
+  html+='<div data-pid="'+p.id+'" style="padding:2px 0 8px"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px"><b style="font-size:15px">'+esc(p.name)+'</b><span class="tag num" data-pb="'+p.id+'" style="margin-left:auto">'+done+' / '+p.tasks.length+'</span></div>'+
+   '<p class="small muted" style="margin-bottom:6px">'+esc(p.goal)+'</p>'+
+   p.tasks.map(function(t,i){return checkboxHtml(p.id+'.'+i,t)}).join('')+'</div>';
+ });
+ $('#labProjects').innerHTML=html;
+ $('#qaGrid').innerHTML=QA.map(function(item,i){
+  var pts='<ul>'+item.a.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
+  return '<div class="flip" data-qa="'+i+'" tabindex="0" role="button" aria-label="面试题:'+esc(item.q)+',点击翻面看要点"><div class="flip-in">'+
+   '<div class="face"><span class="tag">Q'+(i+1)+'</span><div class="q" style="margin-top:8px">'+esc(item.q)+'</div><div class="hint">'+icon('i-chev')+'点击翻面看参考要点</div></div>'+
+   '<div class="face back"><div class="q" style="font-size:12.5px;color:var(--muted)">'+esc(item.q)+'</div>'+pts+
+   '<label class="form-check" style="margin-top:auto;padding:2px 0"><input type="checkbox" data-check="qa'+i+'"'+(S.checks['qa'+i]?' checked':'')+'><span class="small">这条我练过了</span></label></div>'+
+   '</div></div>';
+ }).join('');
+ renderCo();
+}
+function renderCo(){
+ var list=$('#coList');
+ if(!S.co.length){
+  list.innerHTML='<p class="small muted">还没有公司。第 4-6 周做完赛道调研后,把靠谱的加进来,别只存在备忘录里。</p>';
+  $('#coSummary').innerHTML='';return;
+ }
+ var applied=0,intv=0,offer=0,tc=[0,0,0];
+ S.co.forEach(function(c){if(c.s===1)applied++;if(c.s>=2&&c.s<=4)intv++;if(c.s===5)offer++;tc[c.t]++});
+ $('#coSummary').innerHTML='<span class="tag">共 '+S.co.length+' 家</span><span class="tag brand">数据智能 '+tc[0]+'</span><span class="tag brand">泛 AI 应用 '+tc[1]+'</span><span class="tag">其他 '+tc[2]+'</span><span class="tag">已投递 '+applied+'</span><span class="tag amber">面试中 '+intv+'</span><span class="tag green">Offer '+offer+'</span>';
+ list.innerHTML=S.co.map(function(c,i){
+  var opts=STAGES.map(function(st,si){return '<option value="'+si+'"'+(si===c.s?' selected':'')+'>'+st+'</option>'}).join('');
+  var topts=TRACKS.map(function(tr,ti){return '<option value="'+ti+'"'+(ti===c.t?' selected':'')+'>'+tr+'</option>'}).join('');
+  return '<div class="co-row"><span class="nm">'+esc(c.n)+'</span><select class="field" data-cot="'+i+'" aria-label="'+esc(c.n)+' 赛道">'+topts+'</select><select class="field" data-co="'+i+'" aria-label="'+esc(c.n)+' 阶段">'+opts+'</select><button class="btn ghost sm" data-codel="'+i+'" aria-label="删除 '+esc(c.n)+'">'+icon('i-trash')+'</button></div>';
+ }).join('');
+}
+function addCo(){
+ var inp=$('#coInput'),v=(inp.value||'').trim();
+ if(!v){toast('先填个公司名吧。','i-msg');return}
+ S.co.push({n:v.slice(0,40),s:0,t:Number($('#coTrack').value)||0});
+ inp.value='';
+ save();renderCo();
+ toast('已加入看板。调研中 → 已投递,状态你说了算。','i-kanban');
+}
+
+/* ================= 模块自测 ================= */
+var QM={mod:null,idx:0,picked:null,correct:0};
+function renderQuizMods(){
+ $('#quizMods').innerHTML=MODS.map(function(m){
+  var b=S.quiz[m.id];
+  return '<button class="btn sm" data-qmod="'+m.id+'">'+esc(m.id+' · '+m.name)+(b!=null?' · '+b+' 分':'')+'</button>';
+ }).join('');
+}
+function startQuiz(mid){QM={mod:mid,idx:0,picked:null,correct:0};renderQ(false)}
+function renderQ(graded){
+ var list=QUIZ[QM.mod],q=list[QM.idx],last=QM.idx===list.length-1;
+ var dots='';list.forEach(function(_,i){dots+='<i class="'+(i<QM.idx?'on':'')+'"></i>'});
+ var html='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="tag brand">'+esc(QM.mod)+' 模块</span><span class="small muted">第 '+(QM.idx+1)+' / '+list.length+' 题</span></div><div class="qdots" style="margin-top:10px">'+dots+'</div>';
+ html+='<p style="font-size:16.5px;font-weight:700;margin:4px 0 6px">'+esc(q.q)+'</p><div>';
+ q.o.forEach(function(o,i){
+  var cls='opt'+(graded?(i===q.ans?' ok':(i===QM.picked?' no':'')):'');
+  html+='<label class="'+cls+'"><input type="radio" name="qopt" value="'+i+'"'+((!graded&&QM.picked===i)?' checked':'')+(graded?' disabled':'')+'><span>'+String.fromCharCode(65+i)+'. '+esc(o)+'</span></label>';
+ });
+ html+='</div>';
+ if(graded){
+  var ok=QM.picked===q.ans;
+  html+='<p style="margin-top:12px;font-weight:700;color:'+(ok?'var(--green)':'var(--red)')+'">'+(ok?'答对了':'答错了 · 正确答案是 '+String.fromCharCode(65+q.ans))+'</p>';
+  html+='<p class="small muted" style="margin-top:2px">'+esc(q.ex)+'</p>';
+  html+='<div style="margin-top:14px"><button class="btn primary" id="qNext">'+(last?'查看成绩':'下一题')+icon('i-chev')+'</button></div>';
+ }else{
+  html+='<div style="margin-top:14px"><button class="btn primary" id="qConfirm" disabled>确认答案</button></div>';
+ }
+ $('#quizArea').innerHTML=html;
+}
+function finishQuiz(){
+ var score=QM.correct*20,prev=S.quiz[QM.mod]!=null?S.quiz[QM.mod]:null;
+ var best=Math.max(prev==null?0:prev,score);
+ var first=prev==null;
+ S.quiz[QM.mod]=best;save();
+ var msg=score>=80?(first?'首测就过线,这个模块可以放进「能讲」清单了。':'维持住了最佳成绩,手感在。'):'差一点点。把答错的题对应的技能点讲给空气听一遍,再回来重测。';
+ $('#quizArea').innerHTML='<div style="text-align:center;padding:18px 0">'+
+  '<div class="eyebrow" style="margin-bottom:6px">'+esc(MODNAME[QM.mod])+' · 成绩</div>'+
+  '<div class="num" style="font-size:40px;font-weight:700;letter-spacing:-0.03em;color:'+(score>=80?'var(--green)':'var(--ink)')+'">'+score+'<span class="small muted" style="font-size:15px;font-weight:500"> / 100</span></div>'+
+  '<p class="small muted" style="max-width:380px;margin:6px auto 0">'+esc(msg)+(prev!=null&&score<prev?('(历史最佳 '+prev+' 分,这次没破)'):'')+'</p>'+
+  '<div style="display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap"><button class="btn" id="qAgain">再测一次</button><button class="btn primary" data-goto="skills">回技能树</button></div></div>';
+ if(score>=80)toast(score+' 分,过线。','i-check','green');
+ renderQuizMods();updateModBadge(QM.mod);renderHero();
+ checkMilestones();
+}
+
+/* ================= 设置 ================= */
+function doExport(){
+ var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+ var a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='yueqian-progress-'+todayStr()+'.json';
+ document.body.appendChild(a);a.click();a.remove();
+ toast('备份已导出,存好这个文件。','i-download');
+}
+function doImport(file){
+ var rd=new FileReader();
+ rd.onload=function(){
+  try{
+   var raw=JSON.parse(rd.result);
+   S=defaults();normalize(raw);
+   save();applyTheme();buildRunway();renderAll();
+   toast('进度已恢复,欢迎回来。','i-check','green');
+  }catch(e){toast('这个文件读不出来,确认是导出的 JSON 备份。','i-msg')}
+ };
+ rd.readAsText(file);
+}
+
+/* ================= 事件 ================= */
+document.addEventListener('click',function(e){
+ var t=e.target;
+ var flip=t.closest('.flip');
+ if(flip&&!t.closest('input,label')){flip.classList.toggle('on');return}
+ var nav=t.closest('.nav-btn[data-view]');
+ if(nav){go(nav.getAttribute('data-view'));return}
+ var lb=t.closest('[data-lesson]');
+ if(lb){openLesson(lb.getAttribute('data-lesson'));return}
+ if(t.closest('#drClose')){closeLesson();return}
+ if(t.closest('#drDone')){markLessonDone();return}
+ var gt=t.closest('[data-goto]');
+ if(gt){go(gt.getAttribute('data-goto'));return}
+ var chip=t.closest('[data-skill]');
+ if(chip){cycleSkill(chip.getAttribute('data-skill'));return}
+ var qm=t.closest('[data-qmod]');
+ if(qm){startQuiz(qm.getAttribute('data-qmod'));return}
+ if(t.closest('#qConfirm')){
+  var sel=$('input[name="qopt"]:checked');
+  if(!sel)return;
+  QM.picked=Number(sel.value);
+  if(QM.picked===QUIZ[QM.mod][QM.idx].ans)QM.correct++;
+  renderQ(true);return;
+ }
+ if(t.closest('#qNext')){
+  QM.idx++;
+  if(QM.idx>=QUIZ[QM.mod].length)finishQuiz();else{QM.picked=null;renderQ(false)}
+  return;
+ }
+ if(t.closest('#qAgain')){startQuiz(QM.mod);return}
+ if(t.closest('#dailyBtn')){toggleToday();return}
+ if(t.closest('#rerollBtn')){
+  var cur=dailyIdx(),nv=cur;
+  while(nv===cur)nv=Math.floor(Math.random()*DAILY.length);
+  S.reroll[todayStr()]=nv;save();renderDaily();renderOvToday();
+  toast('换了一道,今天的任务以这道为准。','i-shuffle');return;
+ }
+ if(t.closest('#coAdd')){addCo();return}
+ var del=t.closest('[data-codel]');
+ if(del){S.co.splice(Number(del.getAttribute('data-codel')),1);save();renderCo();return}
+ if(t.closest('#themeBtn')){
+  S.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  save();applyTheme();return;
+ }
+ if(t.closest('#exportBtn')){doExport();return}
+ if(t.closest('#importBtn')){$('#importFile').click();return}
+ if(t.closest('#nameSave')){
+  var v=$('#nameInput').value.trim();
+  S.name=v.slice(0,12);save();renderHero();
+  toast(v?('好的,'+v+',就这么叫了。'):'行,继续当神秘人。','i-msg');return;
+ }
+ var rb=t.closest('#resetBtn');
+ if(rb){
+  if(rb.getAttribute('data-armed')==='1'){
+   S=defaults();save();
+   applyTheme();buildRunway();renderAll();
+   rb.removeAttribute('data-armed');rb.innerHTML=icon('i-refresh')+'重置全部进度';
+   toast('已全部重置,轨道回到起点。','i-refresh');
+  }else{
+   rb.setAttribute('data-armed','1');rb.textContent='再点一次,确认清空所有进度';
+   setTimeout(function(){if(rb.getAttribute('data-armed')==='1'){rb.removeAttribute('data-armed');rb.innerHTML=icon('i-refresh')+'重置全部进度'}},3500);
+  }
+  return;
+ }
+ if(t.closest('#obStart')||t.closest('#obName')&&false){}
+});
+document.addEventListener('change',function(e){
+ var el=e.target;
+ if(el.name==='qopt'){var b=$('#qConfirm');if(b)b.disabled=false;return}
+ if(el.matches&&el.matches('[data-cot]')){var jt=Number(el.getAttribute('data-cot'));if(S.co[jt]){S.co[jt].t=Number(el.value);save();renderCo()}return}
+ if(el.matches&&el.matches('[data-co]')){var i2=Number(el.getAttribute('data-co'));if(S.co[i2]){S.co[i2].s=Number(el.value);save();renderCo()}return}
+ if(el.matches&&el.matches('[data-check]')){
+  var id=el.getAttribute('data-check');
+  if(el.checked){S.checks[id]=true;if(!S.start){S.start=todayStr();buildRunway()}}
+  else delete S.checks[id];
+  save();updateBadgesFor(el);renderHero();
+  checkMilestones();
+ }
+});
+document.addEventListener('keydown',function(e){
+ if(e.key==='Enter'&&e.target&&e.target.id==='coInput'){e.preventDefault();addCo()}
+ if(e.key==='Enter'&&e.target&&e.target.classList&&e.target.classList.contains('flip')){e.target.classList.toggle('on')}
+ if(e.key==='Enter'&&e.target&&e.target.id==='obName'){e.preventDefault();startOnboard()}
+ if(e.key==='Escape')closeLesson();
+});
+$$('#themeSeg button').forEach(function(b){b.addEventListener('click',function(){S.theme=b.getAttribute('data-theme-opt');save();applyTheme()})});
+$('#importFile').addEventListener('change',function(){if(this.files&&this.files[0])doImport(this.files[0]);this.value=''});
+$('#drawerMask').addEventListener('click',closeLesson);
+
+/* ================= LeanCloud 同步 ================= */
+function lcOK(){return !!(S.lc&&S.lc.id&&S.lc.key&&S.lc.host&&S.lc.code)}
+function lcBase(){
+ var h=S.lc.host.trim();
+ if(/^https?:\/\//.test(h))return h.replace(/\/+$/,'')+'/1.1';
+ return 'https://'+h.replace(/\/+$/,'')+'/1.1';
+}
+function lcHeaders(){return {'Content-Type':'application/json','X-LC-Id':S.lc.id,'X-LC-Key':S.lc.key}}
+function lcFind(){
+ return fetch(lcBase()+'/classes/Progress?where='+encodeURIComponent(JSON.stringify({code:S.lc.code}))+'&limit=1',{headers:lcHeaders()})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+'(检查 AppID/Key/域名)');return r.json()})
+  .then(function(d){return (d.results&&d.results[0])||null});
+}
+function showConflict(){var el=$('#lcConflict');if(el)el.classList.remove('hidden');toast('检测到云端与本机都有新修改,去「设置 → 同步」选择保留哪边','i-msg')}
+function hideConflict(){var el=$('#lcConflict');if(el)el.classList.add('hidden')}
+function isVirgin(){
+ return !S.days.length&&!Object.keys(S.checks).length&&!Object.keys(S.skills).length&&!Object.keys(S.quiz).length&&!S.co.length&&!S.start;
+}
+function pushNow(force,silent){
+ if(!lcOK())return Promise.resolve();
+ if(navigator&&!navigator.onLine){if(!silent)toast('当前离线,联网后自动同步','i-msg');return Promise.resolve()}
+ return lcFind().catch(function(){return null}).then(function(remote){
+  var lr=S.rev||0;
+  if(remote){
+   if(isVirgin()){adoptRemote(remote.payload);return}
+   if((remote.rev||0)>lr&&!force){
+    if(lr>(S.pushedRev||0)){showConflict();return}
+    return;
+   }
+  }
+  var body=JSON.stringify({code:S.lc.code,payload:JSON.stringify(S),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
+  var url=lcBase()+'/classes/Progress'+(remote?'/'+remote.objectId:'');
+  var req=remote?fetch(url,{method:'PUT',headers:lcHeaders(),body:body}):fetch(url,{method:'POST',headers:lcHeaders(),body:body});
+  return req.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(){
+   S.pushedRev=lr;S.pushedAt=new Date().toLocaleString('zh-CN');
+   persist();renderSyncCard();
+   if(!silent)toast('已推送到云端','i-check','green');
+  });
+ }).catch(function(e){if(e&&e.message)toast('同步失败:'+e.message,'i-msg')});
+}
+function adoptRemote(payload){
+ try{
+  var raw=JSON.parse(payload);
+  var lc=S.lc;
+  S=defaults();normalize(raw);
+  if(!S.lc||!S.lc.id)S.lc=lc;
+  S.pushedRev=S.rev||0;S.pushedAt=new Date().toLocaleString('zh-CN');
+  persist();hideConflict();renderAll();renderSyncCard();
+  toast('已从云端恢复进度','i-check','green');
+ }catch(e){toast('云端数据解析失败','i-msg')}
+}
+function pullNow(interactive){
+ if(!lcOK())return Promise.resolve();
+ return lcFind().then(function(remote){
+  if(!remote){if(interactive)toast('云端暂无存档:点「立即同步」会先把本机推上去','i-msg');return}
+  var rr=remote.rev||0,lr=S.rev||0;
+  if(rr>lr&&(isVirgin()||lr<=(S.pushedRev||0))){adoptRemote(remote.payload);return}
+  if(rr>lr&&lr>(S.pushedRev||0)){showConflict();return}
+  if(interactive&&rr===lr)toast('本机已是最新','i-check','green');
+  if(interactive&&lr>rr)pushNow(false,false);
+ }).catch(function(e){if(interactive)toast('拉取失败:'+e.message,'i-msg')});
+}
+function genCode(){
+ var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';
+ for(var i=0;i<8;i++)s+=A[Math.floor(Math.random()*A.length)];
+ return s;
+}
+function renderSyncCard(){
+ if(!$('#lcId'))return;
+ var vals={id:(S.lc&&S.lc.id)||'',key:(S.lc&&S.lc.key)||'',host:(S.lc&&S.lc.host)||'',code:(S.lc&&S.lc.code)||''};
+ Object.keys(vals).forEach(function(f){
+  var el=$('#lc'+f.charAt(0).toUpperCase()+f.slice(1));
+  if(el&&document.activeElement!==el&&vals[f])el.value=vals[f];
+ });
+ var st=$('#lcStatus');if(!st)return;
+ if(!S.lc||!S.lc.id){st.textContent='未配置。';hideConflict();return}
+ if(!lcOK()){st.textContent='配置不完整:AppID、AppKey、域名、同步码四项都要填。';return}
+ st.textContent='同步码 '+S.lc.code+' · 本机版本 v'+(S.rev||0)+' · '+((S.rev||0)>(S.pushedRev||0)?'有改动待推送':('已同步'+(S.pushedAt?(' · '+S.pushedAt):'')));
+}
+$('#lcSave').addEventListener('click',function(){
+ S.lc={id:$('#lcId').value.trim().slice(0,160),key:$('#lcKey').value.trim().slice(0,160),host:$('#lcHost').value.trim().slice(0,160),code:$('#lcCode').value.trim().toUpperCase().slice(0,8)};
+ persist();renderSyncCard();
+ if(lcOK()){toast('配置已保存,正在连接...','i-check');pullNow(false);schedulePush()}
+ else toast('还有字段没填全','i-msg');
+});
+$('#lcGen').addEventListener('click',function(){
+ var b=this;
+ if(b.getAttribute('data-armed')==='1'){
+  b.removeAttribute('data-armed');b.textContent='生成同步码';
+  if(!S.lc)S.lc={id:'',key:'',host:'',code:''};
+  S.lc.code=genCode();persist();renderSyncCard();
+  toast('新同步码:'+S.lc.code+'(旧云端存档不再被引用)','i-check');
+ }else{
+  b.setAttribute('data-armed','1');b.textContent='再点一次确认生成';
+  setTimeout(function(){if(b.getAttribute('data-armed')==='1'){b.removeAttribute('data-armed');b.textContent='生成同步码'}},3000);
+ }
+});
+$('#lcSync').addEventListener('click',function(){if(!lcOK()){toast('先填好并保存四项配置','i-msg');return}pullNow(true)});
+$('#lcOff').addEventListener('click',function(){
+ var b=this;
+ if(b.getAttribute('data-armed')==='1'){
+  b.removeAttribute('data-armed');b.textContent='断开';
+  S.lc=null;persist();['#lcId','#lcKey','#lcHost','#lcCode'].forEach(function(s){var el=$(s);if(el)el.value=''});renderSyncCard();toast('已断开同步(本机数据保留)','i-check');
+ }else{
+  b.setAttribute('data-armed','1');b.textContent='再点一次确认断开';
+  setTimeout(function(){if(b.getAttribute('data-armed')==='1'){b.removeAttribute('data-armed');b.textContent='断开'}},3000);
+ }
+});
+$('#lcKeepLocal').addEventListener('click',function(){hideConflict();pushNow(true,false)});
+$('#lcKeepCloud').addEventListener('click',function(){lcFind().then(function(r){if(r)adoptRemote(r.payload)}).catch(function(e){toast('拉取失败:'+e.message,'i-msg')})});
+window.addEventListener('online',function(){if(lcOK())schedulePush()});
+document.addEventListener('visibilitychange',function(){
+ if(document.visibilityState==='hidden'&&lcOK()&&(S.rev||0)>(S.pushedRev||0)){clearTimeout(pushTimer);pushNow(false,true)}
+});
+
+/* onboarding */
+function startOnboard(){
+ var v=$('#obName').value.trim();
+ S.name=v.slice(0,12);save();
+ $('#onboard').classList.add('hidden');
+ renderHero();
+ toast((v?v+',':'')+'轨道点火,第 1 周从「大模型通识入门」开始。','i-rocket');
+}
+$('#obStart').addEventListener('click',startOnboard);
+
+/* ================= 启动 ================= */
+function renderAll(){
+ renderSkills();renderPlan();renderLab();renderDaily();renderQuizMods();renderLearn();renderHero();
+}
+applyTheme();
+buildRunway();
+renderAll();
+/* 自动读取同目录 sync-config.js(若部署者放置了 LeanCloud 配置,新设备免填四项) */
+(function(){
+ try{
+  fetch('sync-config.js',{cache:'no-store'}).then(function(r){return r.ok?r.text():null}).then(function(t){
+   if(!t)return;
+   var i=t.indexOf('{'),j=t.lastIndexOf('}');
+   if(i<0||j<=i)return;
+   var c;
+   try{c=JSON.parse(t.slice(i,j+1))}catch(e){return}
+   if(!c||!c.id||!c.key||!c.host||!c.code)return;
+   if(!S.lc||!S.lc.id||!S.lc.key||!S.lc.host||!S.lc.code){
+    S.lc={id:String(c.id).slice(0,160),key:String(c.key).slice(0,160),host:String(c.host).slice(0,160),code:String(c.code).slice(0,8)};
+    persist();renderSyncCard();
+   }
+  }).catch(function(){});
+ }catch(e){}
+})();
+if(lcOK()&&(!navigator||navigator.onLine))pullNow(false);
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){try{navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}}
+if(!S.name)$('#onboard').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
