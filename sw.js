@@ -1,6 +1,6 @@
 /* 跃迁计划 Service Worker:网络优先、离线回退缓存。
    在线时总能拿到最新版;离线(地铁等)回退到最近一次缓存。 */
-var CACHE = 'yueqian-v4';
+var CACHE = 'yueqian-v5';
 var ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png'];
 self.addEventListener('install', function (e) {
   e.waitUntil(
