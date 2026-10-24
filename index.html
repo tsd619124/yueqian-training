@@ -1755,9 +1755,13 @@ function pushNow(force,silent){
     return;
    }
   }
-  var body=lcIsGist()?null:JSON.stringify({code:S.lc.code,payload:JSON.stringify(S),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
+  /* 同步载荷剥离本机敏感配置(令牌等),只传学习进度 */
+  var payloadState=JSON.parse(JSON.stringify(S));
+  delete payloadState.lc;
+  payloadState.rev=lr;
+  var body=lcIsGist()?null:JSON.stringify({code:S.lc.code,payload:JSON.stringify(payloadState),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
   var req;
-  if(lcIsGist()){req=gistWrite(S).then(function(){return {ok:true}})}
+  if(lcIsGist()){req=gistWrite(payloadState).then(function(){return {ok:true}})}
   else{
    var url=lcBase()+'/classes/Progress'+(remote?'/'+remote.objectId:'');
    req=remote?fetch(url,{method:'PUT',headers:lcHeaders(),body:body}):fetch(url,{method:'POST',headers:lcHeaders(),body:body});
