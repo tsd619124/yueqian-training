@@ -456,20 +456,26 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
           </div>
         </div>
         <div class="card pad" style="margin-top:14px">
-          <div class="eyebrow" style="margin-bottom:10px">多设备同步(LeanCloud)</div>
-          <p class="small muted" style="margin-bottom:10px">手机和电脑共用一份进度。在 LeanCloud 控制台「设置 → 应用凭证」复制三项填入;手机端填同样的配置和同步码,点「立即同步」即可接管进度。数据只存你自己的 LeanCloud 应用。</p>
+          <div class="eyebrow" style="margin-bottom:10px">多设备同步(GitHub Gist)</div>
+          <p class="small muted" style="margin-bottom:10px">手机和电脑共用一份进度,存在你自己的 GitHub 私密 Gist 里。在两台设备各填一次下面两项即可;也可以直接打开带参数的链接自动配置。</p>
           <div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
-            <input type="text" class="field" id="lcId" placeholder="AppID(应用 ID)" autocomplete="off">
-            <input type="text" class="field" id="lcKey" placeholder="AppKey(应用 Key)" autocomplete="off">
-            <input type="text" class="field" id="lcHost" placeholder="REST API 域名,如 abcd1234.api.lncld.net" autocomplete="off">
-            <input type="text" class="field" id="lcCode" placeholder="同步码(8 位;新设备填同一个)" maxlength="8" autocomplete="off" style="font-family:var(--mono);letter-spacing:2px">
+            <input type="text" class="field" id="lcToken" placeholder="同步令牌(gist 权限的 Token)" autocomplete="off">
+            <input type="text" class="field" id="lcGist" placeholder="Gist ID(形如 a1b2c3...)" autocomplete="off">
           </div>
           <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px">
             <button class="btn primary" id="lcSave">保存配置</button>
-            <button class="btn" id="lcGen">生成同步码</button>
             <button class="btn" id="lcSync">立即同步</button>
             <button class="btn ghost danger" id="lcOff">断开</button>
           </div>
+          <details style="margin-top:12px"><summary class="small" style="cursor:pointer;color:var(--brand)">使用 LeanCloud(备选)</summary>
+            <div style="display:flex;flex-direction:column;gap:8px;max-width:420px;margin-top:8px">
+              <input type="text" class="field" id="lcId" placeholder="AppID(应用 ID)" autocomplete="off">
+              <input type="text" class="field" id="lcKey" placeholder="AppKey(应用 Key)" autocomplete="off">
+              <input type="text" class="field" id="lcHost" placeholder="REST API 域名,如 abcd1234.api.lncld.net" autocomplete="off">
+              <input type="text" class="field" id="lcCode" placeholder="同步码(8 位)" maxlength="8" autocomplete="off" style="font-family:var(--mono);letter-spacing:2px">
+            </div>
+            <p class="small muted" style="margin-top:6px">填了上面 Gist 两项就优先用 Gist;仅填这四项才走 LeanCloud。</p>
+          </details>
           <p class="small muted" id="lcStatus" style="margin-top:10px;min-height:18px"></p>
           <div id="lcConflict" class="hidden" style="margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--amber-soft)">
             <div class="small" style="font-weight:600;margin-bottom:8px">本机与云端都有未同步的修改,选择保留哪边(另一边会被覆盖):</div>
@@ -1119,7 +1125,7 @@ function normalize(raw){
  if(raw.reroll&&typeof raw.reroll==='object'){var o4={};for(var k4 in raw.reroll){if(typeof raw.reroll[k4]==='number')o4[k4]=raw.reroll[k4]}S.reroll=o4}
  if(raw.mil&&typeof raw.mil==='object'){var o5={};for(var k5 in raw.mil){if(raw.mil[k5])o5[k5]=true}S.mil=o5}
  if(typeof raw.start==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(raw.start))S.start=raw.start;
- if(raw.lc&&typeof raw.lc==='object'){var lc={};['id','key','host','code'].forEach(function(f){if(typeof raw.lc[f]==='string')lc[f]=raw.lc[f].slice(0,160)});S.lc=lc}
+ if(raw.lc&&typeof raw.lc==='object'){var lc={};['id','key','host','code','backend','token','gist'].forEach(function(f){if(typeof raw.lc[f]==='string')lc[f]=raw.lc[f].slice(0,200)});S.lc=lc}
  if(typeof raw.rev==='number'&&raw.rev>=0)S.rev=Math.floor(raw.rev);
  if(typeof raw.pushedRev==='number'&&raw.pushedRev>=0)S.pushedRev=Math.floor(raw.pushedRev);
  if(typeof raw.pushedAt==='string')S.pushedAt=raw.pushedAt.slice(0,40);
@@ -1701,15 +1707,33 @@ $$('#themeSeg button').forEach(function(b){b.addEventListener('click',function()
 $('#importFile').addEventListener('change',function(){if(this.files&&this.files[0])doImport(this.files[0]);this.value=''});
 $('#drawerMask').addEventListener('click',closeLesson);
 
-/* ================= LeanCloud 同步 ================= */
-function lcOK(){return !!(S.lc&&S.lc.id&&S.lc.key&&S.lc.host&&S.lc.code)}
+/* ================= 云同步(优先 GitHub Gist,备选 LeanCloud) ================= */
+function lcIsGist(){return !!(S.lc&&S.lc.backend==='gist'&&S.lc.token&&S.lc.gist)}
+function lcOK(){return lcIsGist()||!!(S.lc&&S.lc.id&&S.lc.key&&S.lc.host&&S.lc.code)}
 function lcBase(){
  var h=S.lc.host.trim();
  if(/^https?:\/\//.test(h))return h.replace(/\/+$/,'')+'/1.1';
  return 'https://'+h.replace(/\/+$/,'')+'/1.1';
 }
 function lcHeaders(){return {'Content-Type':'application/json','X-LC-Id':S.lc.id,'X-LC-Key':S.lc.key}}
+function gistHeaders(){return {'Authorization':'Bearer '+S.lc.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'}}
+function gistRead(){
+ return fetch('https://api.github.com/gists/'+S.lc.gist,{headers:gistHeaders()})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+'(检查令牌与 Gist ID)');return r.json()})
+  .then(function(g){
+   var f=g.files&&g.files['yueqian.json'];
+   if(!f||!f.content)return null;
+   try{return JSON.parse(f.content)}catch(e){throw new Error('云端数据损坏')}
+  });
+}
+function gistWrite(state){
+ return fetch('https://api.github.com/gists/'+S.lc.gist,{method:'PATCH',headers:gistHeaders(),body:JSON.stringify({description:'yueqian-progress',files:{'yueqian.json':{content:JSON.stringify(state)}}})})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+}
 function lcFind(){
+ if(lcIsGist()){
+  return gistRead().then(function(st){return st?{rev:st.rev||0,payload:JSON.stringify(st),objectId:S.lc.gist}:null});
+ }
  return fetch(lcBase()+'/classes/Progress?where='+encodeURIComponent(JSON.stringify({code:S.lc.code}))+'&limit=1',{headers:lcHeaders()})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+'(检查 AppID/Key/域名)');return r.json()})
   .then(function(d){return (d.results&&d.results[0])||null});
@@ -1731,9 +1755,13 @@ function pushNow(force,silent){
     return;
    }
   }
-  var body=JSON.stringify({code:S.lc.code,payload:JSON.stringify(S),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
-  var url=lcBase()+'/classes/Progress'+(remote?'/'+remote.objectId:'');
-  var req=remote?fetch(url,{method:'PUT',headers:lcHeaders(),body:body}):fetch(url,{method:'POST',headers:lcHeaders(),body:body});
+  var body=lcIsGist()?null:JSON.stringify({code:S.lc.code,payload:JSON.stringify(S),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
+  var req;
+  if(lcIsGist()){req=gistWrite(S).then(function(){return {ok:true}})}
+  else{
+   var url=lcBase()+'/classes/Progress'+(remote?'/'+remote.objectId:'');
+   req=remote?fetch(url,{method:'PUT',headers:lcHeaders(),body:body}):fetch(url,{method:'POST',headers:lcHeaders(),body:body});
+  }
   return req.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(function(){
    S.pushedRev=lr;S.pushedAt=new Date().toLocaleString('zh-CN');
    persist();renderSyncCard();
@@ -1769,41 +1797,44 @@ function genCode(){
  return s;
 }
 function renderSyncCard(){
- if(!$('#lcId'))return;
- var vals={id:(S.lc&&S.lc.id)||'',key:(S.lc&&S.lc.key)||'',host:(S.lc&&S.lc.host)||'',code:(S.lc&&S.lc.code)||''};
- Object.keys(vals).forEach(function(f){
-  var el=$('#lc'+f.charAt(0).toUpperCase()+f.slice(1));
-  if(el&&document.activeElement!==el&&vals[f])el.value=vals[f];
- });
+ if(!$('#lcToken'))return;
+ var set=function(id,v){var el=$(id);if(el&&document.activeElement!==el&&v)el.value=v};
+ set('#lcToken',(S.lc&&S.lc.token)||'');set('#lcGist',(S.lc&&S.lc.gist)||'');
+ set('#lcId',(S.lc&&S.lc.id)||'');set('#lcKey',(S.lc&&S.lc.key)||'');set('#lcHost',(S.lc&&S.lc.host)||'');set('#lcCode',(S.lc&&S.lc.code)||'');
  var st=$('#lcStatus');if(!st)return;
- if(!S.lc||!S.lc.id){st.textContent='未配置。';hideConflict();return}
- if(!lcOK()){st.textContent='配置不完整:AppID、AppKey、域名、同步码四项都要填。';return}
- st.textContent='同步码 '+S.lc.code+' · 本机版本 v'+(S.rev||0)+' · '+((S.rev||0)>(S.pushedRev||0)?'有改动待推送':('已同步'+(S.pushedAt?(' · '+S.pushedAt):'')));
+ if(!S.lc||(!S.lc.token&&!S.lc.id)){st.textContent='未配置。';hideConflict();return}
+ if(!lcOK()){st.textContent='配置不完整:Gist 需要令牌和 Gist ID 两项。';return}
+ st.textContent=(lcIsGist()?('Gist '+S.lc.gist.slice(0,8)+'…'):('同步码 '+S.lc.code))+' · 本机版本 v'+(S.rev||0)+' · '+((S.rev||0)>(S.pushedRev||0)?'有改动待推送':('已同步'+(S.pushedAt?(' · '+S.pushedAt):'')));
 }
 $('#lcSave').addEventListener('click',function(){
- S.lc={id:$('#lcId').value.trim().slice(0,160),key:$('#lcKey').value.trim().slice(0,160),host:$('#lcHost').value.trim().slice(0,160),code:$('#lcCode').value.trim().toUpperCase().slice(0,8)};
+ var tok=$('#lcToken').value.trim(),gid=$('#lcGist').value.trim();
+ if(tok&&gid){
+  S.lc={backend:'gist',token:tok.slice(0,200),gist:gid.replace(/^.*\//,'').slice(0,80)};
+ }else{
+  S.lc={id:$('#lcId').value.trim().slice(0,160),key:$('#lcKey').value.trim().slice(0,160),host:$('#lcHost').value.trim().slice(0,160),code:$('#lcCode').value.trim().toUpperCase().slice(0,8)};
+ }
  persist();renderSyncCard();
  if(lcOK()){toast('配置已保存,正在连接...','i-check');pullNow(false);schedulePush()}
- else toast('还有字段没填全','i-msg');
+ else toast('还没填全(令牌 + Gist ID,或 LeanCloud 四项)','i-msg');
 });
-$('#lcGen').addEventListener('click',function(){
+if($('#lcGen')){$('#lcGen').addEventListener('click',function(){
  var b=this;
  if(b.getAttribute('data-armed')==='1'){
   b.removeAttribute('data-armed');b.textContent='生成同步码';
   if(!S.lc)S.lc={id:'',key:'',host:'',code:''};
   S.lc.code=genCode();persist();renderSyncCard();
-  toast('新同步码:'+S.lc.code+'(旧云端存档不再被引用)','i-check');
+  toast('新同步码:'+S.lc.code,'i-check');
  }else{
   b.setAttribute('data-armed','1');b.textContent='再点一次确认生成';
   setTimeout(function(){if(b.getAttribute('data-armed')==='1'){b.removeAttribute('data-armed');b.textContent='生成同步码'}},3000);
  }
-});
-$('#lcSync').addEventListener('click',function(){if(!lcOK()){toast('先填好并保存四项配置','i-msg');return}pullNow(true)});
+});}
+$('#lcSync').addEventListener('click',function(){if(!lcOK()){toast('先填好并保存同步配置','i-msg');return}pullNow(true)});
 $('#lcOff').addEventListener('click',function(){
  var b=this;
  if(b.getAttribute('data-armed')==='1'){
   b.removeAttribute('data-armed');b.textContent='断开';
-  S.lc=null;persist();['#lcId','#lcKey','#lcHost','#lcCode'].forEach(function(s){var el=$(s);if(el)el.value=''});renderSyncCard();toast('已断开同步(本机数据保留)','i-check');
+  S.lc=null;persist();['#lcToken','#lcGist','#lcId','#lcKey','#lcHost','#lcCode'].forEach(function(s){var el=$(s);if(el)el.value=''});renderSyncCard();toast('已断开同步(本机数据保留)','i-check');
  }else{
   b.setAttribute('data-armed','1');b.textContent='再点一次确认断开';
   setTimeout(function(){if(b.getAttribute('data-armed')==='1'){b.removeAttribute('data-armed');b.textContent='断开'}},3000);
@@ -1833,7 +1864,22 @@ function renderAll(){
 applyTheme();
 buildRunway();
 renderAll();
-/* 自动读取同目录 sync-config.js(若部署者放置了 LeanCloud 配置,新设备免填四项) */
+/* 链接参数自动配置:#t=令牌&g=GistID(打开即存,随即清掉地址栏,令牌不留在历史记录) */
+(function(){
+ try{
+  var h=location.hash||'';
+  if(h.indexOf('#t=')===0||h.indexOf('&g=')>0){
+   var m=h.match(/t=([^&]+)&g=([^&]+)/);
+   if(m&&m[1]&&m[2]){
+    S.lc={backend:'gist',token:decodeURIComponent(m[1]).slice(0,200),gist:decodeURIComponent(m[2]).slice(0,80)};
+    persist();renderSyncCard();
+    toast('同步配置已通过链接导入','i-check');
+   }
+   history.replaceState(null,'',location.pathname+location.search);
+  }
+ }catch(e){}
+})();
+/* 自动读取同目录 sync-config.js(若部署者放了 Gist ID 等,新设备少填一项;令牌不放公开文件) */
 (function(){
  try{
   fetch('sync-config.js',{cache:'no-store'}).then(function(r){return r.ok?r.text():null}).then(function(t){
@@ -1842,8 +1888,12 @@ renderAll();
    if(i<0||j<=i)return;
    var c;
    try{c=JSON.parse(t.slice(i,j+1))}catch(e){return}
-   if(!c||!c.id||!c.key||!c.host||!c.code)return;
-   if(!S.lc||!S.lc.id||!S.lc.key||!S.lc.host||!S.lc.code){
+   if(!c)return;
+   if(c.backend==='gist'&&c.gist&&(!S.lc||!S.lc.gist)){
+    S.lc=S.lc||{};S.lc.backend='gist';S.lc.gist=String(c.gist).slice(0,80);
+    if(c.token)S.lc.token=String(c.token).slice(0,200);
+    persist();renderSyncCard();
+   }else if(c.id&&c.key&&c.host&&c.code&&(!S.lc||!S.lc.id||!S.lc.key||!S.lc.host||!S.lc.code)){
     S.lc={id:String(c.id).slice(0,160),key:String(c.key).slice(0,160),host:String(c.host).slice(0,160),code:String(c.code).slice(0,8)};
     persist();renderSyncCard();
    }
