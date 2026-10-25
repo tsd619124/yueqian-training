@@ -13,11 +13,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="跃迁计划">
 <meta name="format-detection" content="telephone=no">
-<meta name="theme-color" content="#f5f5f7">
+<meta name="theme-color" content="#ffffff">
 <style>
 /* ---------- tokens ---------- */
 :root{
-  --bg:#f5f5f7; --surface:#ffffff; --surface-2:#e8e8ed; --ink:#1d1d1f; --muted:#6e6e73;
+  --bg:#ffffff; --surface:#ffffff; --surface-2:#e8e8ed; --ink:#1d1d1f; --muted:#6e6e73;
   --line:rgba(0,0,0,0.07); --line-strong:rgba(0,0,0,0.14);
   --brand:#0071e3; --brand-2:#0077ed; --brand-soft:rgba(0,113,227,0.10);
   --orange:#c93400; --orange-soft:rgba(255,149,0,0.13);
@@ -25,11 +25,11 @@
   --red:#d70015; --red-soft:rgba(255,59,48,0.12);
   --amber:#b25000; --amber-soft:rgba(255,159,10,0.14);
   --shadow:0 8px 30px rgba(0,0,0,0.12); --shadow-sm:0 1px 3px rgba(0,0,0,0.05);
-  --glass:rgba(255,255,255,0.30); --glass-hi:rgba(255,255,255,0.8); --glass-dim:rgba(0,0,0,0.04);
+  --glass:rgba(255,255,255,0.20); --glass-hi:rgba(255,255,255,0.8); --glass-dim:rgba(0,0,0,0.03);
   --glass-line:rgba(0,0,0,0.08);
-  --glass-shadow:0 16px 40px rgba(0,0,0,0.12);
-  --tab-line:rgba(255,255,255,0.6);
-  --tab-pill:rgba(255,255,255,0.40); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.08),inset 0 1px 1px rgba(255,255,255,0.9);
+  --glass-shadow:0 16px 40px rgba(0,0,0,0.10);
+  --tab-line:rgba(255,255,255,0.65);
+  --tab-pill:rgba(255,255,255,0.32); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.08),inset 0 1px 1px rgba(255,255,255,0.9);
   --r:20px; --r-sm:12px;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
@@ -43,11 +43,11 @@
   --red:#ff453a; --red-soft:rgba(255,69,58,0.16);
   --amber:#ffd60a; --amber-soft:rgba(255,214,10,0.15);
   --shadow:0 10px 34px rgba(0,0,0,0.55); --shadow-sm:0 1px 3px rgba(0,0,0,0.40);
-  --glass:rgba(20,20,22,0.18); --glass-hi:rgba(255,255,255,0.22); --glass-dim:rgba(0,0,0,0.3);
+  --glass:rgba(16,16,18,0.12); --glass-hi:rgba(255,255,255,0.2); --glass-dim:rgba(0,0,0,0.25);
   --glass-line:rgba(255,255,255,0.12);
-  --glass-shadow:0 16px 44px rgba(0,0,0,0.45);
-  --tab-line:rgba(255,255,255,0.20);
-  --tab-pill:rgba(255,255,255,0.15); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.25),inset 0 1px 1px rgba(255,255,255,0.2);
+  --glass-shadow:0 16px 44px rgba(0,0,0,0.4);
+  --tab-line:rgba(255,255,255,0.22);
+  --tab-pill:rgba(255,255,255,0.13); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.22),inset 0 1px 1px rgba(255,255,255,0.18);
 }
 /* ---------- base ---------- */
 *{box-sizing:border-box}
@@ -86,6 +86,18 @@ input,select{font:inherit;color:inherit}
 .ptitle{font-size:23px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px}
 .me-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .me-mark{width:52px;height:52px;border-radius:14px;font-size:24px;flex:none}
+.me-list{padding:0;overflow:hidden}
+.me-item{border-bottom:1px solid var(--line)}
+.me-item:last-child{border-bottom:0}
+.me-item summary{display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;list-style:none;font-weight:500;font-size:15px;user-select:none}
+.me-item summary::-webkit-details-marker{display:none}
+.me-lead{color:var(--brand)}
+.me-val{margin-left:auto;color:var(--muted);font-size:13px;font-weight:400;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me-chev{color:var(--muted);transition:transform .2s;flex:none}
+.me-item[open] .me-chev{transform:rotate(180deg)}
+.me-body{padding:2px 18px 16px 48px}
+.log-more summary{cursor:pointer;color:var(--brand);font-size:13px;padding:10px 0 4px}
+.log-more summary::-webkit-details-marker{display:none}
 .logv{padding:12px 0;border-bottom:1px solid var(--line)}
 .logv:last-child{border-bottom:0;padding-bottom:2px}
 .logv ul{margin:7px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.55}
@@ -274,7 +286,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
   .rw-lbls{display:none}
-  .tabbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);width:min(292px,calc(100vw - 36px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;padding:5px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02) 42%,rgba(255,255,255,0) 62%),var(--glass);backdrop-filter:blur(12px) saturate(1.8);-webkit-backdrop-filter:blur(12px) saturate(1.8);border:1px solid var(--tab-line);box-shadow:var(--glass-shadow),inset 0 1px 1px var(--glass-hi),inset 0 -1px 1px var(--glass-dim)}
+  .tabbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);width:min(292px,calc(100vw - 36px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;padding:5px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02) 42%,rgba(255,255,255,0) 62%),var(--glass);backdrop-filter:blur(10px) saturate(1.8);-webkit-backdrop-filter:blur(10px) saturate(1.8);border:1px solid var(--tab-line);box-shadow:var(--glass-shadow),inset 0 1px 1px var(--glass-hi),inset 0 -1px 1px var(--glass-dim)}
   #tabPill{position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px)/4);border-radius:999px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
   .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:7px 2px 6px;font-size:10.5px;font-weight:500;border-radius:999px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
   :root[data-theme="dark"] .tabbar .nav-btn{text-shadow:0 1px 2px rgba(0,0,0,0.4)}
@@ -487,68 +499,80 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
             <span class="streak-chip" id="tbStreak" title="连续打卡天数"><svg class="ic" style="width:15px;height:15px"><use href="#i-flame"/></svg><span class="num" id="tbStreakN">0</span><span style="font-weight:500">天</span></span>
           </div>
         </div>
-        <div class="card pad" style="margin-top:14px">
-          <div class="eyebrow" style="margin-bottom:10px">称呼</div>
-          <div style="display:flex;gap:9px;max-width:380px">
-            <input type="text" class="field" id="nameInput" maxlength="12" placeholder="教练怎么称呼你?">
-            <button class="btn" id="nameSave">保存</button>
-          </div>
-        </div>
-        <div class="card pad" style="margin-top:14px">
-          <div class="eyebrow" style="margin-bottom:10px">外观</div>
-          <div class="seg" id="themeSeg">
-            <button data-theme-opt="auto">跟随系统</button>
-            <button data-theme-opt="light">浅色</button>
-            <button data-theme-opt="dark">深色</button>
-          </div>
-        </div>
-        <div class="card pad" style="margin-top:14px">
-          <div class="eyebrow" style="margin-bottom:10px">多设备同步(GitHub Gist)</div>
-          <p class="small muted" style="margin-bottom:10px">手机和电脑共用一份进度,存在你自己的 GitHub 私密 Gist 里。在两台设备各填一次下面两项即可;也可以直接打开带参数的链接自动配置。</p>
-          <div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
-            <input type="text" class="field" id="lcToken" placeholder="同步令牌(gist 权限的 Token)" autocomplete="off">
-            <input type="text" class="field" id="lcGist" placeholder="Gist ID(形如 a1b2c3...)" autocomplete="off">
-          </div>
-          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px">
-            <button class="btn primary" id="lcSave">保存配置</button>
-            <button class="btn" id="lcSync">立即同步</button>
-            <button class="btn ghost danger" id="lcOff">断开</button>
-          </div>
-          <details style="margin-top:12px"><summary class="small" style="cursor:pointer;color:var(--brand)">使用 LeanCloud(备选)</summary>
-            <div style="display:flex;flex-direction:column;gap:8px;max-width:420px;margin-top:8px">
-              <input type="text" class="field" id="lcId" placeholder="AppID(应用 ID)" autocomplete="off">
-              <input type="text" class="field" id="lcKey" placeholder="AppKey(应用 Key)" autocomplete="off">
-              <input type="text" class="field" id="lcHost" placeholder="REST API 域名,如 abcd1234.api.lncld.net" autocomplete="off">
-              <input type="text" class="field" id="lcCode" placeholder="同步码(8 位)" maxlength="8" autocomplete="off" style="font-family:var(--mono);letter-spacing:2px">
+        <div class="card me-list" style="margin-top:14px">
+          <details class="me-item">
+            <summary><svg class="ic me-lead"><use href="#i-user-check"/></svg>称呼<span class="me-val" id="meNameVal">准售前</span><svg class="ic me-chev"><use href="#i-chev"/></svg></summary>
+            <div class="me-body">
+              <div style="display:flex;gap:9px;max-width:380px">
+                <input type="text" class="field" id="nameInput" maxlength="12" placeholder="教练怎么称呼你?">
+                <button class="btn" id="nameSave">保存</button>
+              </div>
             </div>
-            <p class="small muted" style="margin-top:6px">填了上面 Gist 两项就优先用 Gist;仅填这四项才走 LeanCloud。</p>
           </details>
-          <p class="small muted" id="lcStatus" style="margin-top:10px;min-height:18px"></p>
-          <div id="lcConflict" class="hidden" style="margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--amber-soft)">
-            <div class="small" style="font-weight:600;margin-bottom:8px">本机与云端都有未同步的修改,选择保留哪边(另一边会被覆盖):</div>
-            <div style="display:flex;gap:9px;flex-wrap:wrap">
-              <button class="btn sm primary" id="lcKeepLocal">用本机覆盖云端</button>
-              <button class="btn sm" id="lcKeepCloud">用云端覆盖本机</button>
+          <details class="me-item">
+            <summary><svg class="ic me-lead"><use href="#i-sun"/></svg>外观<span class="me-val" id="meThemeVal">跟随系统</span><svg class="ic me-chev"><use href="#i-chev"/></svg></summary>
+            <div class="me-body">
+              <div class="seg" id="themeSeg">
+                <button data-theme-opt="auto">跟随系统</button>
+                <button data-theme-opt="light">浅色</button>
+                <button data-theme-opt="dark">深色</button>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="card pad" style="margin-top:14px">
-          <div class="eyebrow" style="margin-bottom:10px">数据</div>
-          <p class="small muted" style="margin-bottom:12px">进度存在这台浏览器;换设备或清理浏览器前,先导出一份 JSON 备份。</p>
-          <div style="display:flex;gap:9px;flex-wrap:wrap">
-            <button class="btn" id="exportBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-download"/></svg>导出进度</button>
-            <button class="btn" id="importBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-upload"/></svg>导入备份</button>
-            <input type="file" id="importFile" accept="application/json" class="hidden" aria-label="选择备份文件">
-            <button class="btn danger" id="resetBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-refresh"/></svg>重置全部进度</button>
-          </div>
-        </div>
-        <div class="card pad" style="margin-top:14px">
-          <div class="eyebrow" style="margin-bottom:10px">关于</div>
-          <p class="small muted" style="margin-bottom:2px">跃迁计划 · 训练系统当前版本 <span class="mono" id="appVer"></span><button class="btn sm" id="updBtn" style="margin-left:8px">检查更新</button></p>
-          <p class="small muted">有新版会自动更新,主屏图标无需删除重加。</p>
-          <div class="hr" style="margin:12px 0"></div>
-          <div class="eyebrow" style="margin-bottom:2px">版本更新</div>
-          <div id="meLog"></div>
+          </details>
+          <details class="me-item">
+            <summary><svg class="ic me-lead"><use href="#i-refresh"/></svg>多设备同步<span class="me-val" id="meSyncVal">未配置</span><svg class="ic me-chev"><use href="#i-chev"/></svg></summary>
+            <div class="me-body">
+              <p class="small muted" style="margin-bottom:10px">手机和电脑共用一份进度,存在你自己的 GitHub 私密 Gist 里。在两台设备各填一次下面两项即可;也可以直接打开带参数的链接自动配置。</p>
+              <div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
+                <input type="text" class="field" id="lcToken" placeholder="同步令牌(gist 权限的 Token)" autocomplete="off">
+                <input type="text" class="field" id="lcGist" placeholder="Gist ID(形如 a1b2c3...)" autocomplete="off">
+              </div>
+              <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px">
+                <button class="btn primary" id="lcSave">保存配置</button>
+                <button class="btn" id="lcSync">立即同步</button>
+                <button class="btn ghost danger" id="lcOff">断开</button>
+              </div>
+              <details style="margin-top:12px"><summary class="small" style="cursor:pointer;color:var(--brand)">使用 LeanCloud(备选)</summary>
+                <div style="display:flex;flex-direction:column;gap:8px;max-width:420px;margin-top:8px">
+                  <input type="text" class="field" id="lcId" placeholder="AppID(应用 ID)" autocomplete="off">
+                  <input type="text" class="field" id="lcKey" placeholder="AppKey(应用 Key)" autocomplete="off">
+                  <input type="text" class="field" id="lcHost" placeholder="REST API 域名,如 abcd1234.api.lncld.net" autocomplete="off">
+                  <input type="text" class="field" id="lcCode" placeholder="同步码(8 位)" maxlength="8" autocomplete="off" style="font-family:var(--mono);letter-spacing:2px">
+                </div>
+                <p class="small muted" style="margin-top:6px">填了上面 Gist 两项就优先用 Gist;仅填这四项才走 LeanCloud。</p>
+              </details>
+              <p class="small muted" id="lcStatus" style="margin-top:10px;min-height:18px"></p>
+              <div id="lcConflict" class="hidden" style="margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--amber-soft)">
+                <div class="small" style="font-weight:600;margin-bottom:8px">本机与云端都有未同步的修改,选择保留哪边(另一边会被覆盖):</div>
+                <div style="display:flex;gap:9px;flex-wrap:wrap">
+                  <button class="btn sm primary" id="lcKeepLocal">用本机覆盖云端</button>
+                  <button class="btn sm" id="lcKeepCloud">用云端覆盖本机</button>
+                </div>
+              </div>
+            </div>
+          </details>
+          <details class="me-item">
+            <summary><svg class="ic me-lead"><use href="#i-download"/></svg>数据管理<svg class="ic me-chev"><use href="#i-chev"/></svg></summary>
+            <div class="me-body">
+              <p class="small muted" style="margin-bottom:12px">进度存在这台浏览器;换设备或清理浏览器前,先导出一份 JSON 备份。</p>
+              <div style="display:flex;gap:9px;flex-wrap:wrap">
+                <button class="btn" id="exportBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-download"/></svg>导出进度</button>
+                <button class="btn" id="importBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-upload"/></svg>导入备份</button>
+                <input type="file" id="importFile" accept="application/json" class="hidden" aria-label="选择备份文件">
+                <button class="btn danger" id="resetBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-refresh"/></svg>重置全部进度</button>
+              </div>
+            </div>
+          </details>
+          <details class="me-item">
+            <summary><svg class="ic me-lead"><use href="#i-help"/></svg>关于<span class="me-val mono" id="meVerVal"></span><svg class="ic me-chev"><use href="#i-chev"/></svg></summary>
+            <div class="me-body">
+              <p class="small muted" style="margin-bottom:8px">跃迁计划 · 训练系统当前版本 <span class="mono" id="appVer"></span><button class="btn sm" id="updBtn" style="margin-left:8px">检查更新</button></p>
+              <p class="small muted" style="margin-bottom:4px">有新版会自动更新,主屏图标无需删除重加。</p>
+              <div class="hr" style="margin:12px 0"></div>
+              <div class="eyebrow" style="margin-bottom:2px">版本更新</div>
+              <div id="meLog"></div>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -590,7 +614,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.6.3';
+var APP_VERSION='1.7.0';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1338,8 +1362,9 @@ function applyTheme(){
  document.documentElement.dataset.theme=eff;
  document.documentElement.style.colorScheme=eff;
  var cs=document.querySelector('meta[name="color-scheme"]');if(cs)cs.setAttribute('content',eff);
- var tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.setAttribute('content',eff==='dark'?'#000000':'#f5f5f7');
+ var tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.setAttribute('content',eff==='dark'?'#000000':'#ffffff');
  var tb=$('#themeBtn');if(tb)tb.innerHTML='<svg class="ic"><use href="#'+(eff==='dark'?'i-sun':'i-moon')+'"/></svg>';
+ var tv=$('#meThemeVal');if(tv)tv.textContent=S.theme==='auto'?'跟随系统':(S.theme==='dark'?'深色':'浅色');
  $$('#themeSeg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-theme-opt')===S.theme)});
 }
 mq.addEventListener('change',function(){if(S.theme==='auto')applyTheme()});
@@ -1471,6 +1496,7 @@ function renderHero(){
  var hello=h<5?'夜深了':h<9?'早上好':h<12?'上午好':h<14?'中午好':h<18?'下午好':'晚上好';
  $('#greetLine').innerHTML=hello+(S.name?',<em>'+esc(S.name)+'</em>':',<em>准售前</em>');
  var mn=$('#meName');if(mn)mn.textContent=S.name||'准售前';
+ var mvn=$('#meNameVal');if(mvn)mvn.textContent=S.name||'准售前';
  $('#dateTag').textContent=todayStr()+' · 距离 Offer 还有 '+Math.max(0,84-(S.start?(dayNum(todayStr())-dayNum(S.start)):0))+' 天';
  typeInto($('#coachLine'),coachLine());
  var tc=taskCounts();
@@ -1934,6 +1960,7 @@ function genCode(){
 }
 function renderSyncCard(){
  if(!$('#lcToken'))return;
+ var sv=$('#meSyncVal');if(sv)sv.textContent=(!S.lc||(!S.lc.token&&!S.lc.id))?'未配置':(lcIsGist()?'Gist 已连接':'LeanCloud');
  var set=function(id,v){var el=$(id);if(el&&document.activeElement!==el&&v)el.value=v};
  set('#lcToken',(S.lc&&S.lc.token)||'');set('#lcGist',(S.lc&&S.lc.gist)||'');
  set('#lcId',(S.lc&&S.lc.id)||'');set('#lcKey',(S.lc&&S.lc.key)||'');set('#lcHost',(S.lc&&S.lc.host)||'');set('#lcCode',(S.lc&&S.lc.code)||'');
@@ -2001,9 +2028,12 @@ function renderAll(){
 applyTheme();
 buildRunway();
 renderAll();
-(function(){var av=$('#appVer');if(av)av.textContent=APP_VERSION})();
-/* ---------- 版本更新日志 ---------- */
+(function(){var av=$('#appVer');if(av)av.textContent=APP_VERSION;var vv=$('#meVerVal');if(vv)vv.textContent='v'+APP_VERSION})();
+/* 「我的」页手风琴:展开一项收起其他 */
+$$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
+/* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.7.0',d:'10-25',items:['「我的」页重构为二级菜单:称呼/外观/同步/数据/关于收纳为列表,点击展开','更新日志默认只显示最新一期,更早版本折叠','浅色模式背景改纯白,顶部与卡片同色,消除灰色蒙层观感','Tab 栏透明度再降:模糊 10px,近乎只剩边缘与药丸']},
  {v:'1.6.3',d:'10-25',items:['Tab 栏从磨砂改为透玻璃:模糊 30→12px、底色再降,内容清晰穿透','修复顶部回弹时内容闪入状态栏区被系统磨砂的问题(状态栏护罩)','修复页面存在约 59px 过度滚动空隙的问题']},
  {v:'1.6.2',d:'10-25',items:['Tab 栏改为居中紧凑胶囊:收窄宽度、高度精简,图标 21px、文字 10.5px,分布更紧凑秀气']},
  {v:'1.6.1',d:'10-25',items:['Tab 栏按液态玻璃参考重制:更饱满的全圆角悬浮胶囊,图标 24px、文字加大','玻璃细节升级:亮白描边、斜向光泽、「玻璃上叠玻璃」更亮药丸']},
@@ -2014,9 +2044,11 @@ var CHANGELOG=[
  {v:'1.4.0',d:'10-25',items:['iOS 液态玻璃改版:状态栏随 App 深浅色自动同步','页面切换改为方向感知的滑动过渡','底部导航改为悬浮胶囊 + 滑动指示器','修复手机端无法进入设置页的问题']},
  {v:'1.3.0',d:'10-25',items:['新增自动更新:打开自动检查新版并静默升级','版本号与「检查更新」按钮']}
 ];
-(function(){var el=$('#meLog');if(!el)return;el.innerHTML=CHANGELOG.map(function(c){
- return '<div class="logv"><div style="display:flex;align-items:center;gap:8px"><span class="tag brand mono">v'+c.v+'</span><span class="small muted">'+c.d+'</span></div><ul>'+c.items.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>'
-}).join('')})();
+(function(){var el=$('#meLog');if(!el)return;
+ var item=function(c){return '<div class="logv"><div style="display:flex;align-items:center;gap:8px"><span class="tag brand mono">v'+c.v+'</span><span class="small muted">'+c.d+'</span></div><ul>'+c.items.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>'};
+ var html=item(CHANGELOG[0]);
+ if(CHANGELOG.length>1){html+='<details class="log-more"><summary>更早版本 · '+(CHANGELOG.length-1)+' 个</summary>'+CHANGELOG.slice(1).map(item).join('')+'</details>'}
+ el.innerHTML=html})();
 setTimeout(function(){checkUpdate(true)},3000);
 /* 链接参数自动配置:#t=令牌&g=GistID(打开即存,随即清掉地址栏,令牌不留在历史记录) */
 (function(){
