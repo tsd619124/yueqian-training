@@ -159,7 +159,7 @@ select.field{appearance:none;background-image:linear-gradient(45deg,transparent 
 /* ---------- hero ---------- */
 .hero{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
 .hero-top{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.hero h2{font-size:27px;font-weight:700;letter-spacing:-0.03em}
+.hero h2{font-size:23px;font-weight:700;letter-spacing:-0.02em}
 .hero h2 em{font-style:normal;color:var(--brand)}
 .runway{padding:22px 24px 12px}
 .runway svg{width:100%;height:auto;display:block}
@@ -295,7 +295,6 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 @media (max-width:880px){
   .sidebar{display:none}
   .content{padding:calc(18px + env(safe-area-inset-top,0px)) 16px 140px}
-  .hero h2{font-size:21px}
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
   .rw-lbls{display:none}
@@ -381,11 +380,11 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 总览 ===== -->
       <section class="view" id="view-ov">
         <div class="hero">
-          <div id="ovNudge" style="display:flex;flex-direction:column;gap:10px"></div>
           <div class="hero-top">
             <h2 id="greetLine">你好</h2>
             <span class="tag" id="dateTag"></span>
           </div>
+          <div id="ovNudge" style="display:flex;flex-direction:column;gap:10px"></div>
           <div class="card runway">
             <div class="eyebrow" style="margin-bottom:8px">跃迁轨道 · 12 周</div>
             <svg id="rwSvg" viewBox="0 0 820 168" role="img" aria-label="从帆软销售到 Offer 的 12 周跃迁轨道"></svg>
@@ -490,7 +489,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 学习中心 ===== -->
       <section class="view" id="view-learn" hidden>
         <h2 class="ptitle">学习中心</h2>
-        <div class="seg" style="margin:-4px 0 12px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
+        <div class="seg" style="margin:-4px 0 16px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
         <input type="text" class="field" id="learnSearch" placeholder="搜索主题 / 材料,如「RAG」「简历」「话术」" style="margin-bottom:12px">
         <p class="small muted" style="margin-bottom:14px" id="learnIntro"></p>
         <div id="learnWrap"></div>
@@ -507,6 +506,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 
       <!-- ===== 我的 ===== -->
       <section class="view" id="view-me" hidden>
+        <h2 class="ptitle">我的</h2>
         <div class="card pad">
           <div class="me-row">
             <div class="logo-mark me-mark">跃</div>
@@ -635,7 +635,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.9.2';
+var APP_VERSION='1.9.3';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -2230,6 +2230,7 @@ renderAll();
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.9.3',d:'10-26',items:['统一各页大标题规格:首页问候语从 21px 提到与其他页一致的 23px/700,「我的」页补上标准大标题,切换页签时标题位置与高度不再跳动','首页打卡提醒横幅移到问候语下方,标题位置恒定不再被横幅推挤','学习中心分段器与标题的间距对齐其他页(12px→16px)']},
  {v:'1.9.2',d:'10-25',items:['教材学习页返回交互重做:返回按钮移到左上角(iOS 惯例),替换原右上角关闭箭头','新增教材页跟手右滑返回:页面跟着手指移动,滑过阈值滑出,不够则回弹;顶部遮罩随滑动变淡','教材页纵向滚动与返回手势互不干扰,向下滚列表不会误触返回']},
  {v:'1.9.1',d:'10-25',items:['页面内滑动返回:左右滑动现在在组内子页间往返(今日↔技能树↔自测、周计划↔学习中心↔实战),滑到组边缘自然跨入相邻 Tab','修复访问过学习中心/实战后,分段器或「查看计划」按钮可能停留在原页的问题','修复滑动被 iOS 系统边缘手势打断时页面卡在偏移位置、不回弹的问题','修复 Toast 悬浮期间挡住顶部按钮点击的问题(撤销按钮仍可点)']},
  {v:'1.9.0',d:'10-25',items:['内容区左右滑动切换 Tab:页面跟手移动、松手回弹或切换,可随时打断','看板公司行左滑删除,误删可一键撤销(Toast 撤销按钮)','学习中心新增搜索:按主题/材料名/正文关键词过滤 113 份材料','大标题滚动收起:滚过标题后顶部浮现玻璃小标题(iOS inline title)','Tab 选中图标切换为填充变体,按下有按压反馈','细节五连修:防双击缩放、教材按钮放大到 44px、日期中文化(10月25日 周六)、检查更新显示进行中、辅助功能「降低透明度」时玻璃自动变不透明']},
