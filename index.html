@@ -75,7 +75,8 @@ input,select{font:inherit;color:inherit}
 .sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
 .side-note{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:11.5px;color:var(--muted);line-height:1.55}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 28px 12px;background:var(--glass);backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi)}
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 28px 12px;background:transparent;backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid transparent;box-shadow:none;transition:background .3s ease,border-color .3s ease,box-shadow .3s ease}
+.topbar.scrolled{background:var(--glass);border-bottom-color:var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi)}
 .topbar h1{font-size:16.5px;font-weight:600}
 .topbar .spacer{flex:1}
 .streak-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink);font-weight:600;font-size:13px}
@@ -90,6 +91,9 @@ input,select{font:inherit;color:inherit}
 .view.vi-r{animation:vi-r .34s cubic-bezier(.3,.75,.3,1) both}
 .view.vo-l{animation:vo-l .3s ease both;pointer-events:none}
 .view.vo-r{animation:vo-r .3s ease both;pointer-events:none}
+.vfreeze{position:fixed;z-index:5;pointer-events:none;overflow:hidden}
+.vfreeze.vo-l{animation:vo-l .3s ease both}
+.vfreeze.vo-r{animation:vo-r .3s ease both}
 @keyframes vi-l{from{opacity:0;transform:translateX(-44px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes vi-r{from{opacity:0;transform:translateX(44px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes vo-l{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-44px) scale(.985)}}
@@ -564,7 +568,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.4.0';
+var APP_VERSION='1.4.1';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1320,7 +1324,7 @@ mq.addEventListener('change',function(){if(S.theme==='auto')applyTheme()});
 
 /* ================= 视图切换 ================= */
 var TITLES={ov:'总览',daily:'今日训练',skills:'技能树',plan:'12 周计划',learn:'学习中心',lab:'求职实战',quiz:'模块自测',set:'设置'};
-var ORDER=['ov','daily','skills','plan','learn','lab','quiz','set'],curView='ov',vTimer=null;
+var ORDER=['ov','daily','skills','plan','learn','lab','quiz','set'],curView='ov',pendingExit=null,scrollMemo={},lastGoV='',lastGoT=0;
 function movePill(v){
  var pill=$('#tabPill');if(!pill)return;
  var btns=$$('.tabbar .nav-btn[data-view]'),k=-1;
@@ -1328,32 +1332,45 @@ function movePill(v){
  if(k>=0){pill.style.opacity='1';pill.style.transform='translateX('+(k*100)+'%)'}
  else{pill.style.opacity='0'}
 }
+function finalizeExit(){
+ if(!pendingExit)return;
+ clearTimeout(pendingExit.timer);
+ var p=pendingExit;pendingExit=null;
+ $('.content').appendChild(p.el);
+ p.el.hidden=true;p.el.classList.remove('vi-l','vi-r','vo-l','vo-r');p.el.style.pointerEvents='';
+ p.ov.remove();
+}
 function go(v){
+ var now=Date.now();
+ if(v===lastGoV&&now-lastGoT<80){return}
+ lastGoV=v;lastGoT=now;
  $$('.nav-btn[data-view]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-view')===v)});
  movePill(v);
  var t=$('#viewTitle');t.textContent=TITLES[v]||'';
  t.classList.remove('ti');void t.offsetWidth;t.classList.add('ti');
- var outEl=$('#view-'+curView),inEl=$('#view-'+v);
+ if(v===curView){scrollMemo[v]=0;window.scrollTo(0,0);return}
+ finalizeExit();
+ var prev=curView,outEl=$('#view-'+prev),inEl=$('#view-'+v);
  $$('.view').forEach(function(s){if(s!==inEl&&s!==outEl){s.hidden=true;s.classList.remove('vi-l','vi-r','vo-l','vo-r')}});
- window.scrollTo(0,0);
- if(inEl!==outEl){
-  if(vTimer)clearTimeout(vTimer);
-  inEl.hidden=false;
-  inEl.style.pointerEvents='';
-  inEl.classList.remove('vi-l','vi-r','vo-l','vo-r');
-  if(REDUCE){outEl.hidden=true}
-  else{
-   void inEl.offsetWidth;
-   var dir=ORDER.indexOf(v)>ORDER.indexOf(curView)?1:-1;
-   inEl.classList.add(dir>0?'vi-r':'vi-l');
-   outEl.classList.remove('vi-l','vi-r');
-   void outEl.offsetWidth;
-   outEl.classList.add(dir>0?'vo-l':'vo-r');
-   outEl.style.pointerEvents='none';
-   vTimer=setTimeout(function(){outEl.hidden=true;outEl.classList.remove('vo-l','vo-r');outEl.style.pointerEvents='';vTimer=null},340);
-  }
- }
+ var sy=window.scrollY;
+ scrollMemo[prev]=sy;
  curView=v;
+ inEl.hidden=false;inEl.style.pointerEvents='';
+ var target=scrollMemo[v]||0;
+ if(REDUCE){
+  window.scrollTo(0,target);
+  outEl.hidden=true;
+ }else{
+  var r=outEl.getBoundingClientRect();
+  var ov=document.createElement('div');ov.className='vfreeze';
+  ov.style.left=r.left+'px';ov.style.top=r.top+'px';ov.style.width=r.width+'px';ov.style.height=r.height+'px';
+  document.body.appendChild(ov);ov.appendChild(outEl);
+  window.scrollTo(0,target);
+  var dir=ORDER.indexOf(v)>ORDER.indexOf(prev)?1:-1;
+  inEl.classList.remove('vi-l','vi-r');void inEl.offsetWidth;inEl.classList.add(dir>0?'vi-r':'vi-l');
+  ov.classList.add(dir>0?'vo-l':'vo-r');
+  pendingExit={ov:ov,el:outEl,timer:setTimeout(finalizeExit,360)};
+ }
  if(v==='ov')renderHero();
  if(v==='daily')renderDaily();
  if(v==='lab')renderCo();
@@ -1361,6 +1378,14 @@ function go(v){
 }
 $$('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-view'))})});
 $$('[data-goto]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-goto'))})});
+/* 顶栏玻璃:静止时与背景融合,内容滚动到下方后材质才浮现 */
+var _tb=$('.topbar'),_tbT=false;
+function tbScroll(){
+ if(_tbT)return;_tbT=true;
+ requestAnimationFrame(function(){_tb.classList.toggle('scrolled',window.scrollY>4);_tbT=false});
+}
+window.addEventListener('scroll',tbScroll,{passive:true});
+tbScroll();
 
 /* ================= 跃迁轨道 ================= */
 var RW={
