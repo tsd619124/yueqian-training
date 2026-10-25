@@ -75,18 +75,17 @@ input,select{font:inherit;color:inherit}
 .sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
 .side-note{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:11.5px;color:var(--muted);line-height:1.55}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 28px 12px}
-.topbar>*{position:relative;z-index:1}
-.topbar-glass{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 4px);bottom:4px;border-radius:24px;background:var(--glass);backdrop-filter:blur(30px) saturate(2);-webkit-backdrop-filter:blur(30px) saturate(2);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi);opacity:0;transition:opacity .32s ease;pointer-events:none}
-.topbar.scrolled .topbar-glass{opacity:1}
-.topbar h1{font-size:16.5px;font-weight:600}
-.topbar .spacer{flex:1}
-.streak-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink);font-weight:600;font-size:13px}
+.streak-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink);font-weight:600;font-size:13px;flex:none}
 .streak-chip .ic{color:var(--orange);width:15px;height:15px}
 .icon-btn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s}
-#setBtn{display:none}
+.ptitle{font-size:23px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px}
+.me-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.me-mark{width:52px;height:52px;border-radius:14px;font-size:24px;flex:none}
+.logv{padding:12px 0;border-bottom:1px solid var(--line)}
+.logv:last-child{border-bottom:0;padding-bottom:2px}
+.logv ul{margin:7px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.55}
 .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
-.content{width:100%;max-width:1040px;margin:0 auto;padding:28px 32px 110px;display:grid;overflow-x:hidden;overflow-x:clip}
+.content{width:100%;max-width:1040px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top,0px)) 32px 110px;display:grid;overflow-x:hidden;overflow-x:clip}
 .view{grid-area:1/1;min-width:0}
 .view.vi-l,.view.vi-r{position:relative;z-index:2}
 .view.vi-l{animation:vi-l .32s cubic-bezier(.32,.72,.34,1) both}
@@ -98,8 +97,6 @@ input,select{font:inherit;color:inherit}
 @keyframes vi-r{from{opacity:0;transform:translateX(44px)}to{opacity:1;transform:none}}
 @keyframes vo-l{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-30px)}}
 @keyframes vo-r{from{opacity:1;transform:none}to{opacity:0;transform:translateX(30px)}}
-#viewTitle.ti{animation:ti .28s cubic-bezier(.3,.75,.3,1)}
-@keyframes ti{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .tabbar{display:none}
 /* ---------- components ---------- */
@@ -267,16 +264,13 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 /* ---------- mobile ---------- */
 @media (max-width:880px){
   .sidebar{display:none}
-  .content{padding:18px 16px 156px}
-  .topbar{padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px}
-  .topbar-glass{left:8px;right:8px;border-radius:22px}
-  #setBtn{display:grid}
+  .content{padding:calc(18px + env(safe-area-inset-top,0px)) 16px 156px}
   .hero h2{font-size:21px}
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
   .rw-lbls{display:none}
   .tabbar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;gap:2px;padding:6px;border-radius:32px;background:var(--glass);backdrop-filter:blur(30px) saturate(2);-webkit-backdrop-filter:blur(30px) saturate(2);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi)}
-  #tabPill{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/6);border-radius:24px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
+  #tabPill{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/7);border-radius:24px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
   .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:8px 2px 7px;font-size:10px;font-weight:500;border-radius:24px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
   .tabbar .nav-btn:hover{background:transparent;color:var(--ink)}
   .tabbar .nav-btn.on{background:transparent;color:var(--brand);font-weight:600}
@@ -339,22 +333,13 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
     <button class="nav-btn" data-view="learn"><svg class="ic"><use href="#i-book"/></svg>学习中心</button>
     <button class="nav-btn" data-view="lab"><svg class="ic"><use href="#i-briefcase"/></svg>求职实战</button>
     <button class="nav-btn" data-view="quiz"><svg class="ic"><use href="#i-clipboard"/></svg>模块自测</button>
-    <button class="nav-btn" data-view="set"><svg class="ic"><use href="#i-sliders"/></svg>设置</button>
+    <button class="nav-btn" data-view="me"><svg class="ic"><use href="#i-user-check"/></svg>我的</button>
     <div class="sidebar-foot">
-      <div class="side-note">数据存在这台浏览器里;换设备用「设置 → 多设备同步」,或导出 JSON 备份。</div>
+      <div class="side-note">数据存在这台浏览器里;换设备用「我的 → 多设备同步」,或导出 JSON 备份。</div>
     </div>
   </aside>
 
   <div class="main">
-    <header class="topbar">
-      <div class="topbar-glass" aria-hidden="true"></div>
-      <h1 id="viewTitle">总览</h1>
-      <div class="spacer"></div>
-      <span class="streak-chip" id="tbStreak" title="连续打卡天数"><svg class="ic" style="width:15px;height:15px"><use href="#i-flame"/></svg><span class="num" id="tbStreakN">0</span></span>
-      <button class="icon-btn" id="themeBtn" aria-label="切换深浅色"><svg class="ic"><use href="#i-moon"/></svg></button>
-      <button class="icon-btn" data-goto="set" aria-label="设置" id="setBtn"><svg class="ic"><use href="#i-sliders"/></svg></button>
-    </header>
-
     <main class="content">
 
       <!-- ===== 总览 ===== -->
@@ -401,6 +386,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 
       <!-- ===== 今日训练 ===== -->
       <section class="view" id="view-daily" hidden>
+        <h2 class="ptitle">今日训练</h2>
         <div class="card pad" style="padding:24px">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <span class="eyebrow">今日训练</span>
@@ -419,18 +405,20 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
         <div class="card pad" style="margin-top:14px">
           <div class="eyebrow" style="margin-bottom:12px">最近 4 周打卡</div>
           <div class="heat" id="heatGrid" role="img" aria-label="最近 28 天打卡记录"></div>
-          <p class="small muted" style="margin-top:12px">每天自动轮换一道 30 分钟微训练;进度保存在这台浏览器,设置里可导出备份。</p>
+          <p class="small muted" style="margin-top:12px">每天自动轮换一道 30 分钟微训练;进度保存在这台浏览器,「我的」里可导出备份。</p>
         </div>
       </section>
 
       <!-- ===== 技能树 ===== -->
       <section class="view" id="view-skills" hidden>
+        <h2 class="ptitle">技能树</h2>
         <p class="small muted" style="margin-bottom:14px">点击技能点切换掌握度:<span class="tag amber">听懂</span> → <span class="tag brand">能讲</span> → <span class="tag green">能演示</span>,悬停看说明。售前的及格线是「能讲」,加分线是「能演示」。</p>
         <div id="skillsWrap"></div>
       </section>
 
       <!-- ===== 12 周计划 ===== -->
       <section class="view" id="view-plan" hidden>
+        <h2 class="ptitle">12 周计划</h2>
         <p class="small muted" style="margin-bottom:4px">从你第一次打卡那天起算周次;勾选任务即计入综合进度。</p>
         <p class="small" style="margin-bottom:12px">每项任务都内置学习材料:点行尾的 <svg class="ic" style="width:14px;height:14px;color:var(--brand);vertical-align:-2px"><use href="#i-book"/></svg> 图标直接学,或 <button class="btn sm" data-goto="learn">打开学习中心</button> 浏览全部材料。</p>
         <div id="planWrap"></div>
@@ -438,6 +426,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 
       <!-- ===== 求职实战 ===== -->
       <section class="view" id="view-lab" hidden>
+        <h2 class="ptitle">求职实战</h2>
         <div id="labProjects"></div>
         <div class="hr"></div>
         <div class="eyebrow" style="margin-bottom:4px">面试高频问答演练</div>
@@ -459,20 +448,32 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 
       <!-- ===== 学习中心 ===== -->
       <section class="view" id="view-learn" hidden>
+        <h2 class="ptitle">学习中心</h2>
         <p class="small muted" style="margin-bottom:14px" id="learnIntro"></p>
         <div id="learnWrap"></div>
       </section>
 
       <!-- ===== 模块自测 ===== -->
       <section class="view" id="view-quiz" hidden>
+        <h2 class="ptitle">模块自测</h2>
         <p class="small muted" style="margin-bottom:14px">每个模块 5 题,80 分达标;记录最佳成绩,达标后隔几天重测保持手感。</p>
         <div id="quizMods" style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px"></div>
         <div class="card pad" id="quizArea" aria-live="polite"><p class="muted">选一个模块,开始作答。</p></div>
       </section>
 
-      <!-- ===== 设置 ===== -->
-      <section class="view" id="view-set" hidden>
+      <!-- ===== 我的 ===== -->
+      <section class="view" id="view-me" hidden>
         <div class="card pad">
+          <div class="me-row">
+            <div class="logo-mark me-mark">跃</div>
+            <div style="flex:1;min-width:0">
+              <h2 style="font-size:20px;letter-spacing:-0.02em" id="meName">准售前</h2>
+              <div class="small muted" style="margin-top:3px">跃迁计划 · 帆软销售 → 上海 AI 售前 · 12 周</div>
+            </div>
+            <span class="streak-chip" id="tbStreak" title="连续打卡天数"><svg class="ic" style="width:15px;height:15px"><use href="#i-flame"/></svg><span class="num" id="tbStreakN">0</span><span style="font-weight:500">天</span></span>
+          </div>
+        </div>
+        <div class="card pad" style="margin-top:14px">
           <div class="eyebrow" style="margin-bottom:10px">称呼</div>
           <div style="display:flex;gap:9px;max-width:380px">
             <input type="text" class="field" id="nameInput" maxlength="12" placeholder="教练怎么称呼你?">
@@ -520,13 +521,20 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
         <div class="card pad" style="margin-top:14px">
           <div class="eyebrow" style="margin-bottom:10px">数据</div>
           <p class="small muted" style="margin-bottom:12px">进度存在这台浏览器;换设备或清理浏览器前,先导出一份 JSON 备份。</p>
-          <p class="small muted" style="margin-bottom:12px">当前版本 <span class="mono" id="appVer"></span><button class="btn sm" id="updBtn" style="margin-left:8px">检查更新</button>(有新版会自动更新,主屏图标无需重加)</p>
           <div style="display:flex;gap:9px;flex-wrap:wrap">
             <button class="btn" id="exportBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-download"/></svg>导出进度</button>
             <button class="btn" id="importBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-upload"/></svg>导入备份</button>
             <input type="file" id="importFile" accept="application/json" class="hidden" aria-label="选择备份文件">
             <button class="btn danger" id="resetBtn"><svg class="ic" style="width:15px;height:15px"><use href="#i-refresh"/></svg>重置全部进度</button>
           </div>
+        </div>
+        <div class="card pad" style="margin-top:14px">
+          <div class="eyebrow" style="margin-bottom:10px">关于</div>
+          <p class="small muted" style="margin-bottom:2px">跃迁计划 · 训练系统当前版本 <span class="mono" id="appVer"></span><button class="btn sm" id="updBtn" style="margin-left:8px">检查更新</button></p>
+          <p class="small muted">有新版会自动更新,主屏图标无需删除重加。</p>
+          <div class="hr" style="margin:12px 0"></div>
+          <div class="eyebrow" style="margin-bottom:2px">版本更新</div>
+          <div id="meLog"></div>
         </div>
       </section>
 
@@ -542,6 +550,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
   <button class="nav-btn" data-view="plan"><svg class="ic"><use href="#i-range"/></svg>计划</button>
   <button class="nav-btn" data-view="lab"><svg class="ic"><use href="#i-briefcase"/></svg>实战</button>
   <button class="nav-btn" data-view="quiz"><svg class="ic"><use href="#i-clipboard"/></svg>自测</button>
+  <button class="nav-btn" data-view="me"><svg class="ic"><use href="#i-user-check"/></svg>我的</button>
 </nav>
 
 <div id="drawerMask"></div>
@@ -570,7 +579,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.4.2';
+var APP_VERSION='1.5.0';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1319,14 +1328,13 @@ function applyTheme(){
  document.documentElement.style.colorScheme=eff;
  var cs=document.querySelector('meta[name="color-scheme"]');if(cs)cs.setAttribute('content',eff);
  var tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.setAttribute('content',eff==='dark'?'#000000':'#f5f5f7');
- $('#themeBtn').innerHTML='<svg class="ic"><use href="#'+(eff==='dark'?'i-sun':'i-moon')+'"/></svg>';
+ var tb=$('#themeBtn');if(tb)tb.innerHTML='<svg class="ic"><use href="#'+(eff==='dark'?'i-sun':'i-moon')+'"/></svg>';
  $$('#themeSeg button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-theme-opt')===S.theme)});
 }
 mq.addEventListener('change',function(){if(S.theme==='auto')applyTheme()});
 
 /* ================= 视图切换 ================= */
-var TITLES={ov:'总览',daily:'今日训练',skills:'技能树',plan:'12 周计划',learn:'学习中心',lab:'求职实战',quiz:'模块自测',set:'设置'};
-var ORDER=['ov','daily','skills','plan','learn','lab','quiz','set'],curView='ov',pendingExit=null,scrollMemo={},lastGoV='',lastGoT=0;
+var ORDER=['ov','daily','skills','plan','learn','lab','quiz','me'],curView='ov',pendingExit=null,scrollMemo={},lastGoV='',lastGoT=0;
 function movePill(v){
  var pill=$('#tabPill');if(!pill)return;
  var btns=$$('.tabbar .nav-btn[data-view]'),k=-1;
@@ -1349,8 +1357,6 @@ function go(v){
  lastGoV=v;lastGoT=now;
  $$('.nav-btn[data-view]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-view')===v)});
  movePill(v);
- var t=$('#viewTitle');t.textContent=TITLES[v]||'';
- t.classList.remove('ti');void t.offsetWidth;t.classList.add('ti');
  if(v===curView){scrollMemo[v]=0;window.scrollTo(0,0);return}
  finalizeExit();
  var prev=curView,outEl=$('#view-'+prev),inEl=$('#view-'+v);
@@ -1380,16 +1386,10 @@ function go(v){
  if(v==='ov')renderHero();
  if(v==='daily')renderDaily();
  if(v==='lab')renderCo();
- if(v==='set')renderSyncCard();
+ if(v==='me')renderSyncCard();
 }
 $$('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-view'))})});
 $$('[data-goto]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-goto'))})});
-/* 顶栏玻璃:静止时与背景融合,内容滚动到下方后材质才浮现 */
-var _tb=$('.topbar');
-function tbScroll(){_tb.classList.toggle('scrolled',window.scrollY>4)}
-window.addEventListener('scroll',tbScroll,{passive:true});
-document.addEventListener('visibilitychange',function(){if(!document.hidden)tbScroll()});
-tbScroll();
 
 /* ================= 跃迁轨道 ================= */
 var RW={
@@ -1449,6 +1449,7 @@ function renderHero(){
  var h=new Date().getHours();
  var hello=h<5?'夜深了':h<9?'早上好':h<12?'上午好':h<14?'中午好':h<18?'下午好':'晚上好';
  $('#greetLine').innerHTML=hello+(S.name?',<em>'+esc(S.name)+'</em>':',<em>准售前</em>');
+ var mn=$('#meName');if(mn)mn.textContent=S.name||'准售前';
  $('#dateTag').textContent=todayStr()+' · 距离 Offer 还有 '+Math.max(0,84-(S.start?(dayNum(todayStr())-dayNum(S.start)):0))+' 天';
  typeInto($('#coachLine'),coachLine());
  var tc=taskCounts();
@@ -1768,13 +1769,6 @@ document.addEventListener('click',function(e){
  if(t.closest('#coAdd')){addCo();return}
  var del=t.closest('[data-codel]');
  if(del){S.co.splice(Number(del.getAttribute('data-codel')),1);save();renderCo();return}
- if(t.closest('#themeBtn')){
-  var order=['light','dark','auto'];
-  var ti=S.theme==='light'||S.theme==='dark'?order.indexOf(S.theme):2;
-  S.theme=order[(ti+1)%3];save();applyTheme();
-  toast(S.theme==='auto'?'主题:跟随系统':(S.theme==='dark'?'主题:深色':'主题:浅色'),'i-check');
-  return;
- }
  if(t.closest('#updBtn')){checkUpdate(false);return}
  if(t.closest('#exportBtn')){doExport();return}
  if(t.closest('#importBtn')){$('#importFile').click();return}
@@ -1985,6 +1979,17 @@ applyTheme();
 buildRunway();
 renderAll();
 (function(){var av=$('#appVer');if(av)av.textContent=APP_VERSION})();
+/* ---------- 版本更新日志 ---------- */
+var CHANGELOG=[
+ {v:'1.5.0',d:'10-25',items:['新增「我的」页:称呼、外观、多设备同步、数据、关于集中一处','移除顶部标题栏,内容直达状态栏区,更沉浸','「关于」新增版本更新日志,每个版本改了什么一目了然']},
+ {v:'1.4.2',d:'10-25',items:['滚动时顶栏改为悬浮玻璃胶囊,与系统状态栏无缝衔接','切页动画统一曲线与视差,消除视觉不一致','玻璃材质更透明,抽屉、弹窗、提示同步升级']},
+ {v:'1.4.1',d:'10-25',items:['顶栏静止时与背景完全融合,滚动后玻璃才浮现','切页新增滚动位置记忆,来回切换回到原处','点击当前页签回到顶部(iOS 习惯)']},
+ {v:'1.4.0',d:'10-25',items:['iOS 液态玻璃改版:状态栏随 App 深浅色自动同步','页面切换改为方向感知的滑动过渡','底部导航改为悬浮胶囊 + 滑动指示器','修复手机端无法进入设置页的问题']},
+ {v:'1.3.0',d:'10-25',items:['新增自动更新:打开自动检查新版并静默升级','版本号与「检查更新」按钮']}
+];
+(function(){var el=$('#meLog');if(!el)return;el.innerHTML=CHANGELOG.map(function(c){
+ return '<div class="logv"><div style="display:flex;align-items:center;gap:8px"><span class="tag brand mono">v'+c.v+'</span><span class="small muted">'+c.d+'</span></div><ul>'+c.items.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul></div>'
+}).join('')})();
 setTimeout(function(){checkUpdate(true)},3000);
 /* 链接参数自动配置:#t=令牌&g=GistID(打开即存,随即清掉地址栏,令牌不留在历史记录) */
 (function(){
