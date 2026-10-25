@@ -614,7 +614,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.8.0';
+var APP_VERSION='1.8.1';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1202,7 +1202,7 @@ function normalize(raw){
  if(raw.quiz&&typeof raw.quiz==='object'){var o3={};for(var k3 in raw.quiz){var v3=raw.quiz[k3];if(typeof v3==='number'&&v3>=0&&v3<=100)o3[k3]=Math.round(v3)}S.quiz=o3}
  if(Array.isArray(raw.co))S.co=raw.co.filter(function(x){return x&&typeof x.n==='string'&&x.n}).slice(0,60).map(function(x){
    var s=(typeof x.s==='number')?Math.floor(x.s):0,t=(typeof x.t==='number')?Math.floor(x.t):0;
-   return {n:x.n.slice(0,40),s:(s>=0&&s<STAGES.length)?s:0,t:(t>=0&&t<TRACKS.length)?t:0}});
+   return {n:x.n.slice(0,40),s:(s>=0&&s<STAGES.length)?s:0,t:(t>=0&&t<TRACKS.length)?t:0,d:(typeof x.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.d))?x.d:''}});
  if(raw.reroll&&typeof raw.reroll==='object'){var o4={};for(var k4 in raw.reroll){if(typeof raw.reroll[k4]==='number')o4[k4]=raw.reroll[k4]}S.reroll=o4}
  if(raw.mil&&typeof raw.mil==='object'){var o5={};for(var k5 in raw.mil){if(raw.mil[k5])o5[k5]=true}S.mil=o5}
  if(raw.read&&typeof raw.read==='object'){var o6={};for(var k6 in raw.read){if(raw.read[k6])o6[k6]=true}S.read=o6}
@@ -1305,6 +1305,7 @@ function checkMilestones(){
 /* 自动更新:比对线上版本,新版自动清缓存重载,主屏图标无需删除重加 */
 var lastUpdChk=0;
 function checkUpdate(silent){
+ if(navigator&&!navigator.onLine){if(!silent)toast('当前离线,联网后会自动检查更新。','i-msg');return}
  try{
   fetch('index.html',{cache:'no-store'}).then(function(r){return r.ok?r.text():null}).then(function(t){
    if(!t){if(!silent)toast('检查更新失败(网络)','i-msg');return}
@@ -1487,6 +1488,8 @@ function renderHero(){
  var nud='';
  if(!hasDay(todayStr()))nud+='<div class="nudge"><span>'+icon('i-flame')+'今天还没训练,花 30 分钟点亮今天。</span><button class="btn sm primary" data-goto="daily">去打卡</button></div>';
  if(wrongDue())nud+='<div class="nudge"><span>'+icon('i-refresh')+'错题本有 <b class="num">'+wrongDue()+'</b> 道今天到期,趁热重练。</span><button class="btn sm primary" id="ovReview">去复习</button></div>';
+ var stale=staleApplied();
+ if(stale.length)nud+='<div class="nudge"><span>'+icon('i-briefcase')+'<b>'+esc(stale[0])+'</b>'+(stale.length>1?' 等 '+stale.length+' 家公司':'')+'投递已超一周,该跟进一轮了。</span><button class="btn sm primary" data-goto="lab">去看板</button></div>';
  var nb=$('#ovNudge');if(nb)nb.innerHTML=nud;
  $('#dateTag').textContent=todayStr()+' · 距离 Offer 还有 '+Math.max(0,84-(S.start?(dayNum(todayStr())-dayNum(S.start)):0))+' 天';
  typeInto($('#coachLine'),coachLine());
@@ -1676,6 +1679,11 @@ function renderLab(){
  }).join('');
  renderCo();
 }
+function staleApplied(){
+ var t=dayNum(todayStr()),out=[];
+ S.co.forEach(function(c){if(c.s===1&&c.d&&t-dayNum(c.d)>=8)out.push(c.n)});
+ return out;
+}
 function renderCo(){
  var list=$('#coList');
  if(!S.co.length){
@@ -1688,13 +1696,14 @@ function renderCo(){
  list.innerHTML=S.co.map(function(c,i){
   var opts=STAGES.map(function(st,si){return '<option value="'+si+'"'+(si===c.s?' selected':'')+'>'+st+'</option>'}).join('');
   var topts=TRACKS.map(function(tr,ti){return '<option value="'+ti+'"'+(ti===c.t?' selected':'')+'>'+tr+'</option>'}).join('');
-  return '<div class="co-row"><span class="nm">'+esc(c.n)+'</span><select class="field" data-cot="'+i+'" aria-label="'+esc(c.n)+' 赛道">'+topts+'</select><select class="field" data-co="'+i+'" aria-label="'+esc(c.n)+' 阶段">'+opts+'</select><button class="btn ghost sm" data-codel="'+i+'" aria-label="删除 '+esc(c.n)+'">'+icon('i-trash')+'</button></div>';
+  var stale=(c.s===1&&c.d)?(dayNum(todayStr())-dayNum(c.d)):0;
+  return '<div class="co-row"><span class="nm">'+esc(c.n)+(stale>=8?'<span class="tag amber" style="margin-left:6px">'+stale+' 天未跟进</span>':'')+'</span><select class="field" data-cot="'+i+'" aria-label="'+esc(c.n)+' 赛道">'+topts+'</select><select class="field" data-co="'+i+'" aria-label="'+esc(c.n)+' 阶段">'+opts+'</select><button class="btn ghost sm" data-codel="'+i+'" aria-label="删除 '+esc(c.n)+'">'+icon('i-trash')+'</button></div>';
  }).join('');
 }
 function addCo(){
  var inp=$('#coInput'),v=(inp.value||'').trim();
  if(!v){toast('先填个公司名吧。','i-msg');return}
- S.co.push({n:v.slice(0,40),s:0,t:Number($('#coTrack').value)||0});
+ S.co.push({n:v.slice(0,40),s:0,t:Number($('#coTrack').value)||0,d:todayStr()});
  inp.value='';
  save();renderCo();
  toast('已加入看板。调研中 → 已投递,状态你说了算。','i-kanban');
@@ -1878,7 +1887,7 @@ document.addEventListener('change',function(e){
  var el=e.target;
  if(el.name==='qopt'){var b=$('#qConfirm');if(b)b.disabled=false;return}
  if(el.matches&&el.matches('[data-cot]')){var jt=Number(el.getAttribute('data-cot'));if(S.co[jt]){S.co[jt].t=Number(el.value);save();renderCo()}return}
- if(el.matches&&el.matches('[data-co]')){var i2=Number(el.getAttribute('data-co'));if(S.co[i2]){S.co[i2].s=Number(el.value);save();renderCo()}return}
+ if(el.matches&&el.matches('[data-co]')){var i2=Number(el.getAttribute('data-co'));if(S.co[i2]){S.co[i2].s=Number(el.value);S.co[i2].d=todayStr();save();renderCo()}return}
  if(el.matches&&el.matches('[data-check]')){
   var id=el.getAttribute('data-check');
   if(el.checked){S.checks[id]=true;if(!S.start){S.start=todayStr();buildRunway()}}
@@ -2066,6 +2075,7 @@ renderAll();
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.8.1',d:'10-25',items:['投递跟进提醒:「已投递」超一周的公司在首页提醒,看板内标注停留天数','修复离线时「检查更新」误报最新版本的问题']},
  {v:'1.8.0',d:'10-25',items:['新增错题本与间隔复习:答错自动收录,连对 3 次视为掌握,到期首页提醒','学习材料已读标记:点开即记,学习中心显示已读进度','首页新增打卡提醒与错题到期横幅','打卡热力图扩展为 12 周日历','抽屉/弹窗/提示玻璃统一为 4px 轻磨砂','电脑端按 1-4 数字键快速切页']},
  {v:'1.7.5',d:'10-25',items:['重修切页过渡:移除冻结快照机制,旧页立即退场、新页实体滑入,彻底消除上页残留','移除顶部状态栏护罩实色带,内容像原生 App 一样自然延伸到状态栏下方']},
  {v:'1.7.4',d:'10-25',items:['切页改为不透明滑入过渡,消除文字图像残影与顶部渐隐遮罩','Tab 栏磨砂降至 4px','分段引导切换器去灰底:透明轨道+描边+品牌色选中']},
