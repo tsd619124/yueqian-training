@@ -52,7 +52,7 @@
 /* ---------- base ---------- */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;background:var(--bg)}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased;letter-spacing:0.01em}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased;letter-spacing:0.01em;touch-action:manipulation}
 ::selection{background:var(--brand-soft)}
 h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-0.02em}
 p{margin:0}
@@ -81,7 +81,7 @@ input,select{font:inherit;color:inherit}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .streak-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink);font-weight:600;font-size:13px;flex:none}
 .streak-chip .ic{color:var(--orange);width:15px;height:15px}
-.icon-btn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s}
+.icon-btn{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s}
 .ptitle{font-size:23px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px}
 .nudge{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 16px;border-radius:14px;background:var(--brand-soft);font-size:13.5px;font-weight:500;flex-wrap:wrap}
 .nudge .ic{color:var(--brand);flex:none}
@@ -89,6 +89,14 @@ input,select{font:inherit;color:inherit}
 .me-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .me-mark{width:52px;height:52px;border-radius:14px;font-size:24px;flex:none}
 .me-list{padding:0;overflow:hidden}
+#dockTitle{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translate(-50%,-10px);z-index:55;padding:6px 18px;border-radius:999px;background:var(--glass);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border:1px solid var(--tab-line);box-shadow:var(--glass-shadow),inset 0 1px 1px var(--glass-hi);font-size:13.5px;font-weight:600;color:var(--ink);opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}
+#dockTitle.on{opacity:1;transform:translate(-50%,0)}
+.co-row{position:relative;border-radius:12px;overflow:hidden}
+.co-red{position:absolute;inset:0;background:var(--red);color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;font-size:13px;font-weight:600}
+.co-body{position:relative;z-index:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;transition:transform .28s cubic-bezier(.32,.72,.34,1)}
+@media (prefers-reduced-transparency:reduce){
+ .tabbar,#dockTitle,#drawer,.modal,.toast{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
 .me-item{border-bottom:1px solid var(--line)}
 .me-item:last-child{border-bottom:0}
 .me-item summary{display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;list-style:none;font-weight:500;font-size:15px;user-select:none}
@@ -146,7 +154,7 @@ select.field{appearance:none;background-image:linear-gradient(45deg,transparent 
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media (max-width:640px){.grid2{grid-template-columns:1fr}}
 .seg{display:inline-flex;background:transparent;border:1px solid var(--line-strong);border-radius:10px;padding:2px;gap:2px}
-.seg button{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);transition:background .15s,color .15s}
+.seg button{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted);transition:background .15s,color .15s}
 .seg button.on{background:var(--brand-soft);color:var(--brand);font-weight:600}
 /* ---------- hero ---------- */
 .hero{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
@@ -231,7 +239,8 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 .tsk{display:flex;align-items:flex-start;gap:6px;padding:6px 8px;border-radius:10px}
 .tsk:hover{background:var(--surface-2)}
 .tsk .form-check{flex:1;padding:1px 0}
-.lesson-btn{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--brand);background:var(--brand-soft);transition:transform .12s}
+.lesson-btn{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--brand);background:var(--brand-soft);transition:transform .12s}
+.lesson-btn .ic{width:20px;height:20px}
 .lesson-btn:hover{transform:scale(1.1)}
 /* ---------- drawer ---------- */
 #drawerMask{position:fixed;inset:0;background:rgba(0,0,0,0.32);z-index:70;opacity:0;transition:opacity .25s;pointer-events:none}
@@ -268,7 +277,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 .daily-how{margin:-4px 0 16px}
 /* ---------- toast / modal ---------- */
 #toasts{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,480px)}
-.toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border:1px solid var(--glass-line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%}
+.toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border:1px solid var(--glass-line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%;pointer-events:auto}
 .toast .ic{color:var(--brand)}
 .toast.orange .ic{color:var(--orange)}
 .toast.green .ic{color:var(--green)}
@@ -292,7 +301,9 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
   :root:not([data-theme="dark"]) .tabbar .nav-btn{text-shadow:0 1px 2px rgba(255,255,255,0.6)}
   .tabbar .nav-btn:hover{background:transparent;color:var(--ink)}
   .tabbar .nav-btn.on{background:transparent;color:var(--brand);font-weight:600}
-  .tabbar .nav-btn .ic{width:21px;height:21px}
+  .tabbar .nav-btn.on .ic{fill:currentColor;stroke:none;animation:tabpop .42s cubic-bezier(.3,1.7,.4,1)}
+  .tabbar .nav-btn .ic{width:21px;height:21px;transition:transform .15s ease}
+  .tabbar .nav-btn:active .ic{transform:scale(.78)}
   .tabbar .nav-btn.on .ic{animation:tabpop .42s cubic-bezier(.3,1.7,.4,1)}
   @keyframes tabpop{0%{transform:scale(1)}45%{transform:scale(1.25)}100%{transform:scale(1)}}
   .flip{height:240px}
@@ -300,6 +311,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 </style>
 </head>
 <body>
+<div id="dockTitle" aria-hidden="true"></div>
 
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -473,7 +485,8 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 学习中心 ===== -->
       <section class="view" id="view-learn" hidden>
         <h2 class="ptitle">学习中心</h2>
-        <div class="seg" style="margin:-4px 0 16px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
+        <div class="seg" style="margin:-4px 0 12px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
+        <input type="text" class="field" id="learnSearch" placeholder="搜索主题 / 材料,如「RAG」「简历」「话术」" style="margin-bottom:12px">
         <p class="small muted" style="margin-bottom:14px" id="learnIntro"></p>
         <div id="learnWrap"></div>
       </section>
@@ -614,7 +627,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.8.1';
+var APP_VERSION='1.9.0';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1129,23 +1142,36 @@ function secT(t){return '<div class="sec-t">'+t+'</div>'}
 function learnItem(id,L){
  return '<button type="button" class="learn-item'+(S.read[id]?' done':'')+'" data-lesson="'+esc(id)+'">'+icon(S.read[id]?'i-check':'i-book')+'<span style="flex:1;text-align:left">'+esc(L.t)+'</span><span class="small muted">'+esc(L.time||'')+'</span></button>';
 }
+function learnHay(L){return ((L.t||'')+' '+(L.why||'')+' '+(L.how||[]).join(' ')+' '+(L.mat||[]).map(function(m){return (m.n||'')+' '+(m.k||'')}).join(' ')).toLowerCase()}
 function renderLearn(){
  var matN=0;for(var k in LESSONS)matN+=(LESSONS[k].mat||[]).length;
  var ids=Object.keys(LESSONS),readN=0;ids.forEach(function(k){if(S.read[k])readN++});
- var intro=$('#learnIntro');
- if(intro)intro.textContent='内置学习教材: '+ids.length+' 个主题 · '+matN+' 份材料(长文 / 模板 / 话术 / 题库),每份都按「为什么 → 材料 → 怎么做 → 完成标志」组织,点开即学,离线可用。已读 '+readN+' / '+ids.length+' 个主题。';
+ var intro=$('#learnIntro'),q=($('#learnSearch')||{}).value||'';
  var html='';
- PHASES.forEach(function(p){
-  html+='<div class="phase-head"><h3>'+esc(p.name)+'</h3></div>';
-  p.ws.forEach(function(w){
-   html+='<div class="learn-week small muted" style="margin:12px 0 7px">第 '+w.id.slice(1)+' 周 · '+esc(w.t)+'</div>';
-   w.tasks.forEach(function(_,i){var id=w.id+'.'+i;if(LESSONS[id])html+=learnItem(id,LESSONS[id])});
+ if(q&&q.trim()){
+  q=q.trim().toLowerCase();
+  var hits=[];
+  PHASES.forEach(function(p){p.ws.forEach(function(w){w.tasks.forEach(function(_,i){var id=w.id+'.'+i,L=LESSONS[id];if(L&&learnHay(L).indexOf(q)>=0)hits.push({id:id,L:L,ctx:p.name+' · 第 '+w.id.slice(1)+' 周'})})})});
+  PROJECTS.forEach(function(p){p.tasks.forEach(function(_,i){var id=p.id+'.'+i,L=LESSONS[id];if(L&&learnHay(L).indexOf(q)>=0)hits.push({id:id,L:L,ctx:'求职大作业'})})});
+  REFS.forEach(function(id){var L=LESSONS[id];if(L&&learnHay(L).indexOf(q)>=0)hits.push({id:id,L:L,ctx:'工具书 · 跨周参考'})});
+  if(hits.length){
+   html=hits.map(function(h){return '<div class="learn-week small muted" style="margin:12px 0 6px">'+esc(h.ctx)+'</div>'+learnItem(h.id,h.L)}).join('');
+  }else html='<p class="small muted">没有找到匹配「'+esc(q)+'」的材料,换个关键词试试(如 RAG / 简历 / 话术)。</p>';
+  if(intro)intro.textContent='搜索「'+q+'」:找到 '+hits.length+' 个主题。';
+ }else{
+  PHASES.forEach(function(p){
+   html+='<div class="phase-head"><h3>'+esc(p.name)+'</h3></div>';
+   p.ws.forEach(function(w){
+    html+='<div class="learn-week small muted" style="margin:12px 0 7px">第 '+w.id.slice(1)+' 周 · '+esc(w.t)+'</div>';
+    w.tasks.forEach(function(_,i){var id=w.id+'.'+i;if(LESSONS[id])html+=learnItem(id,LESSONS[id])});
+   });
   });
- });
- html+='<div class="phase-head"><h3>求职大作业</h3></div>';
- PROJECTS.forEach(function(p){p.tasks.forEach(function(_,i){var id=p.id+'.'+i;if(LESSONS[id])html+=learnItem(id,LESSONS[id])})});
- html+='<div class="phase-head"><h3>工具书 · 跨周参考</h3></div>';
- REFS.forEach(function(id){if(LESSONS[id])html+=learnItem(id,LESSONS[id])});
+  html+='<div class="phase-head"><h3>求职大作业</h3></div>';
+  PROJECTS.forEach(function(p){p.tasks.forEach(function(_,i){var id=p.id+'.'+i;if(LESSONS[id])html+=learnItem(id,LESSONS[id])})});
+  html+='<div class="phase-head"><h3>工具书 · 跨周参考</h3></div>';
+  REFS.forEach(function(id){if(LESSONS[id])html+=learnItem(id,LESSONS[id])});
+  if(intro)intro.textContent='内置学习教材: '+ids.length+' 个主题 · '+matN+' 份材料(长文 / 模板 / 话术 / 题库),每份都按「为什么 → 材料 → 怎么做 → 完成标志」组织,点开即学,离线可用。已读 '+readN+' / '+ids.length+' 个主题。';
+ }
  $('#learnWrap').innerHTML=html;
 }
 function openLesson(id){
@@ -1233,6 +1259,7 @@ function schedulePush(){
 function pad(n){return (n<10?'0':'')+n}
 function dateStr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function todayStr(){return dateStr(new Date())}
+function dateCn(t){var d=new Date(t+'T12:00:00');return (d.getMonth()+1)+'月'+d.getDate()+'日 周'+'日一二三四五六'.charAt(d.getDay())}
 function dayNum(t){return Math.floor(Date.parse(t+'T12:00:00')/864e5)}
 function hasDay(t){return S.days.indexOf(t)>=0}
 function streakCount(){
@@ -1269,14 +1296,20 @@ function icon(id,cls){return '<svg class="ic'+(cls?' '+cls:'')+'" aria-hidden="t
 
 /* toast */
 var toastTimer={};
-function toast(msg,ic,cls){
+function toast(msg,ic,cls,btn){
  var box=$('#toasts');
  var el=document.createElement('div');
  el.className='toast'+(cls?' '+cls:'');
  el.innerHTML=icon(ic||'i-msg')+'<span>'+esc(msg)+'</span>';
+ if(btn&&btn.t&&typeof btn.fn==='function'){
+  var b=document.createElement('button');
+  b.className='btn sm';b.textContent=btn.t;b.style.flex='none';
+  b.addEventListener('click',function(){btn.fn();el.classList.add('out');setTimeout(function(){el.remove()},320)});
+  el.appendChild(b);
+ }
  box.appendChild(el);
  var k='t'+Date.now()+Math.random();
- toastTimer[k]=setTimeout(function(){el.classList.add('out');setTimeout(function(){el.remove()},320)},3600);
+ toastTimer[k]=setTimeout(function(){el.classList.add('out');setTimeout(function(){el.remove()},320)},btn?6000:3600);
  while(box.children.length>3)box.firstChild.remove();
 }
 /* 里程碑 */
@@ -1306,22 +1339,26 @@ function checkMilestones(){
 var lastUpdChk=0;
 function checkUpdate(silent){
  if(navigator&&!navigator.onLine){if(!silent)toast('当前离线,联网后会自动检查更新。','i-msg');return}
+ var ub=$('#updBtn'),oldTxt=ub?ub.textContent:'检查更新';
+ if(!silent&&ub){ub.disabled=true;ub.textContent='检查中…'}
+ function done(){if(ub){ub.disabled=false;ub.textContent=oldTxt}}
  try{
   fetch('index.html',{cache:'no-store'}).then(function(r){return r.ok?r.text():null}).then(function(t){
+   done();
    if(!t){if(!silent)toast('检查更新失败(网络)','i-msg');return}
    var m=t.match(/APP_VERSION='([^']+)'/);
    if(!m||m[1]===APP_VERSION){if(!silent)toast('已是最新版本 '+APP_VERSION,'i-check','green');return}
    toast('发现新版本 '+m[1]+',正在更新...','i-zap');
-   var done=false;
-   function reload(){if(!done){done=true;setTimeout(function(){location.reload()},800)}}
+   var done2=false;
+   function reload(){if(!done2){done2=true;setTimeout(function(){location.reload()},800)}}
    if('serviceWorker' in navigator){
     navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))})
      .then(function(){return caches.keys()})
      .then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))})
      .then(reload,reload);
    }else reload();
-  }).catch(function(){if(!silent)toast('检查更新失败(网络)','i-msg')});
- }catch(e){if(!silent)toast('检查更新失败','i-msg')}
+  }).catch(function(){done();if(!silent)toast('检查更新失败(网络)','i-msg')});
+ }catch(e){done();if(!silent)toast('检查更新失败','i-msg')}
 }
 /* 教练台词 */
 function pick(arr,seed){return arr[seed%arr.length]}
@@ -1403,13 +1440,15 @@ function go(v){
  var prev=curView,outEl=$('#view-'+prev),inEl=$('#view-'+v);
  scrollMemo[prev]=window.scrollY;
  curView=v;
- $$('.view').forEach(function(s){if(s!==inEl){s.hidden=true;s.classList.remove('vi-l','vi-r')}});
+ $$('.view').forEach(function(s){if(s!==inEl){s.hidden=true;s.classList.remove('vi-l','vi-r');s.style.transform='';s.style.transition=''}});
  inEl.hidden=false;inEl.style.pointerEvents='';
  window.scrollTo(0,scrollMemo[v]||0);
  if(!REDUCE){
   var dir=ORDER.indexOf(v)>ORDER.indexOf(prev)?1:-1;
   inEl.classList.remove('vi-l','vi-r');void inEl.offsetWidth;inEl.classList.add(dir>0?'vi-r':'vi-l');
+  setTimeout(function(){inEl.classList.remove('vi-l','vi-r')},380);
  }
+ requestAnimationFrame(dockScroll);
  if(v==='ov')renderHero();
  if(v==='daily')renderDaily();
  if(v==='lab')renderCo();
@@ -1423,6 +1462,59 @@ document.addEventListener('keydown',function(e){
  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||tg.isContentEditable)return;
  var i=['1','2','3','4'].indexOf(e.key);
  if(i>=0)go(GORDER[i]);
+});
+/* ---------- 大标题滚动收起(iOS inline title) ---------- */
+var DOCK={ov:'首页',daily:'今日训练',skills:'技能树',quiz:'模块自测',plan:'12 周计划',learn:'学习中心',lab:'求职实战',me:'我的'};
+function dockScroll(){
+ var dt=$('#dockTitle');if(!dt)return;
+ var vis=$('.view:not([hidden])');
+ if(!vis){dt.classList.remove('on');return}
+ var vid=vis.id.slice(5),label=DOCK[vid],pt=vis.querySelector('.ptitle'),show=pt?(pt.getBoundingClientRect().bottom<12):(window.scrollY>120);
+ if(show&&label){if(dt.textContent!==label)dt.textContent=label;dt.classList.add('on')}
+ else dt.classList.remove('on');
+}
+window.addEventListener('scroll',function(){requestAnimationFrame(dockScroll)},{passive:true});
+/* ---------- 触摸手势:内容区左右滑切 Tab(跟手可打断),看板行左滑删除 ---------- */
+var SW={mode:null,el:null,body:null,x0:0,y0:0,dx:0,lock:false};
+document.addEventListener('touchstart',function(e){
+ SW.mode=null;SW.el=null;SW.body=null;SW.dx=0;SW.lock=false;
+ if(e.touches.length!==1)return;
+ var t=e.target;
+ if($('#drawer').classList.contains('on'))return;
+ var ob=$('#onboard');if(ob&&!ob.classList.contains('hidden'))return;
+ var row=t.closest('.co-row');
+ if(row){SW.mode='row';SW.el=row;SW.body=row.querySelector('.co-body');SW.x0=e.touches[0].clientX;SW.y0=e.touches[0].clientY;return}
+ if(t.closest('input,textarea,select,.tabbar,.seg,.heat,label.opt,[data-qmod],.qdots'))return;
+ SW.mode='view';SW.el=$('.view:not([hidden])');SW.x0=e.touches[0].clientX;SW.y0=e.touches[0].clientY;
+},{passive:true});
+document.addEventListener('touchmove',function(e){
+ if(!SW.mode||e.touches.length!==1)return;
+ var x=e.touches[0].clientX,y=e.touches[0].clientY,dx=x-SW.x0,dy=y-SW.y0;
+ if(!SW.lock){
+  if(Math.abs(dx)<16&&Math.abs(dy)<16)return;
+  if(Math.abs(dy)>Math.abs(dx)*1.3){SW.mode=null;return}
+  SW.lock=true;
+ }
+ SW.dx=dx;
+ if(SW.mode==='row'&&SW.body){SW.body.style.transition='none';SW.body.style.transform='translateX('+Math.min(0,dx)+'px)'}
+ else if(SW.mode==='view'&&SW.el&&dx!==0){SW.el.style.transition='none';SW.el.style.transform='translateX('+dx+'px)'}
+},{passive:true});
+document.addEventListener('touchend',function(){
+ if(!SW.mode)return;
+ var m=SW.mode,el=SW.el,body=SW.body,dx=SW.dx;
+ SW.mode=null;SW.el=null;SW.body=null;
+ if(m==='row'&&body){
+  body.style.transition='';body.style.transform='';
+  if(dx<-64){var idx=Number(el.getAttribute('data-coidx'));if(!isNaN(idx)&&S.co[idx])delCo(idx)}
+  return;
+ }
+ if(m==='view'&&el){
+  el.style.transition='transform .25s cubic-bezier(.32,.72,.34,1)';
+  el.style.transform='';
+  setTimeout(function(){el.style.transition='';el.style.transform=''},280);
+  if(dx<-70){var g=GORDER.indexOf(groupOf(curView))+1;if(g<GORDER.length&&g>0)go(GORDER[g])}
+  else if(dx>70){var g2=GORDER.indexOf(groupOf(curView))-1;if(g2>=0)go(GORDER[g2])}
+ }
 });
 
 /* ================= 跃迁轨道 ================= */
@@ -1491,7 +1583,7 @@ function renderHero(){
  var stale=staleApplied();
  if(stale.length)nud+='<div class="nudge"><span>'+icon('i-briefcase')+'<b>'+esc(stale[0])+'</b>'+(stale.length>1?' 等 '+stale.length+' 家公司':'')+'投递已超一周,该跟进一轮了。</span><button class="btn sm primary" data-goto="lab">去看板</button></div>';
  var nb=$('#ovNudge');if(nb)nb.innerHTML=nud;
- $('#dateTag').textContent=todayStr()+' · 距离 Offer 还有 '+Math.max(0,84-(S.start?(dayNum(todayStr())-dayNum(S.start)):0))+' 天';
+ $('#dateTag').textContent=dateCn(todayStr())+' · 距离 Offer 还有 '+Math.max(0,84-(S.start?(dayNum(todayStr())-dayNum(S.start)):0))+' 天';
  typeInto($('#coachLine'),coachLine());
  var tc=taskCounts();
  countUp($('#stOverall'),overallPct());
@@ -1697,8 +1789,14 @@ function renderCo(){
   var opts=STAGES.map(function(st,si){return '<option value="'+si+'"'+(si===c.s?' selected':'')+'>'+st+'</option>'}).join('');
   var topts=TRACKS.map(function(tr,ti){return '<option value="'+ti+'"'+(ti===c.t?' selected':'')+'>'+tr+'</option>'}).join('');
   var stale=(c.s===1&&c.d)?(dayNum(todayStr())-dayNum(c.d)):0;
-  return '<div class="co-row"><span class="nm">'+esc(c.n)+(stale>=8?'<span class="tag amber" style="margin-left:6px">'+stale+' 天未跟进</span>':'')+'</span><select class="field" data-cot="'+i+'" aria-label="'+esc(c.n)+' 赛道">'+topts+'</select><select class="field" data-co="'+i+'" aria-label="'+esc(c.n)+' 阶段">'+opts+'</select><button class="btn ghost sm" data-codel="'+i+'" aria-label="删除 '+esc(c.n)+'">'+icon('i-trash')+'</button></div>';
+  return '<div class="co-row" data-coidx="'+i+'"><div class="co-red">删除</div><div class="co-body"><span class="nm">'+esc(c.n)+(stale>=8?'<span class="tag amber" style="margin-left:6px">'+stale+' 天未跟进</span>':'')+'</span><select class="field" data-cot="'+i+'" aria-label="'+esc(c.n)+' 赛道">'+topts+'</select><select class="field" data-co="'+i+'" aria-label="'+esc(c.n)+' 阶段">'+opts+'</select><button class="btn ghost sm" data-codel="'+i+'" aria-label="删除 '+esc(c.n)+'">'+icon('i-trash')+'</button></div></div>';
  }).join('');
+}
+function delCo(i){
+ var removed=S.co.splice(i,1)[0];
+ if(!removed)return;
+ save();renderCo();
+ toast('已删除「'+removed.n+'」','i-trash',null,{t:'撤销',fn:function(){S.co.splice(Math.min(i,S.co.length),0,removed);save();renderCo()}});
 }
 function addCo(){
  var inp=$('#coInput'),v=(inp.value||'').trim();
@@ -1859,7 +1957,7 @@ document.addEventListener('click',function(e){
  }
  if(t.closest('#coAdd')){addCo();return}
  var del=t.closest('[data-codel]');
- if(del){S.co.splice(Number(del.getAttribute('data-codel')),1);save();renderCo();return}
+ if(del){delCo(Number(del.getAttribute('data-codel')));return}
  if(t.closest('#updBtn')){checkUpdate(false);return}
  if(t.closest('#exportBtn')){doExport();return}
  if(t.closest('#importBtn')){$('#importFile').click();return}
@@ -2071,10 +2169,12 @@ applyTheme();
 buildRunway();
 renderAll();
 (function(){var av=$('#appVer');if(av)av.textContent=APP_VERSION;var vv=$('#meVerVal');if(vv)vv.textContent='v'+APP_VERSION})();
+(function(){var ls=$('#learnSearch');if(ls)ls.addEventListener('input',function(){renderLearn()})})();
 /* 「我的」页手风琴:展开一项收起其他 */
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.9.0',d:'10-25',items:['内容区左右滑动切换 Tab:页面跟手移动、松手回弹或切换,可随时打断','看板公司行左滑删除,误删可一键撤销(Toast 撤销按钮)','学习中心新增搜索:按主题/材料名/正文关键词过滤 113 份材料','大标题滚动收起:滚过标题后顶部浮现玻璃小标题(iOS inline title)','Tab 选中图标切换为填充变体,按下有按压反馈','细节五连修:防双击缩放、教材按钮放大到 44px、日期中文化(10月25日 周六)、检查更新显示进行中、辅助功能「降低透明度」时玻璃自动变不透明']},
  {v:'1.8.1',d:'10-25',items:['投递跟进提醒:「已投递」超一周的公司在首页提醒,看板内标注停留天数','修复离线时「检查更新」误报最新版本的问题']},
  {v:'1.8.0',d:'10-25',items:['新增错题本与间隔复习:答错自动收录,连对 3 次视为掌握,到期首页提醒','学习材料已读标记:点开即记,学习中心显示已读进度','首页新增打卡提醒与错题到期横幅','打卡热力图扩展为 12 周日历','抽屉/弹窗/提示玻璃统一为 4px 轻磨砂','电脑端按 1-4 数字键快速切页']},
  {v:'1.7.5',d:'10-25',items:['重修切页过渡:移除冻结快照机制,旧页立即退场、新页实体滑入,彻底消除上页残留','移除顶部状态栏护罩实色带,内容像原生 App 一样自然延伸到状态栏下方']},
