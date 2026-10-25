@@ -25,9 +25,11 @@
   --red:#d70015; --red-soft:rgba(255,59,48,0.12);
   --amber:#b25000; --amber-soft:rgba(255,159,10,0.14);
   --shadow:0 8px 30px rgba(0,0,0,0.12); --shadow-sm:0 1px 3px rgba(0,0,0,0.05);
-  --glass:rgba(255,255,255,0.48); --glass-line:rgba(0,0,0,0.08); --glass-hi:rgba(255,255,255,0.9); --glass-dim:rgba(0,0,0,0.05);
-  --glass-shadow:0 12px 36px rgba(0,0,0,0.16);
-  --tab-pill:rgba(255,255,255,0.75); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.85);
+  --glass:rgba(255,255,255,0.50); --glass-hi:rgba(255,255,255,0.8); --glass-dim:rgba(0,0,0,0.04);
+  --glass-line:rgba(0,0,0,0.08);
+  --glass-shadow:0 16px 40px rgba(0,0,0,0.14);
+  --tab-line:rgba(255,255,255,0.55);
+  --tab-pill:rgba(255,255,255,0.45); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.10),inset 0 1px 1px rgba(255,255,255,0.9);
   --r:20px; --r-sm:12px;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
@@ -41,9 +43,11 @@
   --red:#ff453a; --red-soft:rgba(255,69,58,0.16);
   --amber:#ffd60a; --amber-soft:rgba(255,214,10,0.15);
   --shadow:0 10px 34px rgba(0,0,0,0.55); --shadow-sm:0 1px 3px rgba(0,0,0,0.40);
-  --glass:rgba(18,18,20,0.30); --glass-line:rgba(255,255,255,0.12); --glass-hi:rgba(255,255,255,0.18); --glass-dim:rgba(0,0,0,0.4);
-  --glass-shadow:0 12px 36px rgba(0,0,0,0.5);
-  --tab-pill:rgba(255,255,255,0.15); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.14);
+  --glass:rgba(24,24,26,0.34); --glass-hi:rgba(255,255,255,0.24); --glass-dim:rgba(0,0,0,0.35);
+  --glass-line:rgba(255,255,255,0.12);
+  --glass-shadow:0 16px 44px rgba(0,0,0,0.55);
+  --tab-line:rgba(255,255,255,0.18);
+  --tab-pill:rgba(255,255,255,0.18); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.28),inset 0 1px 1px rgba(255,255,255,0.22);
 }
 /* ---------- base ---------- */
 *{box-sizing:border-box}
@@ -264,17 +268,17 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 /* ---------- mobile ---------- */
 @media (max-width:880px){
   .sidebar{display:none}
-  .content{padding:18px 16px 156px}
+  .content{padding:18px 16px 178px}
   .hero h2{font-size:21px}
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
   .rw-lbls{display:none}
-  .tabbar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;gap:2px;padding:6px;border-radius:32px;background:linear-gradient(rgba(255,255,255,0.07),rgba(255,255,255,0) 42%),var(--glass);backdrop-filter:blur(36px) saturate(2.2);-webkit-backdrop-filter:blur(36px) saturate(2.2);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi),inset 0 -1px 0 var(--glass-dim)}
-  #tabPill{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/4);border-radius:24px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
-  .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:9px 2px 8px;font-size:10.5px;font-weight:500;border-radius:24px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
+  .tabbar{display:flex;position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;gap:2px;padding:7px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,0.09),rgba(255,255,255,0.02) 42%,rgba(255,255,255,0) 62%),var(--glass);backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);border:1px solid var(--tab-line);box-shadow:var(--glass-shadow),inset 0 1px 1px var(--glass-hi),inset 0 -1px 1px var(--glass-dim)}
+  #tabPill{position:absolute;top:7px;bottom:7px;left:7px;width:calc((100% - 14px)/4);border-radius:999px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
+  .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:4px;align-items:center;padding:10px 2px 9px;font-size:12px;font-weight:500;border-radius:999px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
   .tabbar .nav-btn:hover{background:transparent;color:var(--ink)}
   .tabbar .nav-btn.on{background:transparent;color:var(--brand);font-weight:600}
-  .tabbar .nav-btn .ic{width:21px;height:21px}
+  .tabbar .nav-btn .ic{width:24px;height:24px}
   .tabbar .nav-btn.on .ic{animation:tabpop .42s cubic-bezier(.3,1.7,.4,1)}
   @keyframes tabpop{0%{transform:scale(1)}45%{transform:scale(1.25)}100%{transform:scale(1)}}
   .flip{height:240px}
@@ -582,7 +586,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.6.0';
+var APP_VERSION='1.6.1';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1996,6 +2000,7 @@ renderAll();
 (function(){var av=$('#appVer');if(av)av.textContent=APP_VERSION})();
 /* ---------- 版本更新日志 ---------- */
 var CHANGELOG=[
+ {v:'1.6.1',d:'10-25',items:['Tab 栏按液态玻璃参考重制:更饱满的全圆角悬浮胶囊,图标 24px、文字加大','玻璃细节升级:亮白描边、斜向光泽、「玻璃上叠玻璃」更亮药丸']},
  {v:'1.6.0',d:'10-25',items:['Tab 从 7 个精简为 4 个:首页 / 训练 / 计划 / 我的,组内页面用顶部分段切换','训练 = 今日 + 技能树 + 自测;计划 = 周计划 + 学习中心 + 实战','Tab 栏玻璃推至最透:36px 模糊 + 顶部光泽 + 上下缘高光/暗影','修复滚动时内容钻入状态栏区、被系统加一层模糊的问题']},
  {v:'1.5.0',d:'10-25',items:['新增「我的」页:称呼、外观、多设备同步、数据、关于集中一处','移除顶部标题栏,内容直达状态栏区,更沉浸','「关于」新增版本更新日志,每个版本改了什么一目了然']},
  {v:'1.4.2',d:'10-25',items:['滚动时顶栏改为悬浮玻璃胶囊,与系统状态栏无缝衔接','切页动画统一曲线与视差,消除视觉不一致','玻璃材质更透明,抽屉、弹窗、提示同步升级']},
