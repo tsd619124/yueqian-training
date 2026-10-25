@@ -25,9 +25,9 @@
   --red:#d70015; --red-soft:rgba(255,59,48,0.12);
   --amber:#b25000; --amber-soft:rgba(255,159,10,0.14);
   --shadow:0 8px 30px rgba(0,0,0,0.12); --shadow-sm:0 1px 3px rgba(0,0,0,0.05);
-  --glass:rgba(255,255,255,0.62); --glass-line:rgba(0,0,0,0.06); --glass-hi:rgba(255,255,255,0.85);
-  --glass-shadow:0 10px 34px rgba(0,0,0,0.15);
-  --tab-pill:rgba(255,255,255,0.92); --tab-pill-shadow:0 2px 10px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.9);
+  --glass:rgba(255,255,255,0.55); --glass-line:rgba(0,0,0,0.09); --glass-hi:rgba(255,255,255,0.9);
+  --glass-shadow:0 10px 32px rgba(0,0,0,0.16);
+  --tab-pill:rgba(255,255,255,0.85); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.85);
   --r:20px; --r-sm:12px;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
@@ -41,9 +41,9 @@
   --red:#ff453a; --red-soft:rgba(255,69,58,0.16);
   --amber:#ffd60a; --amber-soft:rgba(255,214,10,0.15);
   --shadow:0 10px 34px rgba(0,0,0,0.55); --shadow-sm:0 1px 3px rgba(0,0,0,0.40);
-  --glass:rgba(22,22,24,0.60); --glass-line:rgba(255,255,255,0.09); --glass-hi:rgba(255,255,255,0.14);
-  --glass-shadow:0 10px 34px rgba(0,0,0,0.55);
-  --tab-pill:rgba(255,255,255,0.12); --tab-pill-shadow:0 2px 10px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.16);
+  --glass:rgba(20,20,22,0.42); --glass-line:rgba(255,255,255,0.10); --glass-hi:rgba(255,255,255,0.16);
+  --glass-shadow:0 8px 30px rgba(0,0,0,0.5);
+  --tab-pill:rgba(255,255,255,0.14); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.14);
 }
 /* ---------- base ---------- */
 *{box-sizing:border-box}
@@ -75,8 +75,10 @@ input,select{font:inherit;color:inherit}
 .sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
 .side-note{padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:11.5px;color:var(--muted);line-height:1.55}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 28px 12px;background:transparent;backdrop-filter:blur(24px) saturate(1.8);-webkit-backdrop-filter:blur(24px) saturate(1.8);border-bottom:1px solid transparent;box-shadow:none;transition:background .3s ease,border-color .3s ease,box-shadow .3s ease}
-.topbar.scrolled{background:var(--glass);border-bottom-color:var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi)}
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 28px 12px}
+.topbar>*{position:relative;z-index:1}
+.topbar-glass{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 4px);bottom:4px;border-radius:24px;background:var(--glass);backdrop-filter:blur(30px) saturate(2);-webkit-backdrop-filter:blur(30px) saturate(2);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi);opacity:0;transition:opacity .32s ease;pointer-events:none}
+.topbar.scrolled .topbar-glass{opacity:1}
 .topbar h1{font-size:16.5px;font-weight:600}
 .topbar .spacer{flex:1}
 .streak-chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink);font-weight:600;font-size:13px}
@@ -87,17 +89,15 @@ input,select{font:inherit;color:inherit}
 .content{width:100%;max-width:1040px;margin:0 auto;padding:28px 32px 110px;display:grid;overflow-x:hidden;overflow-x:clip}
 .view{grid-area:1/1;min-width:0}
 .view.vi-l,.view.vi-r{position:relative;z-index:2}
-.view.vi-l{animation:vi-l .34s cubic-bezier(.3,.75,.3,1) both}
-.view.vi-r{animation:vi-r .34s cubic-bezier(.3,.75,.3,1) both}
-.view.vo-l{animation:vo-l .3s ease both;pointer-events:none}
-.view.vo-r{animation:vo-r .3s ease both;pointer-events:none}
+.view.vi-l{animation:vi-l .32s cubic-bezier(.32,.72,.34,1) both}
+.view.vi-r{animation:vi-r .32s cubic-bezier(.32,.72,.34,1) both}
 .vfreeze{position:fixed;z-index:5;pointer-events:none;overflow:hidden}
-.vfreeze.vo-l{animation:vo-l .3s ease both}
-.vfreeze.vo-r{animation:vo-r .3s ease both}
-@keyframes vi-l{from{opacity:0;transform:translateX(-44px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes vi-r{from{opacity:0;transform:translateX(44px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes vo-l{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-44px) scale(.985)}}
-@keyframes vo-r{from{opacity:1;transform:none}to{opacity:0;transform:translateX(44px) scale(.985)}}
+.vfreeze.vo-l{animation:vo-l .32s cubic-bezier(.32,.72,.34,1) both}
+.vfreeze.vo-r{animation:vo-r .32s cubic-bezier(.32,.72,.34,1) both}
+@keyframes vi-l{from{opacity:0;transform:translateX(-44px)}to{opacity:1;transform:none}}
+@keyframes vi-r{from{opacity:0;transform:translateX(44px)}to{opacity:1;transform:none}}
+@keyframes vo-l{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-30px)}}
+@keyframes vo-r{from{opacity:1;transform:none}to{opacity:0;transform:translateX(30px)}}
 #viewTitle.ti{animation:ti .28s cubic-bezier(.3,.75,.3,1)}
 @keyframes ti{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -226,7 +226,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 #drawerMask{position:fixed;inset:0;background:rgba(0,0,0,0.32);z-index:70;opacity:0;transition:opacity .25s;pointer-events:none}
 :root[data-theme="dark"] #drawerMask{background:rgba(0,0,0,0.5)}
 #drawerMask.on{opacity:1;pointer-events:auto}
-#drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100vw);background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);z-index:75;transform:translateX(103%);transition:transform .34s cubic-bezier(.32,.72,.25,1);display:flex;flex-direction:column;border-radius:0}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100vw);background:color-mix(in srgb,var(--surface) 84%,transparent);backdrop-filter:blur(30px) saturate(1.9);-webkit-backdrop-filter:blur(30px) saturate(1.9);border-left:1px solid var(--glass-line);box-shadow:var(--shadow);z-index:75;transform:translateX(103%);transition:transform .34s cubic-bezier(.32,.72,.25,1);display:flex;flex-direction:column;border-radius:0}
 #drawer.on{transform:none}
 .dr-head{padding:calc(20px + env(safe-area-inset-top,0px)) 24px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
 .dr-head h3{font-size:18px;font-weight:600;flex:1;letter-spacing:-0.02em}
@@ -255,28 +255,29 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 .daily-how{margin:-4px 0 16px}
 /* ---------- toast / modal ---------- */
 #toasts{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,480px)}
-.toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%}
+.toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 60%,transparent);backdrop-filter:blur(26px) saturate(1.9);-webkit-backdrop-filter:blur(26px) saturate(1.9);border:1px solid var(--glass-line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%}
 .toast .ic{color:var(--brand)}
 .toast.orange .ic{color:var(--orange)}
 .toast.green .ic{color:var(--green)}
 @keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 .toast.out{opacity:0;transform:translateY(-8px);transition:.3s}
 .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.36);backdrop-filter:blur(6px);z-index:80;display:grid;place-items:center;padding:20px}
-.modal{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);max-width:420px;width:100%;padding:28px;animation:vin .3s ease}
+.modal{background:color-mix(in srgb,var(--surface) 78%,transparent);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);border:1px solid var(--glass-line);border-radius:24px;box-shadow:var(--shadow);max-width:420px;width:100%;padding:28px;animation:vin .3s ease}
 .modal h3{font-size:19px;font-weight:600;margin:12px 0 6px;letter-spacing:-0.02em}
 /* ---------- mobile ---------- */
 @media (max-width:880px){
   .sidebar{display:none}
   .content{padding:18px 16px 156px}
-  .topbar{padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px}
+  .topbar{padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px}
+  .topbar-glass{left:8px;right:8px;border-radius:22px}
   #setBtn{display:grid}
   .hero h2{font-size:21px}
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
   .rw-lbls{display:none}
-  .tabbar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;gap:2px;padding:6px;border-radius:32px;background:var(--glass);backdrop-filter:blur(28px) saturate(1.9);-webkit-backdrop-filter:blur(28px) saturate(1.9);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi)}
-  #tabPill{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/6);border-radius:24px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .38s cubic-bezier(.32,.72,.3,1.05),opacity .25s ease;pointer-events:none}
-  .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:8px 2px 7px;font-size:10px;font-weight:500;border-radius:24px;color:var(--muted)}
+  .tabbar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;gap:2px;padding:6px;border-radius:32px;background:var(--glass);backdrop-filter:blur(30px) saturate(2);-webkit-backdrop-filter:blur(30px) saturate(2);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi)}
+  #tabPill{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/6);border-radius:24px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
+  .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:8px 2px 7px;font-size:10px;font-weight:500;border-radius:24px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
   .tabbar .nav-btn:hover{background:transparent;color:var(--ink)}
   .tabbar .nav-btn.on{background:transparent;color:var(--brand);font-weight:600}
   .tabbar .nav-btn .ic{width:21px;height:21px}
@@ -346,6 +347,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 
   <div class="main">
     <header class="topbar">
+      <div class="topbar-glass" aria-hidden="true"></div>
       <h1 id="viewTitle">总览</h1>
       <div class="spacer"></div>
       <span class="streak-chip" id="tbStreak" title="连续打卡天数"><svg class="ic" style="width:15px;height:15px"><use href="#i-flame"/></svg><span class="num" id="tbStreakN">0</span></span>
@@ -568,7 +570,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.4.1';
+var APP_VERSION='1.4.2';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1338,6 +1340,7 @@ function finalizeExit(){
  var p=pendingExit;pendingExit=null;
  $('.content').appendChild(p.el);
  p.el.hidden=true;p.el.classList.remove('vi-l','vi-r','vo-l','vo-r');p.el.style.pointerEvents='';
+ p.el.style.position='';p.el.style.left='';p.el.style.top='';p.el.style.width='';
  p.ov.remove();
 }
 function go(v){
@@ -1361,15 +1364,18 @@ function go(v){
   window.scrollTo(0,target);
   outEl.hidden=true;
  }else{
-  var r=outEl.getBoundingClientRect();
+  var r=outEl.getBoundingClientRect(),mr=$('.main').getBoundingClientRect();
   var ov=document.createElement('div');ov.className='vfreeze';
-  ov.style.left=r.left+'px';ov.style.top=r.top+'px';ov.style.width=r.width+'px';ov.style.height=r.height+'px';
-  document.body.appendChild(ov);ov.appendChild(outEl);
+  ov.style.left=mr.left+'px';ov.style.top='0px';ov.style.width=mr.width+'px';ov.style.height=window.innerHeight+'px';
+  if(r.top>0){ov.style.background='linear-gradient(var(--bg),var(--bg)) 0 0/100% '+r.top+'px no-repeat'}
+  document.body.appendChild(ov);
+  outEl.style.position='absolute';outEl.style.left=(r.left-mr.left)+'px';outEl.style.top=r.top+'px';outEl.style.width=r.width+'px';
+  ov.appendChild(outEl);
   window.scrollTo(0,target);
   var dir=ORDER.indexOf(v)>ORDER.indexOf(prev)?1:-1;
   inEl.classList.remove('vi-l','vi-r');void inEl.offsetWidth;inEl.classList.add(dir>0?'vi-r':'vi-l');
   ov.classList.add(dir>0?'vo-l':'vo-r');
-  pendingExit={ov:ov,el:outEl,timer:setTimeout(finalizeExit,360)};
+  pendingExit={ov:ov,el:outEl,timer:setTimeout(finalizeExit,380)};
  }
  if(v==='ov')renderHero();
  if(v==='daily')renderDaily();
@@ -1379,12 +1385,10 @@ function go(v){
 $$('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-view'))})});
 $$('[data-goto]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-goto'))})});
 /* 顶栏玻璃:静止时与背景融合,内容滚动到下方后材质才浮现 */
-var _tb=$('.topbar'),_tbT=false;
-function tbScroll(){
- if(_tbT)return;_tbT=true;
- requestAnimationFrame(function(){_tb.classList.toggle('scrolled',window.scrollY>4);_tbT=false});
-}
+var _tb=$('.topbar');
+function tbScroll(){_tb.classList.toggle('scrolled',window.scrollY>4)}
 window.addEventListener('scroll',tbScroll,{passive:true});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)tbScroll()});
 tbScroll();
 
 /* ================= 跃迁轨道 ================= */
