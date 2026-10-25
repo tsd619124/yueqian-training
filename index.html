@@ -25,11 +25,11 @@
   --red:#d70015; --red-soft:rgba(255,59,48,0.12);
   --amber:#b25000; --amber-soft:rgba(255,159,10,0.14);
   --shadow:0 8px 30px rgba(0,0,0,0.12); --shadow-sm:0 1px 3px rgba(0,0,0,0.05);
-  --glass:rgba(255,255,255,0.16); --glass-hi:rgba(255,255,255,0.8); --glass-dim:rgba(0,0,0,0.03);
+  --glass:rgba(255,255,255,0.22); --glass-hi:rgba(255,255,255,0.85); --glass-dim:rgba(0,0,0,0.04);
   --glass-line:rgba(0,0,0,0.08);
-  --glass-shadow:0 16px 40px rgba(0,0,0,0.10);
-  --tab-line:rgba(255,255,255,0.65);
-  --tab-pill:rgba(255,255,255,0.32); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.08),inset 0 1px 1px rgba(255,255,255,0.9);
+  --glass-shadow:0 16px 40px rgba(0,0,0,0.12);
+  --tab-line:rgba(255,255,255,0.7);
+  --tab-pill:rgba(255,255,255,0.38); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.08),inset 0 1px 1px rgba(255,255,255,0.95);
   --r:20px; --r-sm:12px;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
@@ -43,11 +43,11 @@
   --red:#ff453a; --red-soft:rgba(255,69,58,0.16);
   --amber:#ffd60a; --amber-soft:rgba(255,214,10,0.15);
   --shadow:0 10px 34px rgba(0,0,0,0.55); --shadow-sm:0 1px 3px rgba(0,0,0,0.40);
-  --glass:rgba(15,16,23,0.10); --glass-hi:rgba(255,255,255,0.2); --glass-dim:rgba(0,0,0,0.25);
+  --glass:rgba(15,16,23,0.15); --glass-hi:rgba(255,255,255,0.22); --glass-dim:rgba(0,0,0,0.3);
   --glass-line:rgba(255,255,255,0.12);
-  --glass-shadow:0 16px 44px rgba(0,0,0,0.4);
-  --tab-line:rgba(255,255,255,0.22);
-  --tab-pill:rgba(255,255,255,0.13); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.22),inset 0 1px 1px rgba(255,255,255,0.18);
+  --glass-shadow:0 16px 44px rgba(0,0,0,0.42);
+  --tab-line:rgba(255,255,255,0.25);
+  --tab-pill:rgba(255,255,255,0.15); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.25),inset 0 1px 1px rgba(255,255,255,0.22);
 }
 /* ---------- base ---------- */
 *{box-sizing:border-box}
@@ -286,7 +286,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
   .rw-lbls{display:none}
-  .tabbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);width:min(292px,calc(100vw - 36px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;padding:5px;border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02) 42%,rgba(255,255,255,0) 62%),var(--glass);backdrop-filter:saturate(1.6);-webkit-backdrop-filter:saturate(1.6);border:1px solid var(--tab-line);box-shadow:var(--glass-shadow),inset 0 1px 1px var(--glass-hi),inset 0 -1px 1px var(--glass-dim)}
+  .tabbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);width:min(292px,calc(100vw - 36px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;padding:5px;border-radius:999px;background:radial-gradient(130% 90% at 18% -10%,rgba(255,255,255,0.13),rgba(255,255,255,0.03) 45%,rgba(255,255,255,0) 65%),var(--glass);backdrop-filter:blur(6px) saturate(1.7);-webkit-backdrop-filter:blur(6px) saturate(1.7);border:1px solid var(--tab-line);box-shadow:var(--glass-shadow),inset 0 1.5px 1px -0.5px var(--glass-hi),inset 0 -1px 1px var(--glass-dim)}
   #tabPill{position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px)/4);border-radius:999px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
   .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:7px 2px 6px;font-size:10.5px;font-weight:500;border-radius:999px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
   :root[data-theme="dark"] .tabbar .nav-btn{text-shadow:0 1px 2px rgba(0,0,0,0.4)}
@@ -615,7 +615,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.7.2';
+var APP_VERSION='1.7.3';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -2034,6 +2034,7 @@ renderAll();
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.7.3',d:'10-25',items:['Tab 栏加回 6px 轻磨砂,平衡穿透感与可读性','玻璃光感重做:光源式径向光泽、更亮的顶缘光边与药丸高光']},
  {v:'1.7.2',d:'10-25',items:['Tab 栏彻底去磨砂:不再模糊,只保留玻璃折射、描边与药丸','底色再降至浅 16%/深 10%,近乎全透']},
  {v:'1.7.1',d:'10-25',items:['底色加入品牌色系:浅色改为冷雾蓝 #f5f7fc,与品牌蓝同谱系','深色模式改为深空蓝黑 #0a0b12,层次感更好','启动画面底色同步更新']},
  {v:'1.7.0',d:'10-25',items:['「我的」页重构为二级菜单:称呼/外观/同步/数据/关于收纳为列表,点击展开','更新日志默认只显示最新一期,更早版本折叠','浅色模式背景改纯白,顶部与卡片同色,消除灰色蒙层观感','Tab 栏透明度再降:模糊 10px,近乎只剩边缘与药丸']},
