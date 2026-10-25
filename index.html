@@ -25,9 +25,9 @@
   --red:#d70015; --red-soft:rgba(255,59,48,0.12);
   --amber:#b25000; --amber-soft:rgba(255,159,10,0.14);
   --shadow:0 8px 30px rgba(0,0,0,0.12); --shadow-sm:0 1px 3px rgba(0,0,0,0.05);
-  --glass:rgba(255,255,255,0.55); --glass-line:rgba(0,0,0,0.09); --glass-hi:rgba(255,255,255,0.9);
-  --glass-shadow:0 10px 32px rgba(0,0,0,0.16);
-  --tab-pill:rgba(255,255,255,0.85); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.85);
+  --glass:rgba(255,255,255,0.48); --glass-line:rgba(0,0,0,0.08); --glass-hi:rgba(255,255,255,0.9); --glass-dim:rgba(0,0,0,0.05);
+  --glass-shadow:0 12px 36px rgba(0,0,0,0.16);
+  --tab-pill:rgba(255,255,255,0.75); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.85);
   --r:20px; --r-sm:12px;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"PingFang SC",monospace;
@@ -41,14 +41,14 @@
   --red:#ff453a; --red-soft:rgba(255,69,58,0.16);
   --amber:#ffd60a; --amber-soft:rgba(255,214,10,0.15);
   --shadow:0 10px 34px rgba(0,0,0,0.55); --shadow-sm:0 1px 3px rgba(0,0,0,0.40);
-  --glass:rgba(20,20,22,0.42); --glass-line:rgba(255,255,255,0.10); --glass-hi:rgba(255,255,255,0.16);
-  --glass-shadow:0 8px 30px rgba(0,0,0,0.5);
-  --tab-pill:rgba(255,255,255,0.14); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.14);
+  --glass:rgba(18,18,20,0.30); --glass-line:rgba(255,255,255,0.12); --glass-hi:rgba(255,255,255,0.18); --glass-dim:rgba(0,0,0,0.4);
+  --glass-shadow:0 12px 36px rgba(0,0,0,0.5);
+  --tab-pill:rgba(255,255,255,0.15); --tab-pill-shadow:0 2px 8px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.14);
 }
 /* ---------- base ---------- */
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased;letter-spacing:0.01em}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased;letter-spacing:0.01em}
 ::selection{background:var(--brand-soft)}
 h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:600;letter-spacing:-0.02em}
 p{margin:0}
@@ -85,7 +85,7 @@ input,select{font:inherit;color:inherit}
 .logv:last-child{border-bottom:0;padding-bottom:2px}
 .logv ul{margin:7px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.55}
 .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
-.content{width:100%;max-width:1040px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top,0px)) 32px 110px;display:grid;overflow-x:hidden;overflow-x:clip}
+.content{width:100%;max-width:1040px;margin:0 auto;padding:28px 32px 110px;display:grid;overflow-x:hidden;overflow-x:clip}
 .view{grid-area:1/1;min-width:0}
 .view.vi-l,.view.vi-r{position:relative;z-index:2}
 .view.vi-l{animation:vi-l .32s cubic-bezier(.32,.72,.34,1) both}
@@ -264,14 +264,14 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 /* ---------- mobile ---------- */
 @media (max-width:880px){
   .sidebar{display:none}
-  .content{padding:calc(18px + env(safe-area-inset-top,0px)) 16px 156px}
+  .content{padding:18px 16px 156px}
   .hero h2{font-size:21px}
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
   .rw-lbls{display:none}
-  .tabbar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;gap:2px;padding:6px;border-radius:32px;background:var(--glass);backdrop-filter:blur(30px) saturate(2);-webkit-backdrop-filter:blur(30px) saturate(2);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi)}
-  #tabPill{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/7);border-radius:24px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
-  .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:8px 2px 7px;font-size:10px;font-weight:500;border-radius:24px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
+  .tabbar{display:flex;position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:60;align-items:stretch;gap:2px;padding:6px;border-radius:32px;background:linear-gradient(rgba(255,255,255,0.07),rgba(255,255,255,0) 42%),var(--glass);backdrop-filter:blur(36px) saturate(2.2);-webkit-backdrop-filter:blur(36px) saturate(2.2);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi),inset 0 -1px 0 var(--glass-dim)}
+  #tabPill{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/4);border-radius:24px;background:var(--tab-pill);box-shadow:var(--tab-pill-shadow);transition:transform .32s cubic-bezier(.32,.72,.34,1),opacity .25s ease;pointer-events:none}
+  .tabbar .nav-btn{position:relative;z-index:1;flex:1;flex-direction:column;gap:3px;align-items:center;padding:9px 2px 8px;font-size:10.5px;font-weight:500;border-radius:24px;color:color-mix(in srgb,var(--muted) 55%,var(--ink))}
   .tabbar .nav-btn:hover{background:transparent;color:var(--ink)}
   .tabbar .nav-btn.on{background:transparent;color:var(--brand);font-weight:600}
   .tabbar .nav-btn .ic{width:21px;height:21px}
@@ -387,6 +387,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 今日训练 ===== -->
       <section class="view" id="view-daily" hidden>
         <h2 class="ptitle">今日训练</h2>
+        <div class="seg" style="margin:-4px 0 16px"><button data-sub="daily">今日</button><button data-sub="skills">技能树</button><button data-sub="quiz">自测</button></div>
         <div class="card pad" style="padding:24px">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <span class="eyebrow">今日训练</span>
@@ -412,6 +413,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 技能树 ===== -->
       <section class="view" id="view-skills" hidden>
         <h2 class="ptitle">技能树</h2>
+        <div class="seg" style="margin:-4px 0 16px"><button data-sub="daily">今日</button><button data-sub="skills">技能树</button><button data-sub="quiz">自测</button></div>
         <p class="small muted" style="margin-bottom:14px">点击技能点切换掌握度:<span class="tag amber">听懂</span> → <span class="tag brand">能讲</span> → <span class="tag green">能演示</span>,悬停看说明。售前的及格线是「能讲」,加分线是「能演示」。</p>
         <div id="skillsWrap"></div>
       </section>
@@ -419,6 +421,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 12 周计划 ===== -->
       <section class="view" id="view-plan" hidden>
         <h2 class="ptitle">12 周计划</h2>
+        <div class="seg" style="margin:-4px 0 16px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
         <p class="small muted" style="margin-bottom:4px">从你第一次打卡那天起算周次;勾选任务即计入综合进度。</p>
         <p class="small" style="margin-bottom:12px">每项任务都内置学习材料:点行尾的 <svg class="ic" style="width:14px;height:14px;color:var(--brand);vertical-align:-2px"><use href="#i-book"/></svg> 图标直接学,或 <button class="btn sm" data-goto="learn">打开学习中心</button> 浏览全部材料。</p>
         <div id="planWrap"></div>
@@ -427,6 +430,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 求职实战 ===== -->
       <section class="view" id="view-lab" hidden>
         <h2 class="ptitle">求职实战</h2>
+        <div class="seg" style="margin:-4px 0 16px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
         <div id="labProjects"></div>
         <div class="hr"></div>
         <div class="eyebrow" style="margin-bottom:4px">面试高频问答演练</div>
@@ -449,6 +453,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 学习中心 ===== -->
       <section class="view" id="view-learn" hidden>
         <h2 class="ptitle">学习中心</h2>
+        <div class="seg" style="margin:-4px 0 16px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
         <p class="small muted" style="margin-bottom:14px" id="learnIntro"></p>
         <div id="learnWrap"></div>
       </section>
@@ -456,6 +461,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 模块自测 ===== -->
       <section class="view" id="view-quiz" hidden>
         <h2 class="ptitle">模块自测</h2>
+        <div class="seg" style="margin:-4px 0 16px"><button data-sub="daily">今日</button><button data-sub="skills">技能树</button><button data-sub="quiz">自测</button></div>
         <p class="small muted" style="margin-bottom:14px">每个模块 5 题,80 分达标;记录最佳成绩,达标后隔几天重测保持手感。</p>
         <div id="quizMods" style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px"></div>
         <div class="card pad" id="quizArea" aria-live="polite"><p class="muted">选一个模块,开始作答。</p></div>
@@ -544,12 +550,9 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 
 <nav class="tabbar" aria-label="导航">
   <div id="tabPill" aria-hidden="true"></div>
-  <button class="nav-btn on" data-view="ov"><svg class="ic"><use href="#i-home"/></svg>总览</button>
-  <button class="nav-btn" data-view="daily"><svg class="ic"><use href="#i-cal-check"/></svg>今日</button>
-  <button class="nav-btn" data-view="skills"><svg class="ic"><use href="#i-layers"/></svg>技能</button>
+  <button class="nav-btn on" data-view="ov"><svg class="ic"><use href="#i-home"/></svg>首页</button>
+  <button class="nav-btn" data-view="train"><svg class="ic"><use href="#i-zap"/></svg>训练</button>
   <button class="nav-btn" data-view="plan"><svg class="ic"><use href="#i-range"/></svg>计划</button>
-  <button class="nav-btn" data-view="lab"><svg class="ic"><use href="#i-briefcase"/></svg>实战</button>
-  <button class="nav-btn" data-view="quiz"><svg class="ic"><use href="#i-clipboard"/></svg>自测</button>
   <button class="nav-btn" data-view="me"><svg class="ic"><use href="#i-user-check"/></svg>我的</button>
 </nav>
 
@@ -579,7 +582,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.5.0';
+var APP_VERSION='1.6.0';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1334,12 +1337,15 @@ function applyTheme(){
 mq.addEventListener('change',function(){if(S.theme==='auto')applyTheme()});
 
 /* ================= 视图切换 ================= */
-var ORDER=['ov','daily','skills','plan','learn','lab','quiz','me'],curView='ov',pendingExit=null,scrollMemo={},lastGoV='',lastGoT=0;
+var GROUPS={ov:['ov'],train:['daily','skills','quiz'],plan:['plan','learn','lab'],me:['me']};
+var GORDER=['ov','train','plan','me'];
+var GROUP_CUR={train:'daily',plan:'plan'};
+var ORDER=['ov','daily','skills','quiz','plan','learn','lab','me'],curView='ov',pendingExit=null,scrollMemo={},lastGoV='',lastGoT=0;
+function groupOf(v){for(var g in GROUPS){if(GROUPS[g].indexOf(v)>=0)return g}return 'ov'}
 function movePill(v){
  var pill=$('#tabPill');if(!pill)return;
- var btns=$$('.tabbar .nav-btn[data-view]'),k=-1;
- for(var i=0;i<btns.length;i++){if(btns[i].getAttribute('data-view')===v){k=i;break}}
- if(k>=0){pill.style.opacity='1';pill.style.transform='translateX('+(k*100)+'%)'}
+ var gi=GORDER.indexOf(groupOf(v));
+ if(gi>=0){pill.style.opacity='1';pill.style.transform='translateX('+(gi*100)+'%)'}
  else{pill.style.opacity='0'}
 }
 function finalizeExit(){
@@ -1355,7 +1361,14 @@ function go(v){
  var now=Date.now();
  if(v===lastGoV&&now-lastGoT<80){return}
  lastGoV=v;lastGoT=now;
- $$('.nav-btn[data-view]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-view')===v)});
+ if(GROUPS[v]&&GROUPS[v].length>1){v=GROUP_CUR[v]||GROUPS[v][0]}
+ var g=groupOf(v);
+ if(GROUPS[g]&&GROUPS[g].length>1)GROUP_CUR[g]=v;
+ $$('.nav-btn[data-view]').forEach(function(b){
+  var dv=b.getAttribute('data-view');
+  b.classList.toggle('on',b.closest('.tabbar')?dv===g:dv===v)
+ });
+ $$('[data-sub]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-sub')===v)});
  movePill(v);
  if(v===curView){scrollMemo[v]=0;window.scrollTo(0,0);return}
  finalizeExit();
@@ -1736,6 +1749,8 @@ document.addEventListener('click',function(e){
  if(flip&&!t.closest('input,label')){flip.classList.toggle('on');return}
  var nav=t.closest('.nav-btn[data-view]');
  if(nav){go(nav.getAttribute('data-view'));return}
+ var sub=t.closest('[data-sub]');
+ if(sub){go(sub.getAttribute('data-sub'));return}
  var lb=t.closest('[data-lesson]');
  if(lb){openLesson(lb.getAttribute('data-lesson'));return}
  if(t.closest('#drClose')){closeLesson();return}
@@ -1981,6 +1996,7 @@ renderAll();
 (function(){var av=$('#appVer');if(av)av.textContent=APP_VERSION})();
 /* ---------- 版本更新日志 ---------- */
 var CHANGELOG=[
+ {v:'1.6.0',d:'10-25',items:['Tab 从 7 个精简为 4 个:首页 / 训练 / 计划 / 我的,组内页面用顶部分段切换','训练 = 今日 + 技能树 + 自测;计划 = 周计划 + 学习中心 + 实战','Tab 栏玻璃推至最透:36px 模糊 + 顶部光泽 + 上下缘高光/暗影','修复滚动时内容钻入状态栏区、被系统加一层模糊的问题']},
  {v:'1.5.0',d:'10-25',items:['新增「我的」页:称呼、外观、多设备同步、数据、关于集中一处','移除顶部标题栏,内容直达状态栏区,更沉浸','「关于」新增版本更新日志,每个版本改了什么一目了然']},
  {v:'1.4.2',d:'10-25',items:['滚动时顶栏改为悬浮玻璃胶囊,与系统状态栏无缝衔接','切页动画统一曲线与视差,消除视觉不一致','玻璃材质更透明,抽屉、弹窗、提示同步升级']},
  {v:'1.4.1',d:'10-25',items:['顶栏静止时与背景完全融合,滚动后玻璃才浮现','切页新增滚动位置记忆,来回切换回到原处','点击当前页签回到顶部(iOS 习惯)']},
