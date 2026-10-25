@@ -83,6 +83,9 @@ input,select{font:inherit;color:inherit}
 .streak-chip .ic{color:var(--orange);width:15px;height:15px}
 .icon-btn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s}
 .ptitle{font-size:23px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px}
+.nudge{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px 16px;border-radius:14px;background:var(--brand-soft);font-size:13.5px;font-weight:500;flex-wrap:wrap}
+.nudge .ic{color:var(--brand);flex:none}
+.nudge span{flex:1;min-width:180px;display:flex;align-items:center;gap:8px}
 .me-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .me-mark{width:52px;height:52px;border-radius:14px;font-size:24px;flex:none}
 .me-list{padding:0;overflow:hidden}
@@ -173,8 +176,8 @@ select.field{appearance:none;background-image:linear-gradient(45deg,transparent 
 .stat .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
 .stat .val .unit{font-size:14px;color:var(--muted);font-weight:500;margin-left:2px}
 /* ---------- heat / bars ---------- */
-.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:5px;max-width:520px}
-.heat i{aspect-ratio:1;border-radius:5px;background:var(--surface-2)}
+.heat{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;max-width:520px}
+.heat i{aspect-ratio:1;border-radius:4px;background:var(--surface-2)}
 .heat i.on{background:var(--brand)}
 .heat i.today{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--brand)}
 .bar-row{display:flex;align-items:center;gap:12px}
@@ -234,7 +237,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 #drawerMask{position:fixed;inset:0;background:rgba(0,0,0,0.32);z-index:70;opacity:0;transition:opacity .25s;pointer-events:none}
 :root[data-theme="dark"] #drawerMask{background:rgba(0,0,0,0.5)}
 #drawerMask.on{opacity:1;pointer-events:auto}
-#drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100vw);background:color-mix(in srgb,var(--surface) 84%,transparent);backdrop-filter:blur(30px) saturate(1.9);-webkit-backdrop-filter:blur(30px) saturate(1.9);border-left:1px solid var(--glass-line);box-shadow:var(--shadow);z-index:75;transform:translateX(103%);transition:transform .34s cubic-bezier(.32,.72,.25,1);display:flex;flex-direction:column;border-radius:0}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100vw);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border-left:1px solid var(--glass-line);box-shadow:var(--shadow);z-index:75;transform:translateX(103%);transition:transform .34s cubic-bezier(.32,.72,.25,1);display:flex;flex-direction:column;border-radius:0}
 #drawer.on{transform:none}
 .dr-head{padding:calc(20px + env(safe-area-inset-top,0px)) 24px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
 .dr-head h3{font-size:18px;font-weight:600;flex:1;letter-spacing:-0.02em}
@@ -258,19 +261,21 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 /* learn view */
 .learn-week{font-size:12px;font-weight:500;letter-spacing:0.04em}
 .learn-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface);transition:transform .12s,border-color .15s;margin-bottom:7px;font-size:14px;font-weight:500}
+.learn-item.done .ic{color:var(--green)}
+.learn-item.done span:nth-of-type(1){color:var(--muted)}
 .learn-item:hover{transform:translateY(-1px);border-color:var(--brand)}
 .daily-how summary{cursor:pointer;color:var(--brand);font-weight:500;font-size:13px}
 .daily-how{margin:-4px 0 16px}
 /* ---------- toast / modal ---------- */
 #toasts{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,480px)}
-.toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 60%,transparent);backdrop-filter:blur(26px) saturate(1.9);-webkit-backdrop-filter:blur(26px) saturate(1.9);border:1px solid var(--glass-line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%}
+.toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border:1px solid var(--glass-line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%}
 .toast .ic{color:var(--brand)}
 .toast.orange .ic{color:var(--orange)}
 .toast.green .ic{color:var(--green)}
 @keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 .toast.out{opacity:0;transform:translateY(-8px);transition:.3s}
-.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.36);backdrop-filter:blur(6px);z-index:80;display:grid;place-items:center;padding:20px}
-.modal{background:color-mix(in srgb,var(--surface) 78%,transparent);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);border:1px solid var(--glass-line);border-radius:24px;box-shadow:var(--shadow);max-width:420px;width:100%;padding:28px;animation:vin .3s ease}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.36);z-index:80;display:grid;place-items:center;padding:20px}
+.modal{background:color-mix(in srgb,var(--surface) 85%,transparent);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border:1px solid var(--glass-line);border-radius:24px;box-shadow:var(--shadow);max-width:420px;width:100%;padding:28px;animation:vin .3s ease}
 .modal h3{font-size:19px;font-weight:600;margin:12px 0 6px;letter-spacing:-0.02em}
 /* ---------- mobile ---------- */
 @media (max-width:880px){
@@ -349,7 +354,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
     <button class="nav-btn" data-view="quiz"><svg class="ic"><use href="#i-clipboard"/></svg>模块自测</button>
     <button class="nav-btn" data-view="me"><svg class="ic"><use href="#i-user-check"/></svg>我的</button>
     <div class="sidebar-foot">
-      <div class="side-note">数据存在这台浏览器里;换设备用「我的 → 多设备同步」,或导出 JSON 备份。</div>
+      <div class="side-note">数据存在这台浏览器里;换设备用「我的 → 多设备同步」,或导出 JSON 备份。电脑上按 1-4 快速切页。</div>
     </div>
   </aside>
 
@@ -359,6 +364,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
       <!-- ===== 总览 ===== -->
       <section class="view" id="view-ov">
         <div class="hero">
+          <div id="ovNudge" style="display:flex;flex-direction:column;gap:10px"></div>
           <div class="hero-top">
             <h2 id="greetLine">你好</h2>
             <span class="tag" id="dateTag"></span>
@@ -418,9 +424,9 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
           <p class="small muted" id="todayFeedback" style="margin-top:12px;min-height:20px"></p>
         </div>
         <div class="card pad" style="margin-top:14px">
-          <div class="eyebrow" style="margin-bottom:12px">最近 4 周打卡</div>
-          <div class="heat" id="heatGrid" role="img" aria-label="最近 28 天打卡记录"></div>
-          <p class="small muted" style="margin-top:12px">每天自动轮换一道 30 分钟微训练;进度保存在这台浏览器,「我的」里可导出备份。</p>
+          <div class="eyebrow" style="margin-bottom:12px">12 周打卡日历</div>
+          <div class="heat" id="heatGrid" role="img" aria-label="最近 12 周打卡日历"></div>
+          <p class="small muted" style="margin-top:12px">日历覆盖最近 12 周(带描边的是今天);每天自动轮换一道 30 分钟微训练,进度保存在这台浏览器,「我的」里可导出备份。</p>
         </div>
       </section>
 
@@ -608,7 +614,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.7.5';
+var APP_VERSION='1.8.0';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
@@ -1121,12 +1127,13 @@ function md(s){
 var DRL=null;
 function secT(t){return '<div class="sec-t">'+t+'</div>'}
 function learnItem(id,L){
- return '<button type="button" class="learn-item" data-lesson="'+esc(id)+'">'+icon('i-book')+'<span style="flex:1;text-align:left">'+esc(L.t)+'</span><span class="small muted">'+esc(L.time||'')+'</span></button>';
+ return '<button type="button" class="learn-item'+(S.read[id]?' done':'')+'" data-lesson="'+esc(id)+'">'+icon(S.read[id]?'i-check':'i-book')+'<span style="flex:1;text-align:left">'+esc(L.t)+'</span><span class="small muted">'+esc(L.time||'')+'</span></button>';
 }
 function renderLearn(){
  var matN=0;for(var k in LESSONS)matN+=(LESSONS[k].mat||[]).length;
+ var ids=Object.keys(LESSONS),readN=0;ids.forEach(function(k){if(S.read[k])readN++});
  var intro=$('#learnIntro');
- if(intro)intro.textContent='内置学习教材: '+Object.keys(LESSONS).length+' 个主题 · '+matN+' 份材料(长文 / 模板 / 话术 / 题库),每份都按「为什么 → 材料 → 怎么做 → 完成标志」组织,点开即学,离线可用。';
+ if(intro)intro.textContent='内置学习教材: '+ids.length+' 个主题 · '+matN+' 份材料(长文 / 模板 / 话术 / 题库),每份都按「为什么 → 材料 → 怎么做 → 完成标志」组织,点开即学,离线可用。已读 '+readN+' / '+ids.length+' 个主题。';
  var html='';
  PHASES.forEach(function(p){
   html+='<div class="phase-head"><h3>'+esc(p.name)+'</h3></div>';
@@ -1144,6 +1151,7 @@ function renderLearn(){
 function openLesson(id){
  var L=LESSONS[id];if(!L)return;
  DRL=id;
+ if(!S.read[id]){S.read[id]=true;save();if(!$('#view-learn').hidden)renderLearn()}
  var src=SRC[id]||{};
  $('#drSrc').textContent=src.src?src.src+' · '+src.wk+' · '+(L.time||''):(L.time||''); $('#drTitle').textContent=L.t;
  var b='';
@@ -1181,7 +1189,7 @@ function markLessonDone(){
 }
 
 /* ================= 状态 ================= */
-function defaults(){return {name:'',theme:'auto',skills:{},checks:{},days:[],quiz:{},co:[],start:null,reroll:{},mil:{},rev:0,pushedRev:0,pushedAt:'',lc:null}}
+function defaults(){return {name:'',theme:'auto',skills:{},checks:{},days:[],quiz:{},co:[],start:null,reroll:{},mil:{},read:{},wrong:{},rev:0,pushedRev:0,pushedAt:'',lc:null}}
 var S=defaults();
 var REDUCE=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function normalize(raw){
@@ -1197,6 +1205,8 @@ function normalize(raw){
    return {n:x.n.slice(0,40),s:(s>=0&&s<STAGES.length)?s:0,t:(t>=0&&t<TRACKS.length)?t:0}});
  if(raw.reroll&&typeof raw.reroll==='object'){var o4={};for(var k4 in raw.reroll){if(typeof raw.reroll[k4]==='number')o4[k4]=raw.reroll[k4]}S.reroll=o4}
  if(raw.mil&&typeof raw.mil==='object'){var o5={};for(var k5 in raw.mil){if(raw.mil[k5])o5[k5]=true}S.mil=o5}
+ if(raw.read&&typeof raw.read==='object'){var o6={};for(var k6 in raw.read){if(raw.read[k6])o6[k6]=true}S.read=o6}
+ if(raw.wrong&&typeof raw.wrong==='object'){var o7={};for(var k7 in raw.wrong){var w=raw.wrong[k7];if(w&&typeof w==='object'&&typeof w.next==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(w.next))o7[k7]={n:Math.min(99,Math.max(1,Math.floor(w.n)||1)),s:Math.min(9,Math.max(0,Math.floor(w.s)||0)),next:w.next}}S.wrong=o7}
  if(typeof raw.start==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(raw.start))S.start=raw.start;
  if(raw.lc&&typeof raw.lc==='object'){var lc={};['id','key','host','code','backend','token','gist'].forEach(function(f){if(typeof raw.lc[f]==='string')lc[f]=raw.lc[f].slice(0,200)});S.lc=lc}
  if(typeof raw.rev==='number'&&raw.rev>=0)S.rev=Math.floor(raw.rev);
@@ -1406,6 +1416,13 @@ function go(v){
 }
 $$('.nav-btn[data-view]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-view'))})});
 $$('[data-goto]').forEach(function(b){b.addEventListener('click',function(){go(b.getAttribute('data-goto'))})});
+document.addEventListener('keydown',function(e){
+ if(e.metaKey||e.ctrlKey||e.altKey)return;
+ var tg=e.target||{},tag=tg.tagName||'';
+ if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||tg.isContentEditable)return;
+ var i=['1','2','3','4'].indexOf(e.key);
+ if(i>=0)go(GORDER[i]);
+});
 
 /* ================= 跃迁轨道 ================= */
 var RW={
@@ -1467,6 +1484,10 @@ function renderHero(){
  $('#greetLine').innerHTML=hello+(S.name?',<em>'+esc(S.name)+'</em>':',<em>准售前</em>');
  var mn=$('#meName');if(mn)mn.textContent=S.name||'准售前';
  var mvn=$('#meNameVal');if(mvn)mvn.textContent=S.name||'准售前';
+ var nud='';
+ if(!hasDay(todayStr()))nud+='<div class="nudge"><span>'+icon('i-flame')+'今天还没训练,花 30 分钟点亮今天。</span><button class="btn sm primary" data-goto="daily">去打卡</button></div>';
+ if(wrongDue())nud+='<div class="nudge"><span>'+icon('i-refresh')+'错题本有 <b class="num">'+wrongDue()+'</b> 道今天到期,趁热重练。</span><button class="btn sm primary" id="ovReview">去复习</button></div>';
+ var nb=$('#ovNudge');if(nb)nb.innerHTML=nud;
  $('#dateTag').textContent=todayStr()+' · 距离 Offer 还有 '+Math.max(0,84-(S.start?(dayNum(todayStr())-dayNum(S.start)):0))+' 天';
  typeInto($('#coachLine'),coachLine());
  var tc=taskCounts();
@@ -1529,14 +1550,14 @@ function renderDaily(){
  else{btn.classList.add('primary');btn.innerHTML=icon('i-check')+'完成今日打卡'}
  $('#dailyNote').textContent='已连续 '+streakCount()+' 天 · 累计 '+S.days.length+' 天';
  var grid='',recent=0;
- for(var i=27;i>=0;i--){
+ for(var i=83;i>=0;i--){
   var d=new Date();d.setDate(d.getDate()-i);
   var dt=dateStr(d),on=hasDay(dt);
   if(on)recent++;
   grid+='<i class="'+(on?'on':'')+(i===0?' today':'')+'" title="'+dt+(on?' · 已打卡':' · 未打卡')+'"></i>';
  }
  $('#heatGrid').innerHTML=grid;
- $('#heatGrid').setAttribute('aria-label','最近 28 天打卡记录,共 '+recent+' 天');
+ $('#heatGrid').setAttribute('aria-label','最近 12 周打卡日历,共 '+recent+' 天');
 }
 function toggleToday(){
  var t=todayStr();
@@ -1680,18 +1701,46 @@ function addCo(){
 }
 
 /* ================= 模块自测 ================= */
-var QM={mod:null,idx:0,picked:null,correct:0};
+var QM={mod:null,idx:0,picked:null,correct:0,list:null,qids:null,review:false};
+function qzList(){return QM.list||QUIZ[QM.mod]}
+function wrongDue(){var t=todayStr(),n=0;for(var k in S.wrong){if(S.wrong[k].next<=t)n++}return n}
+function wrongTotal(){return Object.keys(S.wrong).length}
+function recordWrong(qid){
+ var w=S.wrong[qid]||{n:0,s:0};
+ S.wrong[qid]={n:w.n+1,s:0,next:dateStr(new Date(Date.now()+864e5))};
+ save();
+}
+function recordRight(qid){
+ var w=S.wrong[qid];if(!w)return;
+ var s=w.s+1;
+ if(s>=3){delete S.wrong[qid];toast('这道错题连对 3 次,已掌握,移出错题本。','i-check','green')}
+ else S.wrong[qid]={n:w.n,s:s,next:dateStr(new Date(Date.now()+(s>=2?7:3)*864e5))};
+ save();
+}
+function startReview(){
+ var list=[],qids=[];
+ for(var k in S.wrong){
+  var p=k.split('.'),q=QUIZ[p[0]]&&QUIZ[p[0]][Number(p[1])];
+  if(q){list.push(q);qids.push(k)}
+ }
+ if(!list.length){toast('错题本是空的,先去测一轮模块。','i-msg');return}
+ QM={mod:null,idx:0,picked:null,correct:0,list:list,qids:qids,review:true};
+ renderQ(false);
+}
 function renderQuizMods(){
- $('#quizMods').innerHTML=MODS.map(function(m){
+ var due=wrongDue(),tot=wrongTotal();
+ var html=MODS.map(function(m){
   var b=S.quiz[m.id];
   return '<button class="btn sm" data-qmod="'+m.id+'">'+esc(m.id+' · '+m.name)+(b!=null?' · '+b+' 分':'')+'</button>';
  }).join('');
+ if(tot)html+='<button class="btn sm" id="qReview" style="background:var(--orange-soft);color:var(--orange)">'+icon('i-refresh')+'错题本 '+tot+' 道'+(due?' · '+due+' 到期':'')+'</button>';
+ $('#quizMods').innerHTML=html;
 }
-function startQuiz(mid){QM={mod:mid,idx:0,picked:null,correct:0};renderQ(false)}
+function startQuiz(mid){QM={mod:mid,idx:0,picked:null,correct:0,list:null,qids:null,review:false};renderQ(false)}
 function renderQ(graded){
- var list=QUIZ[QM.mod],q=list[QM.idx],last=QM.idx===list.length-1;
+ var list=qzList(),q=list[QM.idx],last=QM.idx===list.length-1;
  var dots='';list.forEach(function(_,i){dots+='<i class="'+(i<QM.idx?'on':'')+'"></i>'});
- var html='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="tag brand">'+esc(QM.mod)+' 模块</span><span class="small muted">第 '+(QM.idx+1)+' / '+list.length+' 题</span></div><div class="qdots" style="margin-top:10px">'+dots+'</div>';
+ var html='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="tag brand">'+(QM.review?'错题重练':esc(QM.mod)+' 模块')+'</span><span class="small muted">第 '+(QM.idx+1)+' / '+list.length+' 题</span></div><div class="qdots" style="margin-top:10px">'+dots+'</div>';
  html+='<p style="font-size:16.5px;font-weight:700;margin:4px 0 6px">'+esc(q.q)+'</p><div>';
  q.o.forEach(function(o,i){
   var cls='opt'+(graded?(i===q.ans?' ok':(i===QM.picked?' no':'')):'');
@@ -1708,14 +1757,25 @@ function renderQ(graded){
  }
  $('#quizArea').innerHTML=html;
 }
+function modNameOf(id){for(var i=0;i<MODS.length;i++){if(MODS[i].id===id)return MODS[i].name}return id}
 function finishQuiz(){
+ if(QM.review){
+  var list=qzList(),pct=list.length?Math.round(QM.correct/list.length*100):100,left=wrongDue();
+  $('#quizArea').innerHTML='<div style="text-align:center;padding:18px 0">'+
+   '<div class="eyebrow" style="margin-bottom:6px">错题重练 · 完成</div>'+
+   '<div class="num" style="font-size:40px;font-weight:700;letter-spacing:-0.03em;color:'+(pct>=80?'var(--green)':'var(--ink)')+'">'+pct+'<span class="small muted" style="font-size:15px;font-weight:500"> %</span></div>'+
+   '<p class="small muted" style="max-width:380px;margin:6px auto 0">'+(left?('还有 '+left+' 道未到期,到期后首页会提醒你。'):'这批错题都处理完了;连对 3 次的题已自动移出错题本。')+'</p>'+
+   '<div style="display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap"><button class="btn" id="qAgain">再练一轮</button><button class="btn primary" data-goto="skills">回技能树</button></div></div>';
+  renderQuizMods();renderHero();
+  return;
+ }
  var score=QM.correct*20,prev=S.quiz[QM.mod]!=null?S.quiz[QM.mod]:null;
  var best=Math.max(prev==null?0:prev,score);
  var first=prev==null;
  S.quiz[QM.mod]=best;save();
  var msg=score>=80?(first?'首测就过线,这个模块可以放进「能讲」清单了。':'维持住了最佳成绩,手感在。'):'差一点点。把答错的题对应的技能点讲给空气听一遍,再回来重测。';
  $('#quizArea').innerHTML='<div style="text-align:center;padding:18px 0">'+
-  '<div class="eyebrow" style="margin-bottom:6px">'+esc(MODNAME[QM.mod])+' · 成绩</div>'+
+  '<div class="eyebrow" style="margin-bottom:6px">'+esc(modNameOf(QM.mod))+' · 成绩</div>'+
   '<div class="num" style="font-size:40px;font-weight:700;letter-spacing:-0.03em;color:'+(score>=80?'var(--green)':'var(--ink)')+'">'+score+'<span class="small muted" style="font-size:15px;font-weight:500"> / 100</span></div>'+
   '<p class="small muted" style="max-width:380px;margin:6px auto 0">'+esc(msg)+(prev!=null&&score<prev?('(历史最佳 '+prev+' 分,这次没破)'):'')+'</p>'+
   '<div style="display:flex;gap:9px;justify-content:center;margin-top:18px;flex-wrap:wrap"><button class="btn" id="qAgain">再测一次</button><button class="btn primary" data-goto="skills">回技能树</button></div></div>';
@@ -1769,15 +1829,18 @@ document.addEventListener('click',function(e){
   var sel=$('input[name="qopt"]:checked');
   if(!sel)return;
   QM.picked=Number(sel.value);
-  if(QM.picked===QUIZ[QM.mod][QM.idx].ans)QM.correct++;
+  var qz=qzList(),q=qz[QM.idx],qid=QM.qids?QM.qids[QM.idx]:(QM.mod+'.'+QM.idx);
+  if(QM.picked===q.ans){QM.correct++;recordRight(qid)}else{recordWrong(qid)}
   renderQ(true);return;
  }
  if(t.closest('#qNext')){
   QM.idx++;
-  if(QM.idx>=QUIZ[QM.mod].length)finishQuiz();else{QM.picked=null;renderQ(false)}
+  if(QM.idx>=qzList().length)finishQuiz();else{QM.picked=null;renderQ(false)}
   return;
  }
- if(t.closest('#qAgain')){startQuiz(QM.mod);return}
+ if(t.closest('#qAgain')){if(QM.review)startReview();else startQuiz(QM.mod);return}
+ if(t.closest('#qReview')){startReview();return}
+ if(t.closest('#ovReview')){GROUP_CUR.train='quiz';go('train');startReview();return}
  if(t.closest('#dailyBtn')){toggleToday();return}
  if(t.closest('#rerollBtn')){
   var cur=dailyIdx(),nv=cur;
@@ -2003,6 +2066,7 @@ renderAll();
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.8.0',d:'10-25',items:['新增错题本与间隔复习:答错自动收录,连对 3 次视为掌握,到期首页提醒','学习材料已读标记:点开即记,学习中心显示已读进度','首页新增打卡提醒与错题到期横幅','打卡热力图扩展为 12 周日历','抽屉/弹窗/提示玻璃统一为 4px 轻磨砂','电脑端按 1-4 数字键快速切页']},
  {v:'1.7.5',d:'10-25',items:['重修切页过渡:移除冻结快照机制,旧页立即退场、新页实体滑入,彻底消除上页残留','移除顶部状态栏护罩实色带,内容像原生 App 一样自然延伸到状态栏下方']},
  {v:'1.7.4',d:'10-25',items:['切页改为不透明滑入过渡,消除文字图像残影与顶部渐隐遮罩','Tab 栏磨砂降至 4px','分段引导切换器去灰底:透明轨道+描边+品牌色选中']},
  {v:'1.7.3',d:'10-25',items:['Tab 栏加回 6px 轻磨砂,平衡穿透感与可读性','玻璃光感重做:光源式径向光泽、更亮的顶缘光边与药丸高光']},
