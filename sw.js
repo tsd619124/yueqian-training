@@ -1,7 +1,8 @@
 /* 跃迁计划 Service Worker:网络优先、离线回退缓存。
    在线时总能拿到最新版;离线(地铁等)回退到最近一次缓存。 */
-var CACHE = 'yueqian-v9';
-var ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png'];
+var CACHE_PREFIX = 'yueqian-';
+var CACHE = CACHE_PREFIX + 'v11';
+var ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './sync-config.js'];
 self.addEventListener('install', function (e) {
   e.waitUntil(
     caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); })
@@ -10,7 +11,7 @@ self.addEventListener('install', function (e) {
 self.addEventListener('activate', function (e) {
   e.waitUntil(
     caches.keys()
-      .then(function (keys) { return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); })); })
+      .then(function (keys) { return Promise.all(keys.filter(function (k) { return k.indexOf(CACHE_PREFIX) === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); })); })
       .then(function () { return self.clients.claim(); })
   );
 });
