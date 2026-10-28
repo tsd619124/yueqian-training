@@ -1,0 +1,18 @@
+{
+  "name": "yueqian-content-search",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-28",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": false },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/health"]
+  },
+  "vars": {
+    "ALLOWED_ORIGIN": "https://tsd619124.github.io",
+    "DISCOVERY_URL": "https://tsd619124.github.io/yueqian-training/content-discovery.json",
+    "EXTERNAL_SEARCH_ENABLED": "true"
+  }
+}
