@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>原文与配图 · 跃迁计划</title>
+  <link rel="icon" href="./icon-180.png">
+  <link rel="stylesheet" href="./external-materials.css">
+  <script src="./external-catalog.js" defer></script>
+  <script src="./external-snapshot.js" defer></script>
+  <script src="./content-release-seed.js" defer></script>
+  <script src="./material-services.js" defer></script>
+  <script src="./content-release.js" defer></script>
+  <script src="./material-search.js" defer></script>
+  <script src="./external-materials.js" defer></script>
+</head>
+<body data-materials-root data-material-default="ms-rag">
+  <a class="source-skip" href="#source-title">跳到原文</a>
+  <header class="source-bar"><div class="source-bar-inner">
+    <a class="source-brand" href="./index.html">跃迁计划</a>
+    <div class="source-actions"><button id="materials-type" type="button" aria-label="切换大字阅读" aria-pressed="false">Aa</button><button id="materials-update" type="button">检查更新</button></div>
+  </div></header>
+  <div class="source-layout">
+    <aside class="source-sidebar" aria-label="原文目录">
+      <h2>原文与配图</h2>
+      <form id="materials-search-form" class="source-search-form" role="search">
+        <input id="materials-search" class="source-search" type="search" maxlength="256" placeholder="搜索原文与官方资料" aria-label="搜索原文与官方资料" aria-controls="materials-search-results">
+        <button type="submit">搜索</button>
+      </form>
+      <nav id="materials-list" aria-label="选择原文"></nav>
+      <div class="source-update-settings">
+        <label><input type="checkbox" id="materials-automatic" checked>每天自动检查更新</label>
+        <p id="materials-status" role="status" aria-live="polite">正在读取已保存的资料…</p>
+      </div>
+      <details class="source-services">
+        <summary>服务连接</summary>
+        <form id="materials-services-form">
+          <label for="materials-content-url">资料库地址</label>
+          <input id="materials-content-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" required aria-describedby="materials-services-help">
+          <label for="materials-search-url">检索地址</label>
+          <input id="materials-search-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" placeholder="未连接，使用本机搜索" aria-describedby="materials-services-help">
+          <p id="materials-services-help">填写公开 HTTPS 地址；本机预览可使用 localhost HTTP。留空检索地址时只搜索已保存的原文。</p>
+          <button id="materials-services-save" type="submit">保存连接</button>
+          <p id="materials-services-status" role="status" aria-live="polite"></p>
+        </form>
+      </details>
+      <nav id="source-toc" class="source-toc" aria-label="本篇目录"></nav>
+    </aside>
+    <main class="source-article">
+      <section id="materials-search-panel" class="source-search-panel" aria-label="资料搜索结果" hidden>
+        <div class="source-search-heading"><h2>搜索结果</h2><button id="materials-search-close" type="button">收起</button></div>
+        <p id="materials-search-status" role="status" aria-live="polite"></p>
+        <div id="materials-search-results"></div>
+      </section>
+      <h1 id="source-title" tabindex="-1">原文与配图</h1>
+      <div class="source-meta"><span>Microsoft · 中文译文</span><a id="source-original" target="_blank" rel="noopener noreferrer">查看来源</a><a id="source-english" target="_blank" rel="noopener noreferrer">英文原文</a></div>
+      <div id="source-lead" class="source-body"></div>
+      <article id="source-body" class="source-body"></article>
+      <footer class="source-footer">
+        <p id="source-revision"></p>
+        <details><summary>版权与阅读说明</summary><p>正文与图片来自 Microsoft 的 Generative AI for Beginners 开源课程，保留来源仓库的中文译文与翻译声明。页面只调整排版，收起代码及课程封面；原文以源站为准。自动检查在本页打开或回到前台时进行，公开资料下载不包含你的学习记录。联网搜索只发送检索词；外部结果未经课程审核，不会自动加入课程或改变学习进度。</p><pre id="source-license"></pre></details>
+      </footer>
+    </main>
+  </div>
+  <dialog id="source-image-dialog" class="source-image-dialog" aria-label="放大原图">
+    <form method="dialog"><label>缩放<input id="source-image-scale" type="range" min="1" max="4" step="0.25" value="1"></label><button type="submit">关闭</button></form>
+    <div class="source-image-viewport"><img id="source-image-large" alt=""></div>
+  </dialog>
+  <noscript>请启用 JavaScript，或在 GitHub 上阅读 Microsoft Generative AI for Beginners 课程。</noscript>
+</body>
+</html>

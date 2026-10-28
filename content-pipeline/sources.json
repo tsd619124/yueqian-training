@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "collection": {
+    "maxDocumentsPerRun": 6,
+    "maxDocumentBytes": 700000,
+    "maxStoredBytes": 16777216,
+    "maxDiscoveryAgeHours": 72
+  },
+  "budget": {
+    "maxRequests": 12,
+    "maxDownloadBytes": 25165824,
+    "maxResponseBytes": 8388608,
+    "maxCandidatesPerSource": 80,
+    "timeoutMs": 15000,
+    "maxRunMs": 150000,
+    "maxReleaseBytes": 20971520
+  },
+  "sources": [
+    {
+      "id": "microsoft-genai",
+      "publisher": "Microsoft",
+      "repository": "microsoft/generative-ai-for-beginners",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "candidatePattern": "^[0-9]{2}-[^/]+/README\\.md$",
+      "allowSnapshotPublication": true
+    },
+    {
+      "id": "microsoft-agents",
+      "publisher": "Microsoft",
+      "repository": "microsoft/ai-agents-for-beginners",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "candidatePattern": "^[0-9]{2}-[^/]+/README\\.md$",
+      "allowSnapshotPublication": false
+    },
+    {
+      "id": "openai-cookbook",
+      "publisher": "OpenAI",
+      "repository": "openai/openai-cookbook",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "candidatePattern": "^examples/[^\\n]+\\.md$",
+      "allowSnapshotPublication": false
+    }
+  ]
+}

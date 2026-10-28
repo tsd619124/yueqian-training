@@ -586,6 +586,7 @@ button:disabled{opacity:.55;cursor:default}
         <h2 class="ptitle">学习中心</h2>
         <div class="seg" style="margin:-4px 0 16px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
         <input type="search" class="field" id="learnSearch" placeholder="搜索全文，如「数据出域」「RAG」" aria-label="搜索学习主题与材料全文">
+        <a class="btn" href="./materials.html" style="margin:12px 0 16px">原文与配图 · Microsoft</a>
         <div class="learn-filters">
           <label>范围<select class="field" id="learnWeek" aria-label="按周次筛选"></select></label>
           <label>状态<select class="field" id="learnState" aria-label="按学习状态筛选"><option value="all">全部状态</option><option value="new">未打开</option><option value="opened">已打开</option><option value="read">已读完</option><option value="done">任务完成</option></select></label>
@@ -748,11 +749,12 @@ button:disabled{opacity:.55;cursor:default}
   </div>
 </div>
 
+<script src="./external-catalog.js"></script>
 <script>
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.12.0';
+var APP_VERSION='1.14.0';
 var APP_CACHE_PREFIX='yueqian-';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
@@ -1635,6 +1637,9 @@ function openLesson(id,restoring,trigger){
  readerRestoring=true;cancelAnimationFrame(readerFrame);
  if(lesson.why)html+=secT('为什么做')+'<div class="md"><p>'+esc(lesson.why)+'</p></div>';
  if(lesson.review){html+='<details class="mat"><summary>校订与来源 · '+esc(lesson.review.date)+'</summary><div class="md"><p>'+esc(lesson.review.scope)+'</p>';lesson.review.sources.forEach(function(source){html+='<p><a href="'+esc(source.url)+'" target="_blank" rel="noopener noreferrer">'+esc(source.title)+'</a></p>'});html+='</div></details>'}
+ var external=globalThis.YUEQIAN_EXTERNAL_CATALOG;
+ var originals=external?external.articles.filter(function(article){return article.lessonIDs.indexOf(id)>=0}):[];
+ if(originals.length){html+=secT('原文与配图');originals.forEach(function(article){html+='<p style="margin:0 0 8px"><a class="btn ghost" href="./materials.html?article='+esc(article.id)+'">'+esc(article.title)+' ↗</a></p>'})}
  if(lesson.mat){
   html+=secT('学习材料');
   lesson.mat.forEach(function(material,index){
@@ -2973,6 +2978,8 @@ renderAll();
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.14.0',d:'10-28',items:['Web 与原生共用已审核资料发布清单，按哈希复用原文原图，只下载变化文件，完整校验后切换版本','原文资料库支持中英文主题搜索，可连接官方来源检索服务；外部候选标记未审核并保留原文片段与来源详情','新增独立服务连接设置，断网继续阅读已保存图文；保留原有课程、任务 ID 和学习进度']},
+ {v:'1.13.0',d:'10-28',items:['接入 Microsoft 开源课程的 10 篇中文原文与 49 张原图，保留原始正文、来源、英文原文、版本和 MIT 授权','学习中心及相关课程提供原文入口，支持全文搜索、图片离线放大和深色阅读','支持手动更新与前台每日检查；原文原图完整下载并校验后替换缓存，失败时保留已有资料；原学习记录独立保留']},
  {v:'1.12.0',d:'10-27',items:['补齐技术选型决策表、结构化输出和双图多模态练习','新增贯通调研、范围、测试、成本、上线回滚和交接的虚构 POC 交付包','扩充制造、金融运营、零售、医药材料四行业全过程案例，附数据、SQL、预期结果与失败诊断','补充 RAG 冲突评测、复杂问数口径与权限验收；原有主题与进度 ID 保留']},
  {v:'1.11.0',d:'10-27',items:['过程进度改按最近完整测验与全题库计算，未测模块计零，历史最佳仅供回看','证据保存和关联不自动达标，需逐项目标对照完成标志自核；编辑内容后重新核对','校订大模型、RAG、微调、NL2SQL、部署安全与指标口径的关键边界']},
  {v:'1.10.1',d:'10-26',items:['降低透明度时底栏、侧栏与悬浮层使用实色背景并关闭模糊，避免后续样式覆盖系统偏好','减少动态效果时停用 CSS 动画及轨道圆点呼吸，系统设置变化后即时生效','教材打开后聚焦返回按钮并限制键盘焦点；关闭后从访问性树移除，入口重绘后仍能返回对应学习按钮','主按钮使用独立深蓝底色，深浅色及悬停状态均保持白字对比度；任务勾选行保留至少 44×44px 命中区域']},
