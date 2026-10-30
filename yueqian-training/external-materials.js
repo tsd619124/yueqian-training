@@ -11,6 +11,14 @@
     if (!condition) throw new Error(message);
   }
 
+  function readableError(error, fallback = '请稍后重试。') {
+    const message = String(error?.message || '');
+    if (/[\u3400-\u9fff]/.test(message)) return message;
+    if (error?.name === 'AbortError' || error?.name === 'TimeoutError') return '请求超时，请稍后重试。';
+    if (root.navigator?.onLine === false) return '当前离线，联网后再试。';
+    return message ? '网络不可用或来源暂时无法访问，请稍后重试。' : fallback;
+  }
+
   function validRevision(value) {
     return typeof value === 'string' && /^[a-f0-9]{40}$/.test(value);
   }
@@ -374,7 +382,7 @@
             title.append(button);
           } else {
             const link = document.createElement('a');
-            link.href = item.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = item.title;
+            link.href = item.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.textContent = item.title || decodeURIComponent(new URL(item.url).pathname.split('/').slice(5).join('/'));
             title.append(link);
           }
           const excerpt = document.createElement('p');
@@ -399,21 +407,22 @@
       try {
         const term = searchClient.normalize(query.value);
         renderSearchGroups({ library: searchClient.local(snapshot, term), external: [] });
-        searchStatus.textContent = services.searchURL ? '正在检索官方来源，已显示本机原文…' : '正在搜索已保存的原文…';
-        const result = await searchClient.search({ query: term, snapshot, releaseID: release?.latest.releaseID || snapshot.revision, searchURL: services.searchURL });
+        searchStatus.textContent = services.searchURL ? '正在检索配置的官方来源，已显示本机原文…' : '正在搜索已保存的原文与官方来源索引…';
+        const result = await searchClient.search({ query: term, snapshot, releaseID: release?.latest.releaseID || snapshot.revision, searchURL: services.searchURL, contentBaseURL: location.protocol === 'file:' ? null : services.contentBaseURL });
         if (serial !== searchSerial) return;
         renderSearchGroups(result);
         searchStatus.textContent = result.message;
       } catch (error) {
         if (serial !== searchSerial) return;
         searchResults.replaceChildren();
-        searchStatus.textContent = error.message || '搜索未完成，请稍后重试。';
+        searchStatus.textContent = readableError(error, '搜索未完成，请稍后重试。');
       }
     }
 
     function validatedServices(value) {
       const content = String(value.contentBaseURL || '').trim();
-      const searchURL = String(value.searchURL || '').trim();
+      const entered = String(value.searchURL || '').trim();
+      const searchURL = searchClient?.isLegacySearchURL(entered) ? '' : entered;
       const contentBaseURL = location.protocol === 'file:' && content === './content-library/' ? content : releaseClient.baseURL(content).href;
       return { contentBaseURL, searchURL: searchURL ? releaseClient.endpoint(searchURL).href : null };
     }
@@ -424,8 +433,19 @@
       document.getElementById('materials-search-url').value = services.searchURL || '';
     }
 
+    async function refreshSearchIndex(contentURL) {
+      if (!searchClient?.refreshIndex || location.protocol === 'file:') return null;
+      const result = await searchClient.refreshIndex({ contentBaseURL: contentURL });
+      return result.status === 'updated' ? '官方来源索引已更新。' : result.status === 'failed' ? (result.state ? '官方来源索引暂未更新，继续使用上一版。' : '官方来源索引暂未获取，稍后自动重试。') : null;
+    }
+
     async function update(manual) {
-      if (updating || savingServices || (!manual && (!settings.automatic || Date.now() - Date.parse(settings.checkedAt || 0) < 86400000 || Date.now() - Date.parse(settings.attemptedAt || 0) < 3600000))) return;
+      if (updating || savingServices) return;
+      if (root.navigator?.onLine === false) {
+        if (manual) status.textContent = '当前离线，继续使用已保存的资料。联网后再检查更新。';
+        return;
+      }
+      if (!manual && (!settings.automatic || Date.now() - Date.parse(settings.checkedAt || 0) < 86400000 || Date.now() - Date.parse(settings.attemptedAt || 0) < 3600000)) return;
       const requestedContentURL = services.contentBaseURL;
       const servicesSaveButton = document.getElementById('materials-services-save');
       updating = true; updateButton.disabled = true;
@@ -453,9 +473,13 @@
         renderArticle(); renderList();
         settings = nextSettings;
         status.textContent = (changed ? '原文与原图已完整保存。' : '当前已是最新资料版本。') + statusText();
-        if (searchPanel && !searchPanel.hidden && query.value.trim()) await search();
       } catch (error) {
-        status.textContent = '更新未完成，继续使用已保存的资料。' + (error.message || '请稍后重试。');
+        status.textContent = '更新未完成，继续使用已保存的资料。' + readableError(error);
+      }
+      try {
+        const indexMessage = await refreshSearchIndex(requestedContentURL);
+        if (indexMessage) status.textContent += indexMessage;
+        if (searchPanel && !searchPanel.hidden && query.value.trim()) await search();
       } finally {
         updating = false; updateButton.disabled = savingServices;
         if (servicesSaveButton) servicesSaveButton.disabled = savingServices;
@@ -468,21 +492,22 @@
         release = await releaseClient.fromSeed(root.YUEQIAN_CONTENT_RELEASE, snapshot, catalog);
         snapshot = release.snapshot; showingRelease = true;
       }
-    } catch (error) { status.textContent = '正在使用内置的来源快照。' + error.message; }
+    } catch (error) { status.textContent = '正在使用内置的来源快照。' + readableError(error); }
     try {
       const [cached, savedSettings, savedRelease, savedServices] = await Promise.all([cachedValue('snapshot'), cachedValue('settings'), cachedValue('release'), cachedValue('services')]);
       if (savedSettings && typeof savedSettings.automatic === 'boolean') settings = { automatic: savedSettings.automatic, checkedAt: Number.isFinite(Date.parse(savedSettings.checkedAt)) ? savedSettings.checkedAt : null, attemptedAt: Number.isFinite(Date.parse(savedSettings.attemptedAt)) ? savedSettings.attemptedAt : null };
       if (usesReleases && savedRelease) {
         try { release = await releaseClient.validateState(savedRelease, catalog); snapshot = release.snapshot; showingRelease = true; }
-        catch (error) { status.textContent = '保存的资料清单未通过检查，已保留内置资料。' + error.message; }
+        catch (error) { status.textContent = '保存的资料清单未通过检查，已保留内置资料。' + readableError(error); }
       } else if (!usesReleases && cached) { snapshot = await validateSnapshot(cached, catalog); showingRelease = false; }
       if (releaseClient) {
         services = validatedServices(savedServices || services);
-        if (servicesStatus) servicesStatus.textContent = services.searchURL ? '已连接检索服务。' : '未连接检索服务，仍可搜索本机原文。';
+        if (savedServices && savedServices.searchURL !== services.searchURL) cachedValue('services', services).catch(() => {});
+        if (servicesStatus) servicesStatus.textContent = services.searchURL ? '已连接自配检索服务；不可用时回退本机索引。' : '未连接检索服务，使用随资料发布的官方来源索引。';
       }
       status.textContent = statusText();
     } catch (error) {
-      status.textContent = '已有资料仍可阅读。' + error.message;
+      status.textContent = '已有资料仍可阅读。' + readableError(error);
       if (servicesStatus) servicesStatus.textContent = '连接设置未能读取，正在使用默认地址。';
     }
     renderServices();
@@ -516,14 +541,14 @@
         searchSerial++; renderServices();
         servicesStatus.textContent = '连接已保存。点击检查更新可同步资料。';
         if (query.value.trim()) await search();
-      } catch (error) { servicesStatus.textContent = error.message || '连接未保存。'; }
+      } catch (error) { servicesStatus.textContent = readableError(error, '连接未保存。'); }
       finally { savingServices = false; saveButton.disabled = updating; updateButton.disabled = updating; }
     });
     updateButton.addEventListener('click', () => update(true));
     automatic.addEventListener('change', async () => {
       settings.automatic = automatic.checked;
       try { await cachedValue('settings', settings); if (settings.automatic) await update(false); }
-      catch (error) { status.textContent = error.message; }
+      catch (error) { status.textContent = readableError(error); }
     });
     document.getElementById('materials-type').addEventListener('click', event => {
       const enlarged = document.body.classList.toggle('source-large');

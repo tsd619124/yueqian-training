@@ -33,18 +33,6 @@
         <label><input type="checkbox" id="materials-automatic" checked>每天自动检查更新</label>
         <p id="materials-status" role="status" aria-live="polite">正在读取已保存的资料…</p>
       </div>
-      <details class="source-services">
-        <summary>服务连接</summary>
-        <form id="materials-services-form">
-          <label for="materials-content-url">资料库地址</label>
-          <input id="materials-content-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" required aria-describedby="materials-services-help">
-          <label for="materials-search-url">检索地址</label>
-          <input id="materials-search-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" placeholder="未连接，使用本机搜索" aria-describedby="materials-services-help">
-          <p id="materials-services-help">填写公开 HTTPS 地址；本机预览可使用 localhost HTTP。留空检索地址时只搜索已保存的原文。</p>
-          <button id="materials-services-save" type="submit">保存连接</button>
-          <p id="materials-services-status" role="status" aria-live="polite"></p>
-        </form>
-      </details>
       <nav id="source-toc" class="source-toc" aria-label="本篇目录"></nav>
     </aside>
     <main class="source-article">
@@ -59,7 +47,19 @@
       <article id="source-body" class="source-body"></article>
       <footer class="source-footer">
         <p id="source-revision"></p>
-        <details><summary>版权与阅读说明</summary><p>正文与图片来自 Microsoft 的 Generative AI for Beginners 开源课程，保留来源仓库的中文译文与翻译声明。页面只调整排版，收起代码及课程封面；原文以源站为准。自动检查在本页打开或回到前台时进行，公开资料下载不包含你的学习记录。联网搜索只发送检索词；外部结果未经课程审核，不会自动加入课程或改变学习进度。</p><pre id="source-license"></pre></details>
+        <details><summary>版权与阅读说明</summary><p>正文与图片来自 Microsoft 的 Generative AI for Beginners 开源课程，保留来源仓库的中文译文与翻译声明。页面只调整排版，收起代码及课程封面；原文以源站为准。自动检查在本页打开或回到前台时进行，公开资料下载不包含你的学习记录。官方来源索引随资料检查下载到本机，搜索在本机完成；只有在服务连接中填写检索地址时，才会把检索词发给该服务。外部结果未经课程审核，不会自动加入课程或改变学习进度。</p><pre id="source-license"></pre></details>
+        <details class="source-services">
+          <summary>高级 · 服务连接</summary>
+          <form id="materials-services-form">
+            <label for="materials-content-url">资料库地址</label>
+            <input id="materials-content-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" required aria-describedby="materials-services-help">
+            <label for="materials-search-url">检索地址</label>
+            <input id="materials-search-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" placeholder="可选，留空使用官方来源索引" aria-describedby="materials-services-help">
+            <p id="materials-services-help">开发与自部署使用。填写公开 HTTPS 地址；本机预览可使用 localhost HTTP。检索地址可留空：默认在本机搜索随资料发布的官方来源索引，离线也可用。</p>
+            <button id="materials-services-save" type="submit">保存连接</button>
+            <p id="materials-services-status" role="status" aria-live="polite"></p>
+          </form>
+        </details>
       </footer>
     </main>
   </div>

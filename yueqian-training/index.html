@@ -66,6 +66,7 @@ input,select{font:inherit;color:inherit}
 .muted{color:var(--muted)}
 .small{font-size:13px}
 .hidden{display:none!important}
+[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 /* ---------- shell ---------- */
 .app{display:flex;min-height:100vh}
@@ -194,6 +195,8 @@ select.field{appearance:none;background-image:linear-gradient(45deg,transparent 
 .bar-row .pc{flex:0 0 42px;text-align:right;font-size:12px;color:var(--muted)}
 /* ---------- skills ---------- */
 .skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:9px}
+.sk-desc{grid-column:1/-1;margin:-2px 4px 4px;line-height:1.7}
+.sk-desc:empty{display:none}
 .chip-skill{display:flex;align-items:center;gap:6px;padding:8px 9px 8px 13px;border-radius:13px;border:1px solid var(--line);background:var(--surface);transition:transform .12s,border-color .15s,background .15s}
 .chip-skill:hover{transform:translateY(-1px);border-color:var(--line-strong)}
 .sk-main{flex:1;display:flex;flex-direction:column;gap:2px;text-align:left;font:inherit;min-width:0;padding:3px 0}
@@ -291,13 +294,13 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 .daily-how summary{cursor:pointer;color:var(--brand);font-weight:500;font-size:13px}
 .daily-how{margin:-4px 0 16px}
 /* ---------- toast / modal ---------- */
-#toasts{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,480px)}
+#toasts{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,480px)}
 .toast{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border:1px solid var(--glass-line);box-shadow:var(--shadow);border-radius:14px;padding:11px 16px;font-weight:500;animation:tin .3s cubic-bezier(.2,.9,.3,1.1);max-width:100%;pointer-events:none;font-size:13px}
 .toast button{pointer-events:auto}
 .toast .ic{color:var(--brand)}
 .toast.orange .ic{color:var(--orange)}
 .toast.green .ic{color:var(--green)}
-@keyframes tin{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .toast.out{opacity:0;transform:translateY(-8px);transition:.3s}
 .modal-mask{position:fixed;inset:0;background:rgba(0,0,0,0.36);z-index:80;display:grid;place-items:center;padding:20px}
 .modal{background:color-mix(in srgb,var(--surface) 85%,transparent);backdrop-filter:blur(4px) saturate(1.7);-webkit-backdrop-filter:blur(4px) saturate(1.7);border:1px solid var(--glass-line);border-radius:24px;box-shadow:var(--shadow);max-width:420px;width:100%;padding:28px;animation:vin .3s ease}
@@ -305,6 +308,7 @@ details.wk.here{border-color:var(--brand);box-shadow:0 0 0 3.5px var(--brand-sof
 /* ---------- mobile ---------- */
 @media (max-width:880px){
   .sidebar{display:none}
+  #toasts{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
   .content{padding:calc(18px + env(safe-area-inset-top,0px)) 16px 140px}
   .rw-dots{display:flex}
   .runway .rw-phase{display:none}
@@ -544,7 +548,7 @@ button:disabled{opacity:.55;cursor:default}
       <section class="view" id="view-skills" hidden>
         <h2 class="ptitle">技能树</h2>
         <div class="seg" style="margin:-4px 0 16px"><button data-sub="daily">今日</button><button data-sub="skills">技能树</button><button data-sub="quiz">自测</button></div>
-        <p class="small muted" style="margin-bottom:14px">点击技能点切换掌握度:<span class="tag amber">听懂</span> → <span class="tag brand">能讲</span> → <span class="tag green">能演示</span>,悬停看说明。售前的及格线是「能讲」,加分线是「能演示」。</p>
+        <p class="small muted" style="margin-bottom:14px">点击技能点切换掌握度:<span class="tag amber">听懂</span> → <span class="tag brand">能讲</span> → <span class="tag green">能演示</span>，点按后在该技能下方显示说明。售前的及格线是「能讲」,加分线是「能演示」。</p>
         <div id="skillsWrap"></div>
       </section>
 
@@ -725,7 +729,7 @@ button:disabled{opacity:.55;cursor:default}
   <div class="dr-foot" id="drFoot"></div>
 </aside>
 
-<div id="toasts"></div>
+<div id="toasts" role="status" aria-live="polite"></div>
 
 <div class="modal-mask hidden" id="onboard">
   <div class="modal">
@@ -754,7 +758,7 @@ button:disabled{opacity:.55;cursor:default}
 (function(){
 'use strict';
 var KEY='yueqian.v1';
-var APP_VERSION='1.14.0';
+var APP_VERSION='1.14.1';
 var APP_CACHE_PREFIX='yueqian-';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
@@ -1538,9 +1542,9 @@ Object.keys(LESSON_REVIEWS).forEach(function(id){var review=LESSON_REVIEWS[id];L
 Object.keys(LESSONS).forEach(function(id){LESSONS[id].mat.forEach(function(material){if(/技术分|60\s*万|产出升\s*30%/.test(material.b))material.b='## 虚构教学示例\n以下客户、职责、金额、排名和增幅均为示意，不代表你的真实经历。请逐项改为本人可核实的事实；没有承担的职责或证据不能补造。\n\n'+material.b})});
 
 function md(s){
- var lines=String(s).split('\n'),html='',list=null,code=null;
+ var lines=String(s).split('\n'),html='',list=null,code=null,tbl=false;
  function closeL(){if(list){html+='</ul>';list=null}}
- function closeT(){if(md.tbl){html+='</tbody></table>';md.tbl=false}}
+ function closeT(){if(tbl){html+='</tbody></table>';tbl=false}}
  function closeCode(){if(code!==null){html+='<pre><code>'+esc(code.join('\n'))+'</code></pre>';code=null}}
  lines.forEach(function(ln){
   if(ln.trim().indexOf('```')===0){closeL();closeT();if(code===null)code=[];else closeCode();return}
@@ -1548,13 +1552,13 @@ function md(s){
   var image=ln.match(/^!\[([^\]]*)\]\((training-receipt(?:-obscured)?\.png)\)$/);
   if(image){closeL();closeT();html+='<img src="./'+esc(image[2])+'" alt="'+esc(image[1])+'" loading="lazy">';return}
   if(ln.indexOf('## ')===0){closeL();closeT();html+='<h5>'+esc(ln.slice(3))+'</h5>'}
-  else if(ln.indexOf('- ')===0){closeL();closeT();if(!list){html+='<ul>';list=true}html+='<li>'+esc(ln.slice(2))+'</li>'}
+  else if(ln.indexOf('- ')===0){closeT();if(!list){html+='<ul>';list=true}html+='<li>'+esc(ln.slice(2))+'</li>'}
   else if(ln.charAt(0)==='>'){closeL();closeT();html+='<blockquote>'+esc(ln.slice(1).trim())+'</blockquote>'}
   else if(ln.charAt(0)==='|'){
    closeL();
    var cells=ln.split('|').slice(1,-1).map(function(x){return x.trim()});
    if(cells.every(function(cell){return /^:?-{3,}:?$/.test(cell)}))return;
-   if(!md.tbl){html+='<table><thead><tr>';cells.forEach(function(c){html+='<th>'+esc(c)+'</th>'});html+='</tr></thead><tbody>';md.tbl=true}
+   if(!tbl){html+='<table><thead><tr>';cells.forEach(function(c){html+='<th>'+esc(c)+'</th>'});html+='</tr></thead><tbody>';tbl=true}
    else{html+='<tr>';cells.forEach(function(c){html+='<td>'+esc(c)+'</td>'});html+='</tr>'}
   }
   else if(ln===''){closeL();closeT()}
@@ -1700,13 +1704,30 @@ function markLessonDone(){
 }
 
 /* ================= 状态 ================= */
-function defaults(){return {name:'',theme:'auto',skills:{},checks:{},days:[],quiz:{},co:[],start:null,reroll:{},mil:{},read:{},readDone:{},wrong:{},quizSeen:{},attempts:[],latestQuiz:{},evidence:[],rev:0,pushedRev:0,pushedAt:'',pushedHash:'',lc:null}}
+function defaults(){return {name:'',theme:'auto',skills:{},checks:{},days:[],quiz:{},co:[],start:null,reroll:{},mil:{},read:{},readDone:{},wrong:{},quizSeen:{},attempts:[],latestQuiz:{},evidence:[],rev:0,pushedRev:0,pushedAt:'',pushedHash:'',syncBase:'',lc:null,extra:null}}
 var S=defaults();
+/* 向前兼容:新版本客户端写入的未知字段、未知课程/题目的记录原样保留在 extra,推送与导出时并回 */
+var KNOWN_TOP=Object.keys(defaults());
+function safeKey(key){return typeof key==='string'&&key.length<=120&&key!=='__proto__'&&key!=='constructor'&&key!=='prototype'}
+function keepExtra(raw,result,known){if(raw&&typeof raw==='object'&&!Array.isArray(raw))Object.keys(raw).forEach(function(key){if(known.indexOf(key)<0&&safeKey(key)&&!Object.prototype.hasOwnProperty.call(result,key))result[key]=raw[key]});return result}
+function withExtra(src,out){
+ var extra=src&&src.extra;if(!extra||typeof extra!=='object')return out;
+ var ids=extra.ids&&typeof extra.ids==='object'?extra.ids:{};
+ ['readDone','quizSeen'].forEach(function(key){var map=ids[key];if(map&&typeof map==='object'&&Object.keys(map).length){var merged={};Object.keys(out[key]||{}).forEach(function(id){merged[id]=out[key][id]});Object.keys(map).forEach(function(id){if(safeKey(id)&&map[id]===true)merged[id]=true});out[key]=merged}});
+ if(Array.isArray(out.evidence)&&ids.goals&&typeof ids.goals==='object')out.evidence=out.evidence.map(function(proof){var more=proof&&ids.goals[proof.id];if(!more||!Object.prototype.hasOwnProperty.call(ids.goals,proof.id))return proof;var next=Object.assign({},proof);next.goals=(proof.goals||[]).concat(more.goals||[]);var confirmed=(proof.confirmedGoals||[]).concat(more.confirmedGoals||[]);if(confirmed.length)next.confirmedGoals=confirmed;return next});
+ if(Array.isArray(ids.evidence)&&ids.evidence.length)out.evidence=(Array.isArray(out.evidence)?out.evidence:[]).concat(ids.evidence);
+ if(Array.isArray(ids.attempts)&&ids.attempts.length)out.attempts=(Array.isArray(out.attempts)?out.attempts:[]).concat(ids.attempts).map(function(item,index){return {item:item,index:index,at:Date.parse(item&&item.at)||0}}).sort(function(a,b){return a.at-b.at||a.index-b.index}).map(function(entry){return entry.item});
+ if(extra.top&&typeof extra.top==='object')Object.keys(extra.top).forEach(function(key){if(KNOWN_TOP.indexOf(key)<0&&safeKey(key))out[key]=extra.top[key]});
+ return out;
+}
 var motionPreference=window.matchMedia('(prefers-reduced-motion: reduce)');
 var REDUCE=motionPreference.matches;
 function normalize(raw,target){
  var out=target||S;
  if(!raw||typeof raw!=='object')return;
+ if(raw.extra&&typeof raw.extra==='object'){raw=withExtra(raw,Object.assign({},raw));delete raw.extra}
+ var extra={top:{},ids:{readDone:{},quizSeen:{},evidence:[],attempts:[],goals:{}}};
+ Object.keys(raw).forEach(function(key){if(KNOWN_TOP.indexOf(key)<0&&safeKey(key))extra.top[key]=raw[key]});
  if(typeof raw.name==='string')out.name=raw.name.slice(0,12);
  if(raw.theme==='light'||raw.theme==='dark'||raw.theme==='auto')out.theme=raw.theme;
  if(Array.isArray(raw.days))out.days=raw.days.filter(function(x){return typeof x==='string'}).slice(-400);
@@ -1715,23 +1736,30 @@ function normalize(raw,target){
  if(raw.quiz&&typeof raw.quiz==='object'){var o3={};for(var k3 in raw.quiz){var v3=raw.quiz[k3];if(typeof v3==='number'&&v3>=0&&v3<=100)o3[k3]=Math.round(v3)}out.quiz=o3}
  if(Array.isArray(raw.co))out.co=raw.co.filter(function(x){return x&&typeof x.n==='string'&&x.n}).slice(0,60).map(function(x){
    var s=(typeof x.s==='number')?Math.floor(x.s):0,t=(typeof x.t==='number')?Math.floor(x.t):0;
-   return {n:x.n.slice(0,40),s:(s>=0&&s<STAGES.length)?s:0,t:(t>=0&&t<TRACKS.length)?t:0,d:(typeof x.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.d))?x.d:''}});
+   return keepExtra(x,{n:x.n.slice(0,40),s:(s>=0&&s<STAGES.length)?s:0,t:(t>=0&&t<TRACKS.length)?t:0,d:(typeof x.d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.d))?x.d:''},['n','s','t','d'])});
  if(raw.reroll&&typeof raw.reroll==='object'){var o4={};for(var k4 in raw.reroll){if(typeof raw.reroll[k4]==='number')o4[k4]=raw.reroll[k4]}out.reroll=o4}
  if(raw.mil&&typeof raw.mil==='object'){var o5={};for(var k5 in raw.mil){if(raw.mil[k5])o5[k5]=true}out.mil=o5}
  if(raw.read&&typeof raw.read==='object'){var o6={};for(var k6 in raw.read){if(raw.read[k6])o6[k6]=true}out.read=o6}
- if(raw.readDone&&typeof raw.readDone==='object'){var completed={};Object.keys(raw.readDone).forEach(function(id){if(Object.keys(LESSONS).indexOf(id)>=0&&raw.readDone[id]===true)completed[id]=true});out.readDone=completed}
- if(raw.quizSeen&&typeof raw.quizSeen==='object'){var seen={};Object.keys(raw.quizSeen).forEach(function(id){if(quizQuestion(id)&&raw.quizSeen[id]===true)seen[id]=true});out.quizSeen=seen}
- if(Array.isArray(raw.attempts))out.attempts=raw.attempts.filter(function(attempt){return attempt&&typeof attempt==='object'&&(Object.keys(QUIZ).indexOf(attempt.mod)>=0||attempt.mod==='review')&&typeof attempt.at==='string'&&isFinite(Date.parse(attempt.at))&&typeof attempt.correct==='number'&&isFinite(attempt.correct)&&typeof attempt.total==='number'&&isFinite(attempt.total)&&attempt.total>=1&&attempt.total<=100&&attempt.correct>=0&&attempt.correct<=attempt.total}).slice(-100).map(function(attempt){var total=Math.floor(attempt.total),correct=Math.min(total,Math.floor(attempt.correct));return {mod:attempt.mod,at:attempt.at.slice(0,40),correct:correct,total:total,score:Math.round(correct/total*100)}});
+ if(raw.readDone&&typeof raw.readDone==='object'){var completed={};Object.keys(raw.readDone).forEach(function(id){if(raw.readDone[id]!==true)return;if(Object.keys(LESSONS).indexOf(id)>=0)completed[id]=true;else if(safeKey(id))extra.ids.readDone[id]=true});out.readDone=completed}
+ if(raw.quizSeen&&typeof raw.quizSeen==='object'){var seen={};Object.keys(raw.quizSeen).forEach(function(id){if(raw.quizSeen[id]!==true)return;if(quizQuestion(id))seen[id]=true;else if(safeKey(id))extra.ids.quizSeen[id]=true});out.quizSeen=seen}
+ if(Array.isArray(raw.attempts))extra.ids.attempts=raw.attempts.filter(function(attempt){return attempt&&typeof attempt==='object'&&typeof attempt.mod==='string'&&Object.keys(QUIZ).indexOf(attempt.mod)<0&&attempt.mod!=='review'&&typeof attempt.at==='string'}).slice(-100);
+ if(Array.isArray(raw.attempts))out.attempts=raw.attempts.filter(function(attempt){return attempt&&typeof attempt==='object'&&(Object.keys(QUIZ).indexOf(attempt.mod)>=0||attempt.mod==='review')&&typeof attempt.at==='string'&&isFinite(Date.parse(attempt.at))&&typeof attempt.correct==='number'&&isFinite(attempt.correct)&&typeof attempt.total==='number'&&isFinite(attempt.total)&&attempt.total>=1&&attempt.total<=100&&attempt.correct>=0&&attempt.correct<=attempt.total}).slice(-100).map(function(attempt){var total=Math.floor(attempt.total),correct=Math.min(total,Math.floor(attempt.correct));return keepExtra(attempt,{mod:attempt.mod,at:attempt.at.slice(0,40),correct:correct,total:total,score:Math.round(correct/total*100)},['mod','at','correct','total','score'])});
  out.latestQuiz={};out.attempts.forEach(function(attempt){if(QUIZ[attempt.mod])out.latestQuiz[attempt.mod]=attempt});
  if(raw.latestQuiz&&typeof raw.latestQuiz==='object'){Object.keys(QUIZ).forEach(function(module){var value=raw.latestQuiz[module];if(value&&value.mod===module&&value.total===QUIZ[module].length&&typeof value.correct==='number'&&isFinite(value.correct)&&value.correct>=0&&value.correct<=value.total&&typeof value.at==='string'&&isFinite(Date.parse(value.at)))out.latestQuiz[module]={mod:module,at:value.at,correct:Math.floor(value.correct),total:value.total,score:Math.round(Math.floor(value.correct)/value.total*100)}})}
- if(Array.isArray(raw.evidence))out.evidence=raw.evidence.filter(function(proof){return proof&&typeof proof==='object'&&typeof proof.id==='string'&&Object.keys(LESSONS).indexOf(proof.lesson)>=0&&typeof proof.title==='string'&&Array.isArray(proof.goals)}).slice(-200).map(function(proof){var confirmed=Array.isArray(proof.confirmedGoals)?proof.confirmedGoals.filter(function(id,index,list){return proof.goals.indexOf(id)>=0&&Object.keys(SRC).indexOf(id)>=0&&list.indexOf(id)===index}).sort():[];var result={id:proof.id.slice(0,80),lesson:proof.lesson,title:proof.title.slice(0,120),note:typeof proof.note==='string'?proof.note.slice(0,6000):'',url:safeEvidenceUrl(proof.url),goals:proof.goals.filter(function(id,index,list){return typeof id==='string'&&Object.keys(SRC).indexOf(id)>=0&&list.indexOf(id)===index}).slice(0,80),at:typeof proof.at==='string'&&isFinite(Date.parse(proof.at))?proof.at.slice(0,40):''};if(confirmed.length)result.confirmedGoals=confirmed;return result});
- if(raw.wrong&&typeof raw.wrong==='object'){var o7={};for(var k7 in raw.wrong){var w=raw.wrong[k7];if(w&&typeof w==='object'&&typeof w.next==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(w.next))o7[k7]={n:Math.min(99,Math.max(1,Math.floor(w.n)||1)),s:Math.min(9,Math.max(0,Math.floor(w.s)||0)),next:w.next}}out.wrong=o7}
+ if(Array.isArray(raw.evidence))extra.ids.evidence=raw.evidence.filter(function(proof){return proof&&typeof proof==='object'&&typeof proof.id==='string'&&typeof proof.lesson==='string'&&Object.keys(LESSONS).indexOf(proof.lesson)<0&&typeof proof.title==='string'&&Array.isArray(proof.goals)}).slice(-200);
+ if(Array.isArray(raw.evidence))out.evidence=raw.evidence.filter(function(proof){return proof&&typeof proof==='object'&&typeof proof.id==='string'&&Object.keys(LESSONS).indexOf(proof.lesson)>=0&&typeof proof.title==='string'&&Array.isArray(proof.goals)}).slice(-200).map(function(proof){var confirmed=Array.isArray(proof.confirmedGoals)?proof.confirmedGoals.filter(function(id,index,list){return proof.goals.indexOf(id)>=0&&Object.keys(SRC).indexOf(id)>=0&&list.indexOf(id)===index}).sort():[];var result={id:proof.id.slice(0,80),lesson:proof.lesson,title:proof.title.slice(0,120),note:typeof proof.note==='string'?proof.note.slice(0,6000):'',url:safeEvidenceUrl(proof.url),goals:proof.goals.filter(function(id,index,list){return typeof id==='string'&&Object.keys(SRC).indexOf(id)>=0&&list.indexOf(id)===index}).slice(0,80),at:typeof proof.at==='string'&&isFinite(Date.parse(proof.at))?proof.at.slice(0,40):''};if(confirmed.length)result.confirmedGoals=confirmed;var unknownGoals=proof.goals.filter(function(id){return typeof id==='string'&&safeKey(id)&&!SRC[id]}),unknownConfirmed=Array.isArray(proof.confirmedGoals)?proof.confirmedGoals.filter(function(id){return unknownGoals.indexOf(id)>=0}):[];if(unknownGoals.length&&safeKey(result.id)){extra.ids.goals[result.id]={goals:unknownGoals};if(unknownConfirmed.length)extra.ids.goals[result.id].confirmedGoals=unknownConfirmed}return keepExtra(proof,result,['id','lesson','title','note','url','goals','at','confirmedGoals'])});
+ if(raw.wrong&&typeof raw.wrong==='object'){var o7={};for(var k7 in raw.wrong){var w=raw.wrong[k7];if(w&&typeof w==='object'&&typeof w.next==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(w.next))o7[k7]=keepExtra(w,{n:Math.min(99,Math.max(1,Math.floor(w.n)||1)),s:Math.min(9,Math.max(0,Math.floor(w.s)||0)),next:w.next},['n','s','next'])}out.wrong=o7}
  if(typeof raw.start==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(raw.start))out.start=raw.start;
  if(raw.lc&&typeof raw.lc==='object'){var lc={};['id','key','host','code','backend','token','gist'].forEach(function(f){if(typeof raw.lc[f]==='string')lc[f]=raw.lc[f].slice(0,200)});out.lc=lc}
  if(typeof raw.rev==='number'&&raw.rev>=0)out.rev=Math.floor(raw.rev);
  if(typeof raw.pushedRev==='number'&&raw.pushedRev>=0)out.pushedRev=Math.floor(raw.pushedRev);
  if(typeof raw.pushedAt==='string')out.pushedAt=raw.pushedAt.slice(0,40);
  if(typeof raw.pushedHash==='string')out.pushedHash=raw.pushedHash.slice(0,40);
+ if(typeof raw.syncBase==='string')out.syncBase=raw.syncBase.slice(0,40);
+ var ids=extra.ids,kept={};
+ if(Object.keys(extra.top).length)kept.top=extra.top;
+ if(Object.keys(ids.readDone).length||Object.keys(ids.quizSeen).length||ids.evidence.length||ids.attempts.length||Object.keys(ids.goals).length){kept.ids={};Object.keys(ids).forEach(function(key){if(Array.isArray(ids[key])?ids[key].length:Object.keys(ids[key]).length)kept.ids[key]=ids[key]})}
+ out.extra=Object.keys(kept).length?kept:null;
 }
 try{var saved=localStorage.getItem(KEY);if(saved)normalize(JSON.parse(saved))}catch(e){}
 var UI_KEY=KEY+'.experience',uiTimer=null,UI=uiDefaults();
@@ -1762,14 +1790,19 @@ function loadUI(){
   if(['all','new','opened','read','done'].indexOf(raw.status)>=0)UI.status=raw.status;
  }catch(error){}
 }
-function persistUI(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI))}catch(error){}}
+var storageWarned=false;
+function storageFailed(){
+ if(storageWarned)return;storageWarned=true;
+ setTimeout(function(){try{toast('本机存储空间已满，最近的修改可能未保存。请先导出备份或开启云同步。','i-msg','orange',{t:'导出备份',fn:function(){doExport()}})}catch(e){}},0);
+}
+function persistUI(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI));return true}catch(error){storageFailed();return false}}
 function saveUI(){clearTimeout(uiTimer);uiTimer=setTimeout(persistUI,150)}
 loadUI();
 function syncData(state){
  var src=state||S,out={};
  ['name','theme','skills','checks','days','quiz','co','start','reroll','mil','read','wrong'].forEach(function(k){out[k]=src[k]});
  ['readDone','quizSeen','attempts','evidence','latestQuiz'].forEach(function(key){var value=src[key];if(value&&Object.keys(value).length)out[key]=value});
- return out;
+ return withExtra(src,out);
 }
 function syncCanonical(value){
  if(Array.isArray(value))return value.map(syncCanonical);
@@ -1788,7 +1821,7 @@ function syncHash(state){
 function normalizedState(raw){var out=defaults();normalize(raw,out);return out}
 if(!S.pushedHash&&S.pushedRev===S.rev)S.pushedHash=syncHash(S);
 var saveTimer=null,pushTimer=null;
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){storageFailed();return false}}
 function save(){
  S.rev=(typeof S.rev==='number'?S.rev:0)+1;
  clearTimeout(saveTimer);
@@ -1864,22 +1897,22 @@ function toast(msg,ic,cls,btn){
 function checkMilestones(){
  var queue=[];
  var s=streakCount(),ov=overallPct();
- [[3,'连续打卡 3 天 —— 热身完毕,轨道启动了。','i-flame','orange'],
-  [7,'连续 7 天!这已经不是三分钟热度了。','i-flame','orange'],
-  [14,'连续 14 天,习惯已经长出来了。','i-flame','orange'],
-  [30,'连续 30 天,你已经是自己的教练了。','i-trophy','green'],
-  [25,'综合进度 25%,打底阶段应该快收尾了。','i-zap',''],
-  [50,'赛程过半!作品集和简历该成型了。','i-zap',''],
-  [75,'75% 了,面试冲刺就在眼前。','i-zap','orange'],
-  [100,'100%!轨道跑完,接下来去面试里把它兑现。','i-trophy','green']
+ [['streak',3,'连续打卡 3 天 —— 热身完毕,轨道启动了。','i-flame','orange'],
+  ['streak',7,'连续 7 天!这已经不是三分钟热度了。','i-flame','orange'],
+  ['streak',14,'连续 14 天,习惯已经长出来了。','i-flame','orange'],
+  ['streak',30,'连续 30 天,你已经是自己的教练了。','i-trophy','green'],
+  ['progress',25,'综合进度 25%,打底阶段应该快收尾了。','i-zap',''],
+  ['progress',50,'赛程过半!作品集和简历该成型了。','i-zap',''],
+  ['progress',75,'75% 了,面试冲刺就在眼前。','i-zap','orange'],
+  ['progress',100,'100%!轨道跑完,接下来去面试里把它兑现。','i-trophy','green']
  ].forEach(function(m){
-  var key=(m[0]<=30?'d':'p')+m[0];
-  if(((m[0]<=30&&s>=m[0])||(m[0]>30&&ov>=m[0]))&&!S.mil[key]){S.mil[key]=true;queue.push(m)}
+  var streak=m[0]==='streak',key=(streak?'d':'p')+m[1];
+  if((streak?s:ov)>=m[1]&&!S.mil[key]){S.mil[key]=true;queue.push(m.slice(2))}
  });
  if(queue.length){
   save();
   var last=queue[queue.length-1];
-  queue.forEach(function(m,i){setTimeout(function(){toast(m[1],m[2],m[3])},i*900)});
+  queue.forEach(function(m,i){setTimeout(function(){toast(m[0],m[1],m[2])},i*900)});
   renderTop();
  }
 }
@@ -2293,7 +2326,7 @@ function saveEvidence(){
 function renderEvidenceList(){
  var html='';
  S.evidence.slice().reverse().forEach(function(proof){
-  html+='<div class="proof-item"><h4>'+esc(proof.title)+'</h4>'+(proof.note?'<p>'+esc(proof.note)+'</p>':'')+(proof.url?'<a href="'+esc(proof.url)+'" target="_blank" rel="noopener noreferrer">打开作品链接 ↗</a>':'')+'<div class="learn-meta">'+proof.goals.length+' 项关联目标 · '+esc(proof.at?dateCn(proof.at.slice(0,10)):'历史记录')+'</div><button class="btn ghost sm" data-lesson="'+esc(proof.lesson)+'">查看与编辑</button></div>';
+  html+='<div class="proof-item"><h4>'+esc(proof.title)+'</h4>'+(proof.note?'<p>'+esc(proof.note)+'</p>':'')+(proof.url?'<a href="'+esc(proof.url)+'" target="_blank" rel="noopener noreferrer">打开作品链接 ↗</a>':'')+'<div class="learn-meta">'+proof.goals.length+' 项关联目标 · '+esc(proof.at?dateCn(dateStr(new Date(proof.at))):'历史记录')+'</div><button class="btn ghost sm" data-lesson="'+esc(proof.lesson)+'">查看与编辑</button></div>';
  });
  $('#evidenceList').innerHTML=html||'<p class="small muted" style="margin-top:12px">在教材里展开「留下学习证据」，保存总结、口述提纲或作品链接。已完成的任务也可以补上证据。</p>';
 }
@@ -2403,7 +2436,7 @@ function renderSkills(){
     (lid&&LESSONS[lid]?'<button type="button" class="lesson-btn sk-learn" data-lesson="'+lid+'" aria-label="学习内容:'+esc(nd.n)+'" title="学习内容">'+icon('i-book')+'</button>':'')+
     '</div>';
   });
-  html+='</div>';
+  html+='<p class="sk-desc small muted" data-sk-desc="'+m.id+'" aria-live="polite"></p></div>';
  });
  $('#skillsWrap').innerHTML=html;
  MODS.forEach(function(m){updateModBadge(m.id)});
@@ -2423,6 +2456,8 @@ function cycleSkill(id){
  chip.classList.add('lv'+nv,'pop');
  $('.lv',chip).textContent=LVW[nv];
  updateModBadge(id.charAt(0));
+ var node=null;MODS.forEach(function(m){m.nodes.forEach(function(nd){if(nd.id===id)node=nd})});
+ var desc=$('[data-sk-desc="'+id.charAt(0)+'"]');if(desc&&node){chip.after(desc);desc.textContent='「'+node.n+'」'+LVW[nv]+'：'+node.d}
  if(nv>0)toast(UP_WORDS[nv],nv===3?'i-check':'i-zap',nv===3?'green':'');
  save();renderModBars();
  if(!S.start){S.start=todayStr();buildRunway();renderHero()}
@@ -2514,7 +2549,7 @@ function addCo(){
 var QM={mod:null,idx:0,picked:null,correct:0,list:null,qids:null,review:false};
 function qzList(){return QM.list||QUIZ[QM.mod]}
 function wrongDue(){var t=todayStr(),n=0;for(var k in S.wrong){if(quizQuestion(k)&&S.wrong[k].next<=t)n++}return n}
-function wrongTotal(){return Object.keys(S.wrong).length}
+function wrongTotal(){return Object.keys(S.wrong).filter(function(k){return !!quizQuestion(k)}).length}
 function recordWrong(qid){
  var w=S.wrong[qid]||{n:0,s:0};
  S.wrong[qid]={n:w.n+1,s:0,next:dateStr(new Date(Date.now()+864e5))};
@@ -2586,7 +2621,7 @@ function finishQuiz(){
   renderQuizMods();renderHero();
   return;
  }
- var score=QM.correct*20,prev=S.quiz[QM.mod]!=null?S.quiz[QM.mod]:null;
+ var score=Math.round(QM.correct/questionCount*100),prev=S.quiz[QM.mod]!=null?S.quiz[QM.mod]:null;
  var best=Math.max(prev==null?0:prev,score);
  var first=prev==null;
  S.quiz[QM.mod]=best;save();
@@ -2637,10 +2672,13 @@ function confirmImport(){
  var backup=backupPayload();
  try{localStorage.setItem(KEY+'.pre-import',JSON.stringify(backup))}catch(e){}
  downloadJson('yueqian-before-import-'+todayStr()+'.json',backup);
- var oldLc=S.lc,oldRev=Number(S.rev)||0,next=pendingImport.state;
- next.lc=oldLc;next.rev=Math.max(oldRev,Number(next.rev)||0);next.pushedRev=0;next.pushedHash='';next.pushedAt='';
- S=next;save();persist();applyTheme();buildRunway();renderAll();closeImportPreview();
- toast('已先备份当前进度,恢复完成。','i-check','green');
+ var oldLc=S.lc,oldRev=Number(S.rev)||0,oldBase=syncBase(),next=pendingImport.state;
+ next.lc=oldLc;next.rev=Math.max(oldRev,Number(next.rev)||0);next.pushedRev=0;next.pushedHash='';next.pushedAt='';next.syncBase=oldBase;
+ S=next;save();
+ var stored=persist();
+ if(stored){try{localStorage.removeItem(KEY+'.pre-import')}catch(e){}}
+ applyTheme();buildRunway();renderAll();closeImportPreview();
+ if(stored)toast('已先下载当前进度备份，恢复完成。','i-check','green');
 }
 function doImport(file){
  var rd=new FileReader();
@@ -2725,13 +2763,16 @@ document.addEventListener('click',function(e){
  var rb=t.closest('#resetBtn');
  if(rb){
   if(rb.getAttribute('data-armed')==='1'){
-   S=defaults();UI=uiDefaults();GROUP_CUR=UI.group;scrollMemo=UI.scroll;saveUI();save();
+   /* 保留同步配置与基线:重置后的状态视为本机有意的新状态,云端未变时直接推送,云端另有修改时走冲突选择 */
+   var keep={lc:S.lc,rev:S.rev,pushedRev:S.pushedRev,pushedHash:S.pushedHash,pushedAt:S.pushedAt,syncBase:syncBase()};
+   S=defaults();Object.keys(keep).forEach(function(key){S[key]=keep[key]});
+   UI=uiDefaults();GROUP_CUR=UI.group;scrollMemo=UI.scroll;saveUI();save();
    $('#learnSearch').value='';$('#learnWeek').value='all';$('#learnState').value='all';
-   applyTheme();buildRunway();renderAll();
+   applyTheme();buildRunway();renderAll();renderSyncCard();
    rb.removeAttribute('data-armed');rb.innerHTML=icon('i-refresh')+'重置全部进度';
-   toast('已全部重置,轨道回到起点。','i-refresh');
+   toast(lcOK()?'已全部重置。同步设置已保留，云端会更新为重置后的进度；如云端另有新修改，会先请你选择。':'已全部重置，轨道回到起点。','i-refresh');
   }else{
-   rb.setAttribute('data-armed','1');rb.textContent='再点一次,确认清空所有进度';
+   rb.setAttribute('data-armed','1');rb.textContent=lcOK()?'再点一次，确认清空（云端也会同步清空）':'再点一次，确认清空所有进度';
    setTimeout(function(){if(rb.getAttribute('data-armed')==='1'){rb.removeAttribute('data-armed');rb.innerHTML=icon('i-refresh')+'重置全部进度'}},3500);
   }
   return;
@@ -2787,8 +2828,8 @@ function lcBase(){
 }
 function lcHeaders(){return {'Content-Type':'application/json','X-LC-Id':S.lc.id,'X-LC-Key':S.lc.key}}
 function gistHeaders(){return {'Authorization':'Bearer '+S.lc.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'}}
-function gistRead(){
- return fetch('https://api.github.com/gists/'+S.lc.gist,{headers:gistHeaders()})
+function gistRead(keepalive){
+ return fetch('https://api.github.com/gists/'+S.lc.gist,{headers:gistHeaders(),cache:'no-store',keepalive:!!keepalive})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+'(检查令牌与 Gist ID)');return r.json()})
   .then(function(g){
    var f=g.files&&g.files['yueqian.json'];
@@ -2796,8 +2837,11 @@ function gistRead(){
    try{return JSON.parse(f.content)}catch(e){throw new Error('云端数据损坏')}
   });
 }
-function gistWrite(state){
- return fetch('https://api.github.com/gists/'+S.lc.gist,{method:'PATCH',headers:gistHeaders(),body:JSON.stringify({description:'yueqian-progress',files:{'yueqian.json':{content:JSON.stringify(state)}}})})
+/* keepalive 请求体上限约 64KB,超出时退回普通请求 */
+function keepaliveOK(body,keepalive){return !!keepalive&&body.length<60000}
+function gistWrite(state,keepalive){
+ var body=JSON.stringify({description:'yueqian-progress',files:{'yueqian.json':{content:JSON.stringify(state)}}});
+ return fetch('https://api.github.com/gists/'+S.lc.gist,{method:'PATCH',headers:gistHeaders(),body:body,keepalive:keepaliveOK(body,keepalive)})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
 }
 function remoteFromPayload(payload,objectId){
@@ -2806,11 +2850,11 @@ function remoteFromPayload(payload,objectId){
  var parsed=parseBackup(raw),state=parsed.state;
  return {rev:state.rev||0,payload:JSON.stringify(raw),objectId:objectId,hash:syncHash(state)};
 }
-function lcFind(){
+function lcFind(keepalive){
  if(lcIsGist()){
-  return gistRead().then(function(st){return st?remoteFromPayload(st,S.lc.gist):null});
+  return gistRead(keepalive).then(function(st){return st?remoteFromPayload(st,S.lc.gist):null});
  }
- return fetch(lcBase()+'/classes/Progress?where='+encodeURIComponent(JSON.stringify({code:S.lc.code}))+'&limit=1',{headers:lcHeaders()})
+ return fetch(lcBase()+'/classes/Progress?where='+encodeURIComponent(JSON.stringify({code:S.lc.code}))+'&limit=1',{headers:lcHeaders(),cache:'no-store',keepalive:!!keepalive})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+'(检查 AppID/Key/域名)');return r.json()})
   .then(function(d){var r=(d.results&&d.results[0])||null;return r?remoteFromPayload(r.payload,r.objectId):null});
 }
@@ -2819,59 +2863,68 @@ function hideConflict(){var el=$('#lcConflict');if(el)el.classList.add('hidden')
 function isVirgin(){
  return !S.name&&S.theme==='auto'&&!S.days.length&&!Object.keys(S.checks).length&&!Object.keys(S.skills).length&&!Object.keys(S.quiz).length&&!S.co.length&&!S.start&&!hasLocalSyncChanges();
 }
-function hasLocalSyncChanges(){return (S.rev||0)>(S.pushedRev||0)||!!(S.pushedHash&&syncHash(S)!==S.pushedHash)}
+/* 同步基线:上次成功同步时云端内容的指纹。云端偏离基线且本机也有改动才算冲突,不再比较各端自增的 rev */
+function syncBase(){return S.syncBase||S.pushedHash||''}
+function hasLocalSyncChanges(){var base=syncBase();return base?syncHash(S)!==base:(S.rev||0)>(S.pushedRev||0)}
+function syncDecision(remote){
+ if(!remote)return 'push';
+ var localHash=syncHash(S);
+ if(remote.hash===localHash)return 'same';
+ if(isVirgin())return 'adopt';
+ var base=syncBase(),remoteChanged=!base||remote.hash!==base,localChanged=hasLocalSyncChanges();
+ if(remoteChanged&&localChanged)return 'conflict';
+ return remoteChanged?'adopt':'push';
+}
+function markSynced(hash){S.pushedRev=S.rev||0;S.pushedHash=hash;S.syncBase=hash;S.pushedAt=new Date().toLocaleString('zh-CN');persist();renderSyncCard()}
 function syncPayload(){
- var payload=JSON.parse(JSON.stringify(S));
- delete payload.lc;
+ var payload=JSON.parse(JSON.stringify(S)),data=syncData(S);
+ delete payload.lc;delete payload.extra;delete payload.syncBase;
+ Object.keys(data).forEach(function(key){payload[key]=data[key]});
  payload.pushedHash=syncHash(S);
  payload.pushedAt='';
- return payload;
+ return JSON.parse(JSON.stringify(payload));
 }
-function pushNow(force,silent){
+/* 同步任务串行执行,避免回到前台、页面隐藏与定时推送同时读写云端 */
+var syncChain=Promise.resolve();
+function queueSync(task){var run=syncChain.then(task,task);syncChain=run.catch(function(){});return run}
+function pushNow(force,silent,keepalive){
  if(!lcOK())return Promise.resolve();
- if(navigator&&!navigator.onLine){if(!silent)toast('当前离线,联网后自动同步','i-msg');return Promise.resolve()}
- return lcFind().then(function(remote){
+ if(navigator&&!navigator.onLine){if(!silent)toast('当前离线，联网后自动同步。','i-msg');return Promise.resolve()}
+ return queueSync(function(){
+ if(!lcOK())return;
+ return lcFind(keepalive).then(function(remote){
   var lr=S.rev||0;
   var localHash=syncHash(S);
-  if(remote){
-   if(isVirgin()){adoptRemote(remote.payload);return}
-   if(!force){
-    if((remote.rev||0)>lr){
-     if(hasLocalSyncChanges()){showConflict();return}
-     adoptRemote(remote.payload,true);return;
-    }
-    if((remote.rev||0)===lr&&remote.hash!==localHash){
-     if(hasLocalSyncChanges()){showConflict();return}
-     adoptRemote(remote.payload,true);return;
-    }
-    if((remote.rev||0)===lr&&remote.hash===localHash)return;
-   }
-  }
+  var decision=force?'push':syncDecision(remote);
+  if(decision==='same'){markSynced(localHash);if(!silent)toast('本机已是最新','i-check','green');return}
+  if(decision==='adopt'){adoptRemote(remote.payload,silent);return}
+  if(decision==='conflict'){showConflict();return}
   var payloadState=syncPayload();
   payloadState.rev=lr;
   var body=lcIsGist()?null:JSON.stringify({code:S.lc.code,payload:JSON.stringify(payloadState),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
   var req;
-  if(lcIsGist()){req=gistWrite(payloadState)}
+  if(lcIsGist()){req=gistWrite(payloadState,keepalive)}
   else{
    var url=lcBase()+'/classes/Progress'+(remote?'/'+remote.objectId:'');
-   req=remote?fetch(url,{method:'PUT',headers:lcHeaders(),body:body}):fetch(url,{method:'POST',headers:lcHeaders(),body:body});
+   req=fetch(url,{method:remote?'PUT':'POST',headers:lcHeaders(),body:body,keepalive:keepaliveOK(body,keepalive)});
   }
   return req.then(function(r){
    if(r&&r.ok===false)throw new Error('HTTP '+r.status);
    return r&&typeof r.json==='function'?r.json():r;
   }).then(function(){
-   S.pushedRev=lr;S.pushedHash=localHash;S.pushedAt=new Date().toLocaleString('zh-CN');
-   persist();renderSyncCard();
+   markSynced(localHash);hideConflict();
    if(!silent)toast('已推送到云端','i-check','green');
   });
- }).catch(function(e){if(e&&e.message)toast('同步失败:'+e.message,'i-msg')});
+ }).catch(function(e){if(e&&e.message&&!(silent&&keepalive))toast('同步失败:'+e.message,'i-msg')});
+ });
 }
 function adoptRemote(payload,silent){
  try{
   var raw=typeof payload==='string'?JSON.parse(payload):payload;
   var lc=S.lc;
   S=normalizedState(raw);S.lc=lc;
-  S.pushedRev=S.rev||0;S.pushedHash=syncHash(S);S.pushedAt=new Date().toLocaleString('zh-CN');
+  var hash=syncHash(S);
+  S.pushedRev=S.rev||0;S.pushedHash=hash;S.syncBase=hash;S.pushedAt=new Date().toLocaleString('zh-CN');
   persist();hideConflict();renderAll();renderSyncCard();
   if(S.name){var ob=$('#onboard');if(ob)ob.classList.add('hidden')}
   if(!silent)toast('已从云端恢复进度','i-check','green');
@@ -2879,17 +2932,17 @@ function adoptRemote(payload,silent){
 }
 function pullNow(interactive){
  if(!lcOK())return Promise.resolve();
+ return queueSync(function(){
+ if(!lcOK())return;
  return lcFind().then(function(remote){
-  if(!remote){if(interactive){if(isVirgin())toast('云端暂无存档,先完成一项训练再同步','i-msg');else pushNow(false,false)}return}
-  var rr=remote.rev||0,lr=S.rev||0,localHash=syncHash(S);
-  if(isVirgin()){adoptRemote(remote.payload);return}
-  if(rr>lr||rr===lr&&remote.hash!==localHash){
-   if(hasLocalSyncChanges()){showConflict();return}
-   adoptRemote(remote.payload);return;
-  }
-  if(interactive&&rr===lr&&remote.hash===localHash)toast('本机已是最新','i-check','green');
-  if(interactive&&lr>rr)pushNow(false,false);
+  if(!remote){if(interactive){if(isVirgin())toast('云端暂无存档,先完成一项训练再同步','i-msg');else return 'push'}return}
+  var decision=syncDecision(remote);
+  if(decision==='same'){markSynced(remote.hash);if(interactive)toast('本机已是最新','i-check','green');return}
+  if(decision==='adopt'){adoptRemote(remote.payload);return}
+  if(decision==='conflict'){showConflict();return}
+  return 'push';
  }).catch(function(e){if(interactive)toast('拉取失败:'+e.message,'i-msg')});
+ }).then(function(next){if(next==='push')return pushNow(false,!interactive)});
 }
 function genCode(){
  var A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',s='';
@@ -2944,8 +2997,10 @@ $('#lcOff').addEventListener('click',function(){
 $('#lcKeepLocal').addEventListener('click',function(){hideConflict();pushNow(true,false)});
 $('#lcKeepCloud').addEventListener('click',function(){lcFind().then(function(r){if(r)adoptRemote(r.payload)}).catch(function(e){toast('拉取失败:'+e.message,'i-msg')})});
 window.addEventListener('online',function(){if(lcOK())schedulePush()});
+function pushOnLeave(){if(lcOK()&&hasLocalSyncChanges()){clearTimeout(pushTimer);pushNow(false,true,true)}}
+window.addEventListener('pagehide',pushOnLeave);
 document.addEventListener('visibilitychange',function(){
- if(document.visibilityState==='hidden'&&lcOK()&&hasLocalSyncChanges()){clearTimeout(pushTimer);pushNow(false,true)}
+ if(document.visibilityState==='hidden')pushOnLeave();
  if(document.visibilityState==='visible'&&Date.now()-lastUpdChk>300000){lastUpdChk=Date.now();checkUpdate(true)}
 });
 
@@ -2978,6 +3033,7 @@ renderAll();
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.14.1',d:'10-30',items:['原文搜索改用随资料发布的官方来源索引：联网时按内容哈希更新，校验通过才替换，离线也能搜索；不再默认连接 workers.dev 检索服务','云同步改按上次同步的云端指纹判断冲突，两台设备离线各自修改后不再静默覆盖；新版本写入的未知字段会原样保留','重置进度保留同步设置，并作为本机新状态推送；云端另有修改时先让你选择','修复 12 周计划每周都显示「本周」、综合进度 25% 里程碑误判、凌晨证据日期早一天、错题本计数与可练题数不一致、非 5 题测验分数错误','教材列表合并为同一列表；技能树点按后在下方显示说明；提示改到底部并可被读屏朗读；存储写满时提醒导出或同步','原文页离线不再显示英文报错，服务连接移到正文下方的高级设置']},
  {v:'1.14.0',d:'10-28',items:['Web 与原生共用已审核资料发布清单，按哈希复用原文原图，只下载变化文件，完整校验后切换版本','原文资料库支持中英文主题搜索，可连接官方来源检索服务；外部候选标记未审核并保留原文片段与来源详情','新增独立服务连接设置，断网继续阅读已保存图文；保留原有课程、任务 ID 和学习进度']},
  {v:'1.13.0',d:'10-28',items:['接入 Microsoft 开源课程的 10 篇中文原文与 49 张原图，保留原始正文、来源、英文原文、版本和 MIT 授权','学习中心及相关课程提供原文入口，支持全文搜索、图片离线放大和深色阅读','支持手动更新与前台每日检查；原文原图完整下载并校验后替换缓存，失败时保留已有资料；原学习记录独立保留']},
  {v:'1.12.0',d:'10-27',items:['补齐技术选型决策表、结构化输出和双图多模态练习','新增贯通调研、范围、测试、成本、上线回滚和交接的虚构 POC 交付包','扩充制造、金融运营、零售、医药材料四行业全过程案例，附数据、SQL、预期结果与失败诊断','补充 RAG 冲突评测、复杂问数口径与权限验收；原有主题与进度 ID 保留']},

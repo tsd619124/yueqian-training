@@ -20,7 +20,7 @@ jobs:
   publish:
     if: github.event.repository.private == false
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -40,18 +40,24 @@ jobs:
           node native-app/scripts/export-content-release.mjs --check
           node native-app/scripts/test-content-release.mjs
           node native-app/scripts/test-external-materials.mjs
-      - name: Refresh source discovery within request and byte budgets
+      - name: Check native catalog and teaching kit match the Web source
+        run: |
+          node native-app/scripts/export-content.mjs --check
+          node native-app/scripts/verify-content-kit.mjs
+      - name: Refresh source discovery, falling back to the published catalog
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node content-pipeline/discover-ci.mjs
-      - name: Prepare site and retain previous valid content
+        run: node content-pipeline/discover-ci.mjs --fallback https://tsd619124.github.io/yueqian-training/content-discovery.json
+      - name: Build static search index, reusing unchanged documents
+        run: node content-pipeline/search-index.mjs --previous https://tsd619124.github.io/yueqian-training/content-library/
+      - name: Prepare site and retain previous valid content and index
         run: node content-pipeline/production.mjs output/site https://tsd619124.github.io/yueqian-training/
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: output/site
           retention-days: 1
       - id: deployment
-        uses: actions/deploy-pages@v4
-      - name: Verify public release and search
-        run: node content-pipeline/verify-production.mjs https://tsd619124.github.io/yueqian-training/ output/site
+        uses: actions/deploy-pages@v5
+      - name: Verify public release and search index (retries propagation lag)
+        run: node content-pipeline/verify-production.mjs https://tsd619124.github.io/yueqian-training/ output/site output/previous-release-manifest.json

@@ -2,8 +2,77 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sha256, verifyLatest, writeAtomicJSON } from './lib.mjs';
+import { copySearchDirectory, loadPublishedIndex, writePublishedIndex } from './search-index.mjs';
 
-export const webFiles = ['index.html', 'sw.js', 'manifest.webmanifest', 'icon-180.png', 'sync-config.js', 'training-receipt.png', 'training-receipt-obscured.png', 'materials.html', 'external-catalog.js', 'external-snapshot.js', 'content-release-seed.js', 'material-services.js', 'content-release.js', 'material-search.js', 'external-materials.js', 'external-materials.css', 'THIRD_PARTY_NOTICES.txt', '使用说明-手机同步与部署.md'];
+// Service Worker 之外仍需发布、但不进入预缓存的文件。
+export const unprecachedWebFiles = ['sw.js', '使用说明-手机同步与部署.md'];
+
+function webFileName(reference) {
+  const name = reference.replace(/^\.\//u, '');
+  if (!name || name === '/') return 'index.html';
+  if (name.includes('/') || name.includes('\\') || name.startsWith('.') || /[?#]/u.test(name)) throw new Error('Web 文件引用超出发布根目录：' + reference);
+  return name;
+}
+
+// 版本号与缓存名只在 index.html 和 sw.js 中维护，发布清单读取它们，避免三处手工同步。
+export async function readWebRelease(web) {
+  const index = await fs.readFile(path.join(web, 'index.html'), 'utf8');
+  const worker = await fs.readFile(path.join(web, 'sw.js'), 'utf8');
+  const webVersion = /\bvar\s+APP_VERSION\s*=\s*'([0-9]+\.[0-9]+\.[0-9]+)'/u.exec(index)?.[1];
+  const prefix = /\bvar\s+CACHE_PREFIX\s*=\s*'([^']+)'/u.exec(worker)?.[1];
+  const cacheMatch = /\bvar\s+CACHE\s*=\s*(?:CACHE_PREFIX\s*\+\s*)?'([^']+)'/u.exec(worker);
+  const assetsBlock = /\bvar\s+ASSETS\s*=\s*\[([^\]]*)\]/u.exec(worker)?.[1];
+  if (!webVersion || !cacheMatch || assetsBlock === undefined) throw new Error('无法从 index.html / sw.js 读取 APP_VERSION、CACHE 或 ASSETS。');
+  const cache = (/CACHE_PREFIX\s*\+/u.test(cacheMatch[0]) ? (prefix ?? '') : '') + cacheMatch[1];
+  const precached = [...assetsBlock.matchAll(/'([^']*)'|"([^"]*)"/gu)].map(match => webFileName(match[1] ?? match[2]));
+  const referenced = [];
+  for (const page of ['index.html', 'materials.html']) {
+    let html;
+    try { html = await fs.readFile(path.join(web, page), 'utf8'); } catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+    for (const match of html.matchAll(/\b(?:src|href)\s*=\s*"(?:\.\/)?([A-Za-z0-9_][A-Za-z0-9_.-]*\.[A-Za-z0-9]+)"/gu)) referenced.push(match[1]);
+  }
+  const files = [...new Set([...precached, ...referenced, ...unprecachedWebFiles])].sort();
+  for (const file of files) {
+    const stat = await fs.stat(path.join(web, file)).catch(() => null);
+    if (!stat?.isFile()) throw new Error((precached.includes(file) ? 'sw.js ASSETS 列出的文件不存在：' : '页面引用或发布文件不存在：') + file);
+  }
+  return { webVersion, cache, precached: [...new Set(precached)].sort(), files };
+}
+
+async function placeSearchIndex(library, builtDirectory, previousURL) {
+  const destination = path.join(library, 'search');
+  try {
+    const copied = await copySearchDirectory(builtDirectory, destination);
+    return { status: 'built', indexSha256: copied.pointer.indexSha256, documentCount: copied.pointer.documentCount, files: copied.files };
+  } catch (error) {
+    if (error.code !== 'ENOENT') console.warn('警告：本次检索索引无效，改为保留线上版本：' + error.message);
+    await fs.rm(destination, { recursive: true, force: true });
+  }
+  if (previousURL) {
+    const { previous, warning } = await loadPublishedIndex(new URL('content-library/', previousURL).href);
+    if (warning) console.warn('警告：' + warning);
+    if (previous) {
+      const written = await writePublishedIndex(destination, previous);
+      console.warn('警告：沿用线上已发布的检索索引 ' + written.pointer.indexSha256);
+      return { status: 'retained', indexSha256: written.pointer.indexSha256, documentCount: written.pointer.documentCount, files: ['latest.json', 'index-' + written.pointer.indexSha256 + '.json'] };
+    }
+  }
+  console.warn('警告：没有可发布的检索索引；客户端保留本机缓存。');
+  return { status: 'absent', indexSha256: null, documentCount: 0, files: [] };
+}
+
+// 读取部署前线上 release-manifest.json，供读回检查区分「仍是旧文件（传播延迟）」与「内容损坏」。
+export async function readPublishedReport(previousURL) {
+  if (!previousURL) return null;
+  try {
+    const bytes = await readRemote(new URL('release-manifest.json', previousURL), 1048576, true);
+    const report = bytes ? JSON.parse(bytes) : null;
+    return report?.schemaVersion === 1 && Array.isArray(report.files) ? report : null;
+  } catch (error) {
+    console.warn('警告：线上旧发布清单不可读取：' + error.message);
+    return null;
+  }
+}
 
 async function readRemote(url, maximum = 20971520, optional = false) {
   const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(30000), cache: 'no-store' });
@@ -63,16 +132,18 @@ export async function retainPrevious(library, previousURL) {
   return history;
 }
 
-export async function prepareSite(root, destination, previousURL = null) {
+export async function prepareSite(root, destination, previousURL = null, { searchDirectory = path.join(root, 'output/content-pipeline/search-index') } = {}) {
   const web = path.join(root, 'yueqian-training');
+  const webRelease = await readWebRelease(web);
   await verifyLatest(path.join(web, 'content-library'));
   await fs.mkdir(destination, { recursive: true });
   if ((await fs.readdir(destination)).length) throw new Error('发布暂存目录必须为空。');
-  for (const file of webFiles) await fs.copyFile(path.join(web, file), path.join(destination, file));
+  for (const file of webRelease.files) await fs.copyFile(path.join(web, file), path.join(destination, file));
   const sync = await fs.readFile(path.join(web, 'sync-config.js'), 'utf8');
   if (sync.replace(/\/\*[\s\S]*?\*\//gu, '').replace(/^\s*\/\/.*$/gmu, '').trim()) throw new Error('同步配置不是空凭据模板。');
   await fs.cp(path.join(web, 'content-library'), path.join(destination, 'content-library'), { recursive: true, filter: source => path.basename(source) !== '.generated.json' });
   const history = await retainPrevious(path.join(destination, 'content-library'), previousURL);
+  const searchIndex = await placeSearchIndex(path.join(destination, 'content-library'), searchDirectory, previousURL);
   await fs.copyFile(path.join(root, 'output/content-pipeline/discovery.json'), path.join(destination, 'content-discovery.json'));
   const records = [];
   async function visit(directory, prefix = '') {
@@ -85,7 +156,7 @@ export async function prepareSite(root, destination, previousURL = null) {
     }
   }
   await visit(destination);
-  const report = { schemaVersion: 1, webVersion: '1.14.0', cache: 'yueqian-v16', contentRelease: history[0].releaseID, retainedReleases: history.map(item => item.releaseID), files: records.sort((left, right) => left.path.localeCompare(right.path)) };
+  const report = { schemaVersion: 1, webVersion: webRelease.webVersion, cache: webRelease.cache, contentRelease: history[0].releaseID, retainedReleases: history.map(item => item.releaseID), searchIndex: { status: searchIndex.status, indexSha256: searchIndex.indexSha256, documentCount: searchIndex.documentCount }, files: records.sort((left, right) => left.path.localeCompare(right.path)) };
   await writeAtomicJSON(path.join(destination, 'release-manifest.json'), report);
   return report;
 }
@@ -93,6 +164,12 @@ export async function prepareSite(root, destination, previousURL = null) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   if (process.argv.length < 3 || process.argv.length > 4) throw new Error('用法：node content-pipeline/production.mjs <空发布目录> [现有站点 HTTPS 地址]');
-  const report = await prepareSite(root, path.resolve(process.argv[2]), process.argv[3]);
-  console.log(JSON.stringify({ ...report, files: report.files.length }, null, 2));
+  const destination = path.resolve(process.argv[2]);
+  // 部署前线上清单保存在发布目录之外（不上传），供 verify-production.mjs 判断传播延迟。
+  const previousReport = await readPublishedReport(process.argv[3]);
+  const report = await prepareSite(root, destination, process.argv[3]);
+  const previousReportPath = path.join(path.dirname(destination), 'previous-release-manifest.json');
+  if (previousReport) await writeAtomicJSON(previousReportPath, previousReport);
+  else await fs.rm(previousReportPath, { force: true });
+  console.log(JSON.stringify({ ...report, files: report.files.length, previousReport: previousReport ? previousReportPath : null }, null, 2));
 }

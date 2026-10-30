@@ -3,10 +3,11 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildRelease, sha256, writeRelease } from './lib.mjs';
 import { prepareSearchWorker } from './search-runtime.mjs';
-import { retainPrevious } from './production.mjs';
+import { readWebRelease, retainPrevious } from './production.mjs';
+import { checkWorkerSearch, classifyMismatch, verifyFiles } from './verify-production.mjs';
 
 const registry = JSON.parse(await fs.readFile(new URL('./sources.json', import.meta.url)));
 const topics = JSON.parse(await fs.readFile(new URL('./topics.json', import.meta.url)));
@@ -75,4 +76,83 @@ test('Worker 静态备用资料走资产绑定，库内搜索不读取远端目�
   assert.equal(await (await live.fetch(new Request('https://worker.test/content-library/latest.json'), environment)).text(), 'static-content');
   const response = await live.fetch(new Request('https://worker.test/api/search?q=RAG&scope=library'), environment);
   assert.ok((await response.json()).library.results.length > 0);
+});
+
+async function webFixture(context, { assets = "'./', './index.html', './app.js'", version = "'2.3.4'" } = {}) {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'yueqian-web-'));
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  await fs.writeFile(path.join(directory, 'index.html'), `<link rel="manifest" href="manifest.webmanifest"><script>var APP_VERSION=${version};</script><a href="./materials.html?x=1">`);
+  await fs.writeFile(path.join(directory, 'sw.js'), `var CACHE_PREFIX = 'yueqian-';\nvar CACHE = CACHE_PREFIX + 'v99';\nvar ASSETS = [${assets}];`);
+  for (const name of ['app.js', 'manifest.webmanifest', '使用说明-手机同步与部署.md']) await fs.writeFile(path.join(directory, name), name);
+  return directory;
+}
+
+test('Web 版本、缓存名与发布文件从 index.html / sw.js 读取，不写死', async context => {
+  const release = await readWebRelease(await webFixture(context));
+  assert.equal(release.webVersion, '2.3.4');
+  assert.equal(release.cache, 'yueqian-v99');
+  assert.deepEqual(release.precached, ['app.js', 'index.html']);
+  assert.deepEqual(release.files, ['app.js', 'index.html', 'manifest.webmanifest', 'sw.js', '使用说明-手机同步与部署.md']);
+  await assert.rejects(readWebRelease(await webFixture(context, { assets: "'./missing.js'" })), /ASSETS 列出的文件不存在：missing\.js/);
+  await assert.rejects(readWebRelease(await webFixture(context, { assets: "'../escape.js'" })), /超出发布根目录/);
+  await assert.rejects(readWebRelease(await webFixture(context, { version: 'VERSION' })), /APP_VERSION/);
+});
+
+test('当前 Web 源的 sw.js ASSETS 全部存在且进入发布清单', async () => {
+  const release = await readWebRelease(fileURLToPath(new URL('../yueqian-training/', import.meta.url)));
+  assert.ok(release.precached.every(file => release.files.includes(file)));
+  assert.ok(release.files.includes('sw.js') && release.files.includes('index.html'));
+  assert.match(release.webVersion, /^[0-9]+\.[0-9]+\.[0-9]+$/u);
+  assert.match(release.cache, /^yueqian-v[0-9]+$/u);
+});
+
+function siteFetcher(files, schedule = () => null) {
+  let calls = 0;
+  return async address => {
+    calls++;
+    const url = new URL(address);
+    const override = schedule(url.pathname.slice(1), calls);
+    const body = override ?? files[url.pathname.slice(1)];
+    return body === undefined ? new Response('', { status: 404 }) : new Response(body);
+  };
+}
+
+const record = (filePath, body) => ({ path: filePath, bytes: Buffer.byteLength(body), sha256: sha256(body) });
+
+test('读回检查按指数退避重试，传播延迟消失后通过', async () => {
+  const report = { files: [record('index.html', 'new'), record('a.js', 'same')] };
+  const previousReport = { files: [record('index.html', 'old'), record('a.js', 'same')] };
+  const delays = [];
+  let clock = 0;
+  const fetcher = siteFetcher({ 'index.html': 'new', 'a.js': 'same' }, (file, calls) => file === 'index.html' && calls < 5 ? 'old' : null);
+  const result = await verifyFiles({ base: new URL('https://site.test/'), report, previousReport, fetcher, sleep: async delay => { delays.push(delay); clock += delay; }, now: () => clock, options: { initialDelayMs: 5, maxDelayMs: 20, budgetMs: 1000 } });
+  assert.equal(result.mismatches.length, 0);
+  assert.deepEqual(delays, [5, 10, 20]);
+});
+
+test('超时后区分传播延迟与损坏', async () => {
+  const report = { files: [record('index.html', 'new'), record('fresh.js', 'fresh'), record('b.js', 'expected')] };
+  const previousReport = { files: [record('index.html', 'old'), record('b.js', 'older')] };
+  let clock = 0;
+  const lagging = await verifyFiles({ base: new URL('https://site.test/'), report: { files: report.files.slice(0, 2) }, previousReport, fetcher: siteFetcher({ 'index.html': 'old' }), sleep: async delay => { clock += delay; }, now: () => clock, options: { initialDelayMs: 10, maxDelayMs: 10, budgetMs: 35 } });
+  assert.equal(lagging.attempts, 4);
+  assert.ok(lagging.propagationLagOnly);
+  assert.deepEqual(lagging.mismatches.map(item => item.classification), ['propagation-lag', 'propagation-lag']);
+  const corrupt = await verifyFiles({ base: new URL('https://site.test/'), report, previousReport, fetcher: siteFetcher({ 'index.html': 'new', 'fresh.js': 'fresh', 'b.js': 'garbage' }), sleep: async () => {}, now: () => 0, options: { budgetMs: 0 } });
+  assert.equal(corrupt.propagationLagOnly, false);
+  assert.deepEqual(corrupt.mismatches.map(item => [item.path, item.classification]), [['b.js', 'corrupt']]);
+  assert.equal(classifyMismatch(record('x', 'x'), { status: 503 }, new Map()), 'unreachable');
+});
+
+test('Workers 检索检查只告警，不要求 releaseID 一致', async context => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'yueqian-verify-'));
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const base = new URL('https://site.test/app/');
+  assert.equal((await checkWorkerSearch(directory, base)).status, 'not-configured');
+  await fs.writeFile(path.join(directory, 'material-services.js'), "globalThis.X = { searchURL: 'https://worker.test/api/search' };");
+  const ok = await checkWorkerSearch(directory, base, async () => new Response(JSON.stringify({ releaseID: 'other', library: { results: [{}] } }), { headers: { 'access-control-allow-origin': base.origin } }));
+  assert.equal(ok.status, 'ok');
+  assert.equal(ok.releaseID, 'other');
+  const down = await checkWorkerSearch(directory, base, async () => { throw new TypeError('fetch failed'); });
+  assert.equal(down.status, 'warning');
 });

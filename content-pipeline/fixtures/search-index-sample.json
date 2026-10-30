@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-30T00:00:00.000Z",
+  "kind": "external-candidates",
+  "reviewStatus": "unreviewed",
+  "sources": [
+    {
+      "id": "microsoft-genai",
+      "repository": "microsoft/generative-ai-for-beginners",
+      "publisher": "Microsoft",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "checkedAt": "2026-10-30T00:00:00.000Z",
+      "status": "ready",
+      "documentCount": 1,
+      "totalMatchingFiles": 1,
+      "selectionLimited": false
+    },
+    {
+      "id": "microsoft-agents",
+      "repository": "microsoft/ai-agents-for-beginners",
+      "publisher": "Microsoft",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "checkedAt": "2026-10-30T00:00:00.000Z",
+      "status": "ready",
+      "documentCount": 2,
+      "totalMatchingFiles": 2,
+      "selectionLimited": false
+    },
+    {
+      "id": "openai-cookbook",
+      "repository": "openai/openai-cookbook",
+      "publisher": "OpenAI",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "checkedAt": "2026-10-30T00:00:00.000Z",
+      "status": "ready",
+      "documentCount": 1,
+      "totalMatchingFiles": 1,
+      "selectionLimited": false
+    }
+  ],
+  "topics": [
+    {
+      "id": "rag",
+      "title": "RAG 与检索",
+      "terms": [
+        "retrieval augmented",
+        "检索增强",
+        "向量数据库"
+      ]
+    },
+    {
+      "id": "agents",
+      "title": "Agent",
+      "terms": [
+        "AI agent",
+        "AI agents",
+        "AI 代理",
+        "AI代理",
+        "人工智能代理",
+        "智能体",
+        "自主代理"
+      ]
+    },
+    {
+      "id": "tools",
+      "title": "工具与函数调用",
+      "terms": [
+        "function calling",
+        "函数调用",
+        "tool calling"
+      ]
+    },
+    {
+      "id": "evaluation",
+      "title": "效果评测",
+      "terms": [
+        "evaluation",
+        "评估指标",
+        "评测",
+        "测试集"
+      ]
+    },
+    {
+      "id": "security",
+      "title": "安全与权限",
+      "terms": [
+        "prompt injection",
+        "提示注入",
+        "访问控制",
+        "access control"
+      ]
+    },
+    {
+      "id": "context",
+      "title": "上下文工程",
+      "terms": [
+        "context engineering",
+        "上下文工程"
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "id": "microsoft-agents:0000000000000001",
+      "sourceID": "microsoft-agents",
+      "repository": "microsoft/ai-agents-for-beginners",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "path": "13-agent-memory/README.md",
+      "url": "https://github.com/microsoft/ai-agents-for-beginners/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/13-agent-memory/README.md",
+      "blobSHA": "0000000000000000000000000000000000000001",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000001",
+      "title": "Memory for AI Agents",
+      "text": "Agent memory lets an agent remember user preferences across sessions. Short-term memory and long-term memory are stored in a vector database."
+    },
+    {
+      "id": "microsoft-agents:0000000000000002",
+      "sourceID": "microsoft-agents",
+      "repository": "microsoft/ai-agents-for-beginners",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "path": "05-agentic-rag/README.md",
+      "url": "https://github.com/microsoft/ai-agents-for-beginners/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/05-agentic-rag/README.md",
+      "blobSHA": "0000000000000000000000000000000000000002",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000002",
+      "title": "Agentic RAG",
+      "text": "Agentic retrieval augmented generation lets the agent plan multiple retrieval steps and evaluate sources."
+    },
+    {
+      "id": "openai-cookbook:0000000000000003",
+      "sourceID": "openai-cookbook",
+      "repository": "openai/openai-cookbook",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "path": "examples/evaluation/README.md",
+      "url": "https://github.com/openai/openai-cookbook/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/examples/evaluation/README.md",
+      "blobSHA": "0000000000000000000000000000000000000003",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000003",
+      "title": "Evaluation guide",
+      "text": "How to build an evaluation dataset for RAG and prompt engineering. 评测 数据集 方法。"
+    },
+    {
+      "id": "microsoft-genai:0000000000000004",
+      "sourceID": "microsoft-genai",
+      "repository": "microsoft/generative-ai-for-beginners",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "path": "11-integrating-with-function-calling/README.md",
+      "url": "https://github.com/microsoft/generative-ai-for-beginners/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/11-integrating-with-function-calling/README.md",
+      "blobSHA": "0000000000000000000000000000000000000004",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000004",
+      "title": "Function calling",
+      "text": "Function calling connects the model with external tools and APIs. 函数调用 与工具调用。"
+    }
+  ]
+}

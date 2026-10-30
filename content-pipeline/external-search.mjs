@@ -18,16 +18,16 @@ function safePath(value) {
   return typeof value === 'string' && value.length > 0 && value.length < 1200 && !value.startsWith('/') && !value.includes('\\') && !/[\u0000-\u001f\u007f]/u.test(value) && value.split('/').every(segment => segment && segment !== '.' && segment !== '..');
 }
 
-function sourceURL(repository, revision, sourcePath, raw = false) {
+export function sourceURL(repository, revision, sourcePath, raw = false) {
   const encoded = sourcePath.split('/').map(encodeURIComponent).join('/');
   return raw ? `https://raw.githubusercontent.com/${repository}/${revision}/${encoded}` : `https://github.com/${repository}/blob/${revision}/${encoded}`;
 }
 
-async function digest(algorithm, bytes) {
+export async function digest(algorithm, bytes) {
   return [...new Uint8Array(await crypto.subtle.digest(algorithm, bytes))].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-async function gitBlobSHA(bytes) {
+export async function gitBlobSHA(bytes) {
   const header = encoder.encode(`blob ${bytes.byteLength}\0`);
   const framed = new Uint8Array(header.byteLength + bytes.byteLength);
   framed.set(header);
@@ -35,7 +35,7 @@ async function gitBlobSHA(bytes) {
   return digest('SHA-1', framed);
 }
 
-function markdownText(markdown) {
+export function markdownText(markdown) {
   return markdown.replace(/<!--[\s\S]*?-->/gu, '').replace(/!\[([^\]]*)\]\([^\n)]*\)/gu, '$1').replace(/\[([^\]]+)\]\([^\n)]*\)/gu, '$1').replace(/<[^>]*>/gu, ' ').replace(/^\s*(?:#{1,6}\s+|```[^\n]*|~~~[^\n]*)/gmu, '').replace(/[*_`|]/gu, ' ').replace(/\s+/gu, ' ').trim();
 }
 
@@ -97,6 +97,12 @@ async function validatedCandidates(registry, discovery, timestamp, limits) {
     }
   }
   return { candidates, sources, failures };
+}
+
+export async function discoveryCandidates(registry, discovery, timestamp = Date.now(), maxDiscoveryAgeHours = defaults.maxDiscoveryAgeHours) {
+  validateRegistry(registry);
+  requireValue(Number.isInteger(maxDiscoveryAgeHours) && maxDiscoveryAgeHours > 0, 'invalid-limits');
+  return validatedCandidates(registry, discovery, timestamp, { ...defaults, maxDiscoveryAgeHours });
 }
 
 export async function validateDiscovery(registry, discovery, timestamp = Date.now()) {
