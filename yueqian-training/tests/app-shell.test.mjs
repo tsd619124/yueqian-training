@@ -99,7 +99,7 @@ function harness({ fetchImpl, delays = [] } = {}) {
 test('安装：可选文件下载失败不影响安装，必需文件失败则安装失败', async () => {
   const optional = harness({ fetchImpl: async request => new Response('x', { status: request.url.endsWith('THIRD_PARTY_NOTICES.txt') ? 404 : 200 }) });
   await optional.dispatch('install');
-  const cached = [...optional.stores.get('yueqian-v18').keys()];
+  const cached = [...optional.stores.get('yueqian-v19').keys()];
   assert.ok(cached.includes('https://site.test/app/content/course.json'));
   assert.ok(!cached.some(url => url.endsWith('THIRD_PARTY_NOTICES.txt')));
   assert.ok(!cached.includes('https://site.test/app/'), './ 不单独缓存');
@@ -113,7 +113,7 @@ test('取数：./ 与 ./index.html 共用一条缓存，写缓存在 waitUntil �
   const first = await sw.dispatch('fetch', { request: sw.request('./?from=home', { mode: 'navigate' }) });
   assert.equal(await first.response.text(), 'ok:https://site.test/app/?from=home');
   assert.ok(first.pending >= 1);
-  assert.deepEqual([...sw.stores.get('yueqian-v18').keys()], ['https://site.test/app/index.html']);
+  assert.deepEqual([...sw.stores.get('yueqian-v19').keys()], ['https://site.test/app/index.html']);
   await sw.dispatch('fetch', { request: sw.request('./materials.html?article=a') });
   assert.ok(sw.stores.get('yueqian-runtime').has('https://site.test/app/materials.html'), '原文页运行时缓存到独立的 runtime 缓存');
 });
@@ -128,7 +128,7 @@ test('取数：3 秒无响应先用缓存；离线时导航回退 index.html；n
   assert.ok(sw.delays.includes(3000));
 
   const offline = harness({ fetchImpl: async () => { throw new TypeError('Failed to fetch'); } });
-  await offline.stores.set('yueqian-v18', new Map([['https://site.test/app/index.html', new Response('shell')]]));
+  await offline.stores.set('yueqian-v19', new Map([['https://site.test/app/index.html', new Response('shell')]]));
   const nav = await offline.dispatch('fetch', { request: offline.request('./materials.html', { mode: 'navigate' }) });
   assert.equal(await nav.response.text(), 'shell');
   const miss = await offline.dispatch('fetch', { request: offline.request('./missing.js') });

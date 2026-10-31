@@ -150,7 +150,7 @@ test('中文与英文检索返回已收录原文片段和固定版本来源', ()
 test('主题报告只给原文线索，不把命中视为完整掌握或先进性', () => {
   const report = coverageReport(index, topics);
   assert.equal(report.requiresReview, true);
-  assert.equal(report.topics.length, 12);
+  assert.equal(report.topics.length, 17);
   assert.ok(report.topics.some(topic => topic.status === 'no-evidence'));
   for (const topic of report.topics) {
     assert.ok(['mentioned', 'no-evidence'].includes(topic.status));

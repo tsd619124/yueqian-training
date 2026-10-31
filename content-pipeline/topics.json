@@ -13,6 +13,11 @@
     { "id": "multimodal", "title": "多模态", "terms": ["multimodal", "多模态", "vision"], "lessonIDs": ["w2.3"] },
     { "id": "observability", "title": "运行观测与追踪", "terms": ["observability", "可观测性", "distributed tracing"], "lessonIDs": ["w5.2"] },
     { "id": "cost", "title": "成本与延迟", "terms": ["latency", "延迟", "推理成本", "token cost"], "lessonIDs": ["w2.2"] },
-    { "id": "deployment", "title": "部署与选型", "terms": ["deployment", "模型部署", "私有化", "生产环境"], "lessonIDs": ["w2.2"] }
+    { "id": "deployment", "title": "部署与选型", "terms": ["deployment", "模型部署", "私有化", "生产环境"], "lessonIDs": ["w2.2"] },
+    { "id": "chatbi", "title": "ChatBI 与 NL2SQL", "terms": ["NL2SQL", "text to sql", "问数", "ChatBI", "语义层", "metric layer", "指标层"], "lessonIDs": ["w2.1"] },
+    { "id": "data-governance", "title": "数据治理与口径", "terms": ["data governance", "数据治理", "指标口径", "口径治理", "data modeling"], "lessonIDs": ["w2.1", "ref.metrics"] },
+    { "id": "rag-eval", "title": "RAG 评测方法", "terms": ["RAG evaluation", "faithfulness", "ragas", "groundedness", "引用准确"], "lessonIDs": ["w2.0", "w5.2"] },
+    { "id": "domestic-llm", "title": "国内 AI 生态", "terms": ["通义", "DeepSeek", "Dify", "国产向量库", "百炼"], "lessonIDs": ["ref.compete"] },
+    { "id": "compliance", "title": "合规与数据出境", "terms": ["数据出境", "个人信息保护", "PIPL", "信创", "私有化部署"], "lessonIDs": ["w2.2"] }
   ]
 }

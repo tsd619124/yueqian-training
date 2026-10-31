@@ -396,7 +396,7 @@ async function publishIOS({ install, skipSwiftTest }) {
   const synced = await run('rsync', rsync);
   if (synced.code !== 0) throw new Error('rsync 失败：' + synced.output);
   console.log('已同步原生源码到 ' + resignSource);
-  const installer = await run('/bin/bash', [path.join(path.dirname(resignSource), 'resign-install.sh'), '--force'], { quiet: false, timeout: 0 });
+  const installer = await run('/bin/zsh', [path.join(path.dirname(resignSource), 'resign-install.sh'), '--force'], { quiet: false, timeout: 0 });
   if (installer.code !== 0) throw new Error('resign-install.sh 失败，退出码 ' + installer.code);
 }
 
