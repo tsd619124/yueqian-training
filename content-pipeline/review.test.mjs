@@ -6,7 +6,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { buildRelease, discoverSources, sha256, sourceURL, writeAtomicJSON, writeRelease } from './lib.mjs';
+import { buildRelease, discoverSources, readLibrarySnapshot, sha256, sourceURL, writeAtomicJSON, writeRelease } from './lib.mjs';
 import { collectDocuments, documentVersion, gitBlobSHA, reconcileIntake } from './intake.mjs';
 import { applyReviewDecisions, buildReviewQueue, validateHistory } from './review.mjs';
 import { renderReviewHTML } from './review-page.mjs';
@@ -183,11 +183,11 @@ test('来源故障保留旧正文，取样之外的文件标记未核实，不�
   current.discovery.sources[0].status = 'checked';
   current.discovery.sources[0].candidates.pop();
   current.discovery.sources[0].selectionLimited = true;
-  const sampled = reconcileIntake(registry, current.discovery, previous);
+  const sampled = reconcileIntake(registry, current.discovery, previous, now);
   assert.ok(sampled.documents.some(entry => entry.status === 'unverified'));
   assert.equal(sampled.scope.complete, false);
   current.discovery.sources[0].selectionLimited = false;
-  const removed = reconcileIntake(registry, current.discovery, previous);
+  const removed = reconcileIntake(registry, current.discovery, previous, now);
   assert.ok(removed.documents.some(entry => entry.status === 'removed'));
 });
 
@@ -343,11 +343,11 @@ test('审核页转义来源文本且不加载远程图片，外部文本不能�
 test('真实 CLI 导入与重新审核保持正式发布指针和材料文件不变', async context => {
   const output = await fs.mkdtemp(path.join(os.tmpdir(), 'yueqian-topic-review-'));
   context.after(() => fs.rm(output, { recursive: true, force: true }));
-  await import('../yueqian-training/external-snapshot.js');
-  const bundle = buildRelease(globalThis.YUEQIAN_EXTERNAL_SEED, configuration, topics);
+  const bundle = buildRelease(await readLibrarySnapshot(), configuration, topics);
   await writeRelease(output, bundle);
   const pointerBefore = await fs.readFile(path.join(output, 'latest.json'), 'utf8');
   const current = fixture();
+  current.discovery.sources[0].checkedAt = new Date().toISOString(); // CLI uses real time; keep discovery fresh
   const intake = await intakeFor();
   await writeAtomicJSON(path.join(output, 'discovery.json'), current.discovery);
   await writeAtomicJSON(path.join(output, 'review/intake.json'), intake);
@@ -362,6 +362,7 @@ test('真实 CLI 导入与重新审核保持正式发布指针和材料文件不
   const history = JSON.parse(await fs.readFile(path.join(output, 'review/reviews.json'), 'utf8'));
   assert.equal(history.records.length, 1);
   const next = fixture(bodies.map(body => body + '\nNew evidence.\n'), laterRevision);
+  next.discovery.sources[0].checkedAt = new Date().toISOString(); // keep fresh for CLI
   await writeAtomicJSON(path.join(output, 'discovery.json'), next.discovery);
   await run();
   const updated = JSON.parse(await fs.readFile(path.join(output, 'review/queue.json'), 'utf8'));

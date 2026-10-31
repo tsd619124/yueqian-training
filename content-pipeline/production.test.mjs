@@ -4,15 +4,15 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildRelease, sha256, writeRelease } from './lib.mjs';
+import { buildRelease, readLibrarySnapshot, sha256, writeRelease } from './lib.mjs';
 import { prepareSearchWorker } from './search-runtime.mjs';
 import { readWebRelease, retainPrevious } from './production.mjs';
 import { checkWorkerSearch, classifyMismatch, verifyFiles } from './verify-production.mjs';
 
 const registry = JSON.parse(await fs.readFile(new URL('./sources.json', import.meta.url)));
 const topics = JSON.parse(await fs.readFile(new URL('./topics.json', import.meta.url)));
-await import('../yueqian-training/external-snapshot.js');
-const original = buildRelease(globalThis.YUEQIAN_EXTERNAL_SEED, registry, topics);
+const bundledSnapshot = await readLibrarySnapshot();
+const original = buildRelease(bundledSnapshot, registry, topics);
 const pointer = release => ({ schemaVersion: 1, releaseID: release.releaseID, manifestPath: `releases/${release.releaseID}/manifest.json`, manifestSha256: sha256(release.files.get('manifest.json')) });
 async function temporary(context) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'yueqian-production-'));
@@ -29,7 +29,7 @@ test('首次上线仅登记真实当前发布，不伪造上一版', async conte
 
 test('保留已校验的上一发布，并拒绝哈希损坏文件', async context => {
   const directory = await temporary(context);
-  const snapshot = structuredClone(globalThis.YUEQIAN_EXTERNAL_SEED);
+  const snapshot = structuredClone(bundledSnapshot);
   snapshot.revision = 'a'.repeat(40);
   const previous = buildRelease(snapshot, registry, topics);
   let broken = false;
@@ -96,6 +96,17 @@ test('Web 版本、缓存名与发布文件从 index.html / sw.js 读取，不�
   await assert.rejects(readWebRelease(await webFixture(context, { assets: "'./missing.js'" })), /ASSETS 列出的文件不存在：missing\.js/);
   await assert.rejects(readWebRelease(await webFixture(context, { assets: "'../escape.js'" })), /超出发布根目录/);
   await assert.rejects(readWebRelease(await webFixture(context, { version: 'VERSION' })), /APP_VERSION/);
+  await assert.rejects(readWebRelease(await webFixture(context, { assets: "'./other/app.js'" })), /超出发布根目录/);
+});
+
+test('version.json 与 content/*.json 即使不在 ASSETS 中也进入发布清单', async context => {
+  const directory = await webFixture(context, { assets: "'./', './index.html', './content/lessons.json'" });
+  await fs.mkdir(path.join(directory, 'content'));
+  for (const name of ['content/lessons.json', 'content/quiz.json', 'version.json']) await fs.writeFile(path.join(directory, name), '{}');
+  await fs.writeFile(path.join(directory, 'content/.hidden.json'), '{}');
+  const release = await readWebRelease(directory);
+  assert.deepEqual(release.precached, ['content/lessons.json', 'index.html']);
+  assert.deepEqual(release.files, ['content/lessons.json', 'content/quiz.json', 'index.html', 'manifest.webmanifest', 'sw.js', 'version.json', '使用说明-手机同步与部署.md']);
 });
 
 test('当前 Web 源的 sw.js ASSETS 全部存在且进入发布清单', async () => {

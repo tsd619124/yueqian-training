@@ -178,7 +178,11 @@
         .replace(/!\[([^\]]*)\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g, (_, alt, target) => {
           const path = new URL(target, rawURL(snapshot.revision, article.path)).pathname.split('/' + snapshot.revision + '/')[1];
           const image = images.get(path);
-          return image ? token('<figure><a href="' + rawURL(snapshot.revision, image.path) + '" target="_blank" rel="noopener noreferrer"><img data-source-path="' + escapeHTML(image.path) + '" src="data:' + image.mimeType + ';base64,' + image.data + '" alt="' + escapeHTML(image.alt) + '" loading="lazy"></a></figure>') : escapeHTML(alt);
+          if (!image) return escapeHTML(alt);
+          // 资料库原图用普通地址（image.src）；Node 校验仍可传 base64（image.data）。
+          const src = image.src || 'data:' + image.mimeType + ';base64,' + image.data;
+          const size = Number.isInteger(image.width) && Number.isInteger(image.height) ? ' width="' + image.width + '" height="' + image.height + '"' : '';
+          return token('<figure><a href="' + rawURL(snapshot.revision, image.path) + '" target="_blank" rel="noopener noreferrer"><img data-source-path="' + escapeHTML(image.path) + '" src="' + escapeHTML(src) + '" alt="' + escapeHTML(image.alt) + '"' + size + ' loading="lazy" decoding="async"></a></figure>');
         })
         .replace(/\[([^\]\n]+)\]\(([^\s)]+)\)/g, (_, label, target) => {
           const href = safeLink(target, snapshot, article);
@@ -247,32 +251,38 @@
       return await new Promise((resolve, reject) => {
         const writing = arguments.length > 1;
         const transaction = database.transaction('library', writing ? 'readwrite' : 'readonly');
-        const request = writing ? transaction.objectStore('library').put(value, key) : transaction.objectStore('library').get(key);
+        const store = transaction.objectStore('library');
+        const request = writing ? (value === undefined ? store.delete(key) : store.put(value, key)) : store.get(key);
         transaction.oncomplete = () => resolve(request.result);
         transaction.onerror = transaction.onabort = () => reject(new Error('图文缓存未能保存，已有资料保留。'));
       });
     } finally { database.close(); }
   }
 
-  async function commitCache(snapshot, settings, release) {
+  // 资料版本与检查时间在同一事务写入；1.15 前的 base64 快照（snapshot / release）同时删除。
+  async function commitCache(release, settings) {
     const database = await openDatabase();
     try {
       await new Promise((resolve, reject) => {
         const transaction = database.transaction('library', 'readwrite');
-        transaction.objectStore('library').put(snapshot, 'snapshot');
-        transaction.objectStore('library').put(settings, 'settings');
-        if (release) transaction.objectStore('library').put(release, 'release');
+        const store = transaction.objectStore('library');
+        store.put(release, 'release-v2');
+        store.put(settings, 'settings');
+        store.delete('snapshot'); store.delete('release');
         transaction.oncomplete = resolve;
         transaction.onerror = transaction.onabort = () => reject(new Error('图文缓存未能保存，已有资料保留。'));
       });
     } finally { database.close(); }
   }
 
+  const idle = callback => (root.requestIdleCallback ? root.requestIdleCallback(callback, { timeout: 4000 }) : setTimeout(callback, 1200));
+
   async function mountReader() {
     const mount = document.querySelector('[data-materials-root]');
     if (!mount) return;
     const catalog = root.YUEQIAN_EXTERNAL_CATALOG;
-    let snapshot = root.YUEQIAN_EXTERNAL_SEED;
+    const releaseClient = root.YueqianContentRelease;
+    const searchClient = root.YueqianMaterialSearch;
     const status = document.getElementById('materials-status');
     const updateButton = document.getElementById('materials-update');
     const automatic = document.getElementById('materials-automatic');
@@ -282,22 +292,27 @@
     const searchResults = document.getElementById('materials-search-results');
     const servicesForm = document.getElementById('materials-services-form');
     const servicesStatus = document.getElementById('materials-services-status');
-    const releaseClient = root.YueqianContentRelease;
-    const searchClient = root.YueqianMaterialSearch;
-    const usesReleases = Boolean(releaseClient && root.YUEQIAN_CONTENT_RELEASE);
     let release = null;
-    let showingRelease = false;
+    let searchSnapshot = null;
+    let searchSnapshotLoading = null;
     let services = { contentBaseURL: './content-library/', searchURL: null, ...root.YUEQIAN_MATERIAL_SERVICES };
     let searchSerial = 0;
+    let renderSerial = 0;
     let settings = { automatic: true, checkedAt: null, attemptedAt: null };
     let updating = false;
     let savingServices = false;
     let selectedID = new URL(location.href).searchParams.get('article') || mount.dataset.materialDefault || 'ms-rag';
     const lessonID = new URL(location.href).searchParams.get('lesson');
     if (lessonID) selectedID = catalog.articles.find(article => article.lessonIDs.includes(lessonID))?.id || selectedID;
+    if (!catalog.articles.some(article => article.id === selectedID)) selectedID = catalog.articles[0].id;
 
+    function sourceMeta() {
+      const source = release.manifest.sources[0];
+      return { repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt };
+    }
     function statusText() {
-      return settings.checkedAt ? '上次检查 ' + new Date(settings.checkedAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : '已保存 ' + new Date(snapshot.fetchedAt).toLocaleDateString('zh-CN') + ' 的原文与原图';
+      if (settings.checkedAt) return '上次检查 ' + new Date(settings.checkedAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+      return release ? '已保存 ' + new Date(sourceMeta().fetchedAt).toLocaleDateString('zh-CN') + ' 的原文与原图' : '原文尚未下载。';
     }
 
     function revealCurrentArticle(list) {
@@ -307,19 +322,30 @@
       }
     }
 
+    // 检索用纯文本（index.json）只在第一次输入检索词时读取。
+    function ensureSearchSnapshot() {
+      if (searchSnapshot) return Promise.resolve(searchSnapshot);
+      if (!release) return Promise.reject(new Error('原文尚未下载，联网后再试。'));
+      const current = release;
+      searchSnapshotLoading ||= releaseClient.searchSnapshot(current, catalog).then(value => {
+        if (current === release) searchSnapshot = value;
+        return value;
+      }).finally(() => { searchSnapshotLoading = null; });
+      return searchSnapshotLoading;
+    }
+
     function renderList() {
       const term = query.value.trim().toLowerCase();
       let matchingIDs = null;
       if (term && searchClient) {
-        try { matchingIDs = new Set(searchClient.local(snapshot, term).map(article => article.id)); }
-        catch { matchingIDs = new Set(); }
+        if (searchSnapshot) {
+          try { matchingIDs = new Set(searchClient.local(searchSnapshot, term).map(article => article.id)); }
+          catch { matchingIDs = new Set(); }
+        } else ensureSearchSnapshot().then(renderList, () => {});
       }
-      const articles = snapshot.articles.filter(article => (!lessonID || article.lessonIDs.includes(lessonID)) && (!term || (matchingIDs ? matchingIDs.has(article.id) : (article.title + article.markdown).toLowerCase().includes(term))));
+      const articles = catalog.articles.filter(article => (!lessonID || article.lessonIDs.includes(lessonID)) && (!term || (matchingIDs ? matchingIDs.has(article.id) : article.title.toLowerCase().includes(term))));
       const list = document.getElementById('materials-list');
       list.innerHTML = articles.map(article => '<button type="button" data-article="' + article.id + '"' + (article.id === selectedID ? ' aria-current="page"' : '') + '>' + escapeHTML(article.title) + '</button>').join('') || '<p class="source-muted">没有匹配的原文。</p>';
-      list.querySelectorAll('[data-article]').forEach(button => button.addEventListener('click', () => {
-        selectArticle(button.dataset.article);
-      }));
       revealCurrentArticle(list);
     }
 
@@ -334,24 +360,56 @@
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
-    function renderArticle() {
-      const article = snapshot.articles.find(item => item.id === selectedID) || snapshot.articles[0];
-      selectedID = article.id;
-      const rendered = renderMarkdown(snapshot, article);
-      document.title = article.title + ' · 跃迁计划';
+    async function renderArticle() {
+      const serial = ++renderSerial;
+      const definition = catalog.articles.find(item => item.id === selectedID) || catalog.articles[0];
+      selectedID = definition.id;
+      document.title = definition.title + ' · 跃迁计划';
+      if (!release) {
+        document.getElementById('source-title').textContent = definition.title;
+        document.getElementById('source-body').innerHTML = '<p class="source-muted">原文与配图需要联网下载一次，之后离线可读。</p>';
+        return;
+      }
+      const current = release;
+      let document_;
+      try { document_ = await releaseClient.documentFor(current, definition.id, catalog); }
+      catch (error) {
+        if (serial !== renderSerial) return;
+        document.getElementById('source-title').textContent = definition.title;
+        document.getElementById('source-body').innerHTML = '<p class="source-muted">这篇原文暂时无法读取：' + escapeHTML(readableError(error)) + '</p>';
+        document.getElementById('source-lead').replaceChildren();
+        return;
+      }
+      if (serial !== renderSerial || current !== release) return;
+      const meta = sourceMeta();
+      const article = { ...definition, markdown: document_.markdown, images: document_.images.map(image => ({ path: image.sourcePath, alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, width: image.width, height: image.height, src: releaseClient.assetURL(current, image.path), file: image.path })) };
+      const rendered = renderMarkdown(meta, article);
       document.getElementById('source-title').textContent = rendered.title;
-      document.getElementById('source-original').href = sourceURL(snapshot, article);
-      document.getElementById('source-english').href = sourceURL(snapshot, article, true);
+      document.getElementById('source-original').href = sourceURL(meta, article);
+      document.getElementById('source-english').href = sourceURL(meta, article, true);
       document.getElementById('source-body').innerHTML = rendered.html;
       const lead = article.images.find(image => !/DALLE/i.test(image.path + image.alt)) || article.images[0];
       const leadFigure = [...document.querySelectorAll('#source-body img')].find(image => image.dataset.sourcePath === lead?.path)?.closest('figure');
+      if (leadFigure) leadFigure.querySelector('img').loading = 'eager';
       document.getElementById('source-lead').replaceChildren(...(leadFigure ? [leadFigure] : []));
       document.getElementById('source-toc').innerHTML = rendered.headings.filter(heading => heading.level <= 3).map(heading => '<a href="#' + heading.anchor + '">' + escapeHTML(heading.title) + '</a>').join('');
-      document.getElementById('source-revision').textContent = (showingRelease ? '资料版本 ' + release.latest.releaseID.slice(0, 12) + ' · ' : '') + '来源版本 ' + snapshot.revision.slice(0, 12) + ' · 下载于 ' + new Date(snapshot.fetchedAt).toLocaleString('zh-CN');
-      document.getElementById('source-license').textContent = snapshot.licenseText;
+      document.getElementById('source-revision').textContent = '资料版本 ' + current.latest.releaseID.slice(0, 12) + ' · 来源版本 ' + meta.revision.slice(0, 12) + ' · 下载于 ' + new Date(meta.fetchedAt).toLocaleString('zh-CN');
+      // 首次查看后把本篇原图与许可存入缓存，供离线阅读；放在空闲时执行，不占首屏。
+      idle(() => {
+        releaseClient.cacheAssets(current, article.images.map(image => image.file)).catch(() => {});
+        releaseClient.file(current, 'LICENSE.txt').then(bytes => { if (current === release) document.getElementById('source-license').textContent = new TextDecoder().decode(bytes); }).catch(() => {});
+      });
     }
 
-    function renderSearchGroups(result) {
+    // 原图加载失败（多为离线）时改用缓存中的副本。
+    function useCachedImage(event) {
+      const image = event.target;
+      if (image?.tagName !== 'IMG' || image.dataset.cacheFallback || !image.src.startsWith('http')) return;
+      image.dataset.cacheFallback = '1';
+      releaseClient.cachedAssetBlobURL(image.src).then(url => { if (url) image.src = url; }).catch(() => {});
+    }
+
+    function renderSearchGroups(result, snapshot) {
       searchResults.replaceChildren();
       for (const [kind, title, items] of [['library', '已入库原文', result.library], ['external', '官方来源 · 未审核', result.external]]) {
         const group = document.createElement('section');
@@ -406,11 +464,13 @@
       searchPanel.hidden = false;
       try {
         const term = searchClient.normalize(query.value);
-        renderSearchGroups({ library: searchClient.local(snapshot, term), external: [] });
+        const snapshot = await ensureSearchSnapshot().catch(() => ({ repository: catalog.repository, revision: '0'.repeat(40), articles: [] }));
+        if (serial !== searchSerial) return;
+        renderSearchGroups({ library: searchClient.local(snapshot, term), external: [] }, snapshot);
         searchStatus.textContent = services.searchURL ? '正在检索配置的官方来源，已显示本机原文…' : '正在搜索已保存的原文与官方来源索引…';
         const result = await searchClient.search({ query: term, snapshot, releaseID: release?.latest.releaseID || snapshot.revision, searchURL: services.searchURL, contentBaseURL: location.protocol === 'file:' ? null : services.contentBaseURL });
         if (serial !== searchSerial) return;
-        renderSearchGroups(result);
+        renderSearchGroups(result, snapshot);
         searchStatus.textContent = result.message;
       } catch (error) {
         if (serial !== searchSerial) return;
@@ -445,7 +505,11 @@
         if (manual) status.textContent = '当前离线，继续使用已保存的资料。联网后再检查更新。';
         return;
       }
-      if (!manual && (!settings.automatic || Date.now() - Date.parse(settings.checkedAt || 0) < 86400000 || Date.now() - Date.parse(settings.attemptedAt || 0) < 3600000)) return;
+      if (!manual && release && (!settings.automatic || Date.now() - Date.parse(settings.checkedAt || 0) < 86400000 || Date.now() - Date.parse(settings.attemptedAt || 0) < 3600000)) {
+        // 资料版本近期已检查时，仍需补取尚未保存的官方来源索引。
+        if (searchClient?.cachedIndex && !(await searchClient.cachedIndex())) await refreshSearchIndex(services.contentBaseURL).catch(() => null);
+        return;
+      }
       const requestedContentURL = services.contentBaseURL;
       const servicesSaveButton = document.getElementById('materials-services-save');
       updating = true; updateButton.disabled = true;
@@ -453,28 +517,19 @@
       settings.attemptedAt = new Date().toISOString();
       try {
         await cachedValue('settings', settings);
-        let nextRelease = null;
-        let next;
-        let changed;
-        if (usesReleases) {
-          assert(release, '内置资料清单未通过检查，请重新加载页面。');
-          const result = await releaseClient.refresh(requestedContentURL, release, catalog, fetch, message => { status.textContent = message; });
-          nextRelease = result.state; next = nextRelease.snapshot; changed = result.changed;
-        } else {
-          next = await downloadSnapshot(catalog, snapshot, fetch, message => { status.textContent = message; });
-          changed = next !== snapshot;
-        }
-        const checkedAt = new Date().toISOString();
-        const nextSettings = { ...settings, checkedAt };
+        const result = await releaseClient.refresh(requestedContentURL, release, catalog, fetch, message => { status.textContent = message; });
+        const nextSettings = { ...settings, checkedAt: new Date().toISOString() };
         assert(services.contentBaseURL === requestedContentURL, '资料服务已切换，请重新检查更新。');
-        await commitCache(next, nextSettings, nextRelease);
-        snapshot = next;
-        if (nextRelease) { release = nextRelease; showingRelease = true; }
-        renderArticle(); renderList();
+        await commitCache(result.state, nextSettings);
         settings = nextSettings;
-        status.textContent = (changed ? '原文与原图已完整保存。' : '当前已是最新资料版本。') + statusText();
+        if (result.changed) {
+          release = result.state; searchSnapshot = null;
+          releaseClient.prune(release).catch(() => {});
+          await renderArticle(); renderList();
+        }
+        status.textContent = (result.changed ? '原文与原图已完整保存。' : '当前已是最新资料版本。') + statusText();
       } catch (error) {
-        status.textContent = '更新未完成，继续使用已保存的资料。' + readableError(error);
+        status.textContent = (release ? '更新未完成，继续使用已保存的资料。' : '原文下载未完成。') + readableError(error);
       }
       try {
         const indexMessage = await refreshSearchIndex(requestedContentURL);
@@ -486,33 +541,34 @@
       }
     }
 
+    // 打开：读取已保存的资料版本（只查结构，不重算哈希）；没有时从资料库下载指针与清单并校验一次。
     try {
-      await validateSnapshot(snapshot, catalog);
-      if (usesReleases) {
-        release = await releaseClient.fromSeed(root.YUEQIAN_CONTENT_RELEASE, snapshot, catalog);
-        snapshot = release.snapshot; showingRelease = true;
-      }
-    } catch (error) { status.textContent = '正在使用内置的来源快照。' + readableError(error); }
-    try {
-      const [cached, savedSettings, savedRelease, savedServices] = await Promise.all([cachedValue('snapshot'), cachedValue('settings'), cachedValue('release'), cachedValue('services')]);
+      const [savedRelease, savedSettings, savedServices] = await Promise.all([cachedValue('release-v2'), cachedValue('settings'), cachedValue('services')]);
       if (savedSettings && typeof savedSettings.automatic === 'boolean') settings = { automatic: savedSettings.automatic, checkedAt: Number.isFinite(Date.parse(savedSettings.checkedAt)) ? savedSettings.checkedAt : null, attemptedAt: Number.isFinite(Date.parse(savedSettings.attemptedAt)) ? savedSettings.attemptedAt : null };
-      if (usesReleases && savedRelease) {
-        try { release = await releaseClient.validateState(savedRelease, catalog); snapshot = release.snapshot; showingRelease = true; }
-        catch (error) { status.textContent = '保存的资料清单未通过检查，已保留内置资料。' + readableError(error); }
-      } else if (!usesReleases && cached) { snapshot = await validateSnapshot(cached, catalog); showingRelease = false; }
-      if (releaseClient) {
-        services = validatedServices(savedServices || services);
-        if (savedServices && savedServices.searchURL !== services.searchURL) cachedValue('services', services).catch(() => {});
-        if (servicesStatus) servicesStatus.textContent = services.searchURL ? '已连接自配检索服务；不可用时回退本机索引。' : '未连接检索服务，使用随资料发布的官方来源索引。';
-      }
-      status.textContent = statusText();
+      services = validatedServices(savedServices || services);
+      if (savedServices && savedServices.searchURL !== services.searchURL) cachedValue('services', services).catch(() => {});
+      if (servicesStatus) servicesStatus.textContent = services.searchURL ? '已连接自配检索服务；不可用时回退本机索引。' : '未连接检索服务，使用随资料发布的官方来源索引。';
+      try { release = savedRelease ? releaseClient.restore(savedRelease) : null; } catch { release = null; }
     } catch (error) {
       status.textContent = '已有资料仍可阅读。' + readableError(error);
       if (servicesStatus) servicesStatus.textContent = '连接设置未能读取，正在使用默认地址。';
     }
+    if (!release) {
+      try {
+        release = await releaseClient.load(services.contentBaseURL, catalog);
+        settings = { ...settings, checkedAt: new Date().toISOString() };
+        commitCache(release, settings).catch(() => {});
+      } catch (error) { status.textContent = '原文需要联网下载一次。' + readableError(error); }
+    }
+    renderList();
+    await renderArticle();
+    if (release) status.textContent = statusText();
     renderServices();
     automatic.checked = settings.automatic;
-    renderArticle(); renderList();
+    document.getElementById('materials-list').addEventListener('click', event => {
+      const button = event.target.closest('[data-article]');
+      if (button) selectArticle(button.dataset.article);
+    });
     query.addEventListener('input', () => {
       searchSerial++;
       renderList();
@@ -558,23 +614,25 @@
     const imageScale = document.getElementById('source-image-scale');
     const enlargedImage = document.getElementById('source-image-large');
     function resizeImage() { enlargedImage.style.width = imageDialog.querySelector('.source-image-viewport').clientWidth * Number(imageScale.value) + 'px'; }
-    document.querySelector('.source-article').addEventListener('click', event => {
+    const article = document.querySelector('.source-article');
+    article.addEventListener('error', useCachedImage, true);
+    article.addEventListener('click', event => {
       const link = event.target.closest('figure a');
       if (!link || event.metaKey || event.ctrlKey || event.shiftKey) return;
       event.preventDefault();
       const image = link.querySelector('img');
-      enlargedImage.src = image.src; enlargedImage.alt = image.alt; imageScale.value = '1';
+      enlargedImage.src = image.currentSrc || image.src; enlargedImage.alt = image.alt; imageScale.value = '1';
       imageDialog.showModal(); resizeImage();
     });
     imageScale.addEventListener('input', resizeImage);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) update(false); });
     root.addEventListener('online', () => update(false));
     root.addEventListener('resize', () => revealCurrentArticle(document.getElementById('materials-list')));
-    root.YueqianMaterials.currentSnapshot = () => snapshot;
     root.YueqianMaterials.currentRelease = () => release;
+    root.YueqianMaterials.currentSearchSnapshot = ensureSearchSnapshot;
     root.YueqianMaterials.currentServices = () => ({ ...services });
     root.YueqianMaterials.update = () => update(true);
-    if (!usesReleases || location.protocol !== 'file:') await update(false);
+    if (location.protocol !== 'file:') idle(() => update(false));
   }
 
   root.YueqianMaterials = { rawURL, sourceURL, imageReferences, imageMime, digest, validateSnapshot, downloadSnapshot, renderMarkdown, cachedValue };

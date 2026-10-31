@@ -1,6 +1,11 @@
+// 原文资料库客户端：latest.json → manifest.json → documents/*.json → assets/<sha256>.<ext>。
+// 校验策略（见 content-pipeline/BUNDLED-CONTENT-LIBRARY.md）：只对从网络下载的指针、清单与文件做字节数 + SHA-256 校验，
+// 通过后写入 Cache API（yueqian-content-v1）与 IndexedDB；之后打开直接信任本机缓存，不再逐个重算哈希。
+// 原图用普通 <img src> 地址加载；首次查看后后台存入缓存，离线时从缓存取出显示。
 (function (root) {
   'use strict';
 
+  const cacheName = 'yueqian-content-v1';
   const maximumFileBytes = 4 * 1024 * 1024;
   const maximumReleaseBytes = 25 * 1024 * 1024;
   const hashPattern = /^[a-f0-9]{64}$/;
@@ -8,26 +13,13 @@
   const encoder = new TextEncoder();
   const decoder = new TextDecoder('utf-8', { fatal: true });
   function assert(value, message) { if (!value) throw new Error(message); }
-  function decode(value, maximum = maximumFileBytes) {
-    assert(typeof value === 'string' && value.length <= Math.ceil(maximum / 3) * 4, '资料文件大小无效。');
-    let bytes;
-    try { bytes = Uint8Array.from(atob(value), character => character.charCodeAt(0)); }
-    catch { throw new Error('资料文件编码无效。'); }
-    assert(bytes.length > 0 && bytes.length <= maximum && encode(bytes) === value, '资料文件编码或大小无效。');
-    return bytes;
-  }
-  function encode(bytes) {
-    let value = '';
-    for (let offset = 0; offset < bytes.length; offset += 32768) value += String.fromCharCode(...bytes.subarray(offset, offset + 32768));
-    return btoa(value);
-  }
   function parse(bytes) { try { return JSON.parse(decoder.decode(bytes)); } catch { throw new Error('资料清单或原文编码无效。'); } }
   function canonical(value) {
     if (Array.isArray(value)) return value.map(canonical);
     if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]));
     return value;
   }
-  async function digest(bytes) { return root.YueqianMaterials.digest(bytes); }
+  async function digest(bytes) { return [...new Uint8Array(await root.crypto.subtle.digest('SHA-256', bytes))].map(value => value.toString(16).padStart(2, '0')).join(''); }
   function pointer(value) {
     assert(value?.schemaVersion === 1 && hashPattern.test(value.releaseID) && hashPattern.test(value.manifestSha256) && value.manifestPath === 'releases/' + value.releaseID + '/manifest.json', '资料版本指针无效。');
     return value;
@@ -43,10 +35,11 @@
     return url;
   }
   function baseURL(value) { const url = endpoint(value); if (!url.pathname.endsWith('/')) url.pathname += '/'; return url; }
-  async function manifestFor(latest, manifestBase64, catalog) {
+
+  // 清单校验：哈希、确定性版本号、唯一来源与课程关联必须与随站点发布的原文目录一致。
+  async function manifestFor(latest, bytes, catalog) {
     pointer(latest);
-    const bytes = decode(manifestBase64, 1048576);
-    assert(await digest(bytes) === latest.manifestSha256, '资料清单哈希校验失败。');
+    assert(bytes.length > 0 && bytes.length <= 1048576 && await digest(bytes) === latest.manifestSha256, '资料清单哈希校验失败。');
     const manifest = parse(bytes);
     assert(manifest.schemaVersion === 1 && manifest.releaseID === latest.releaseID && Array.isArray(manifest.sources) && manifest.sources.length === 1, '资料清单版本或来源无效。');
     const { releaseID, ...content } = manifest;
@@ -65,55 +58,28 @@
     for (const [index, definition] of catalog.articles.entries()) {
       const document = manifest.documents[index];
       assert(document && document.id === definition.id && !ids.has(document.id) && document.title === definition.title && document.sourceID === source.id && document.path === 'documents/' + definition.id + '.json' && paths.has(document.path) && JSON.stringify(document.lessonIDs) === JSON.stringify(definition.lessonIDs), '资料课程关联未经审核。');
-      const expectedURL = root.YueqianMaterials.sourceURL({ revision: source.revision }, definition);
-      assert(document.url === expectedURL && Number.isInteger(document.imageCount) && document.imageCount >= 0 && document.imageCount <= 24, '资料出处或配图记录无效。');
+      assert(document.url === root.YueqianMaterials.sourceURL({ revision: source.revision }, definition) && Number.isInteger(document.imageCount) && document.imageCount >= 0 && document.imageCount <= 24, '资料出处或配图记录无效。');
       ids.add(document.id);
     }
     const assetCount = manifest.files.filter(record => record.path.startsWith('assets/')).length;
-    assert(assetCount === manifest.assetCount && manifest.imageReferences === manifest.documents.reduce((total, item) => total + item.imageCount, 0) && manifest.files.length === catalog.articles.length + assetCount + 3, '资料文件集合不完整。');
+    assert(assetCount === manifest.assetCount && manifest.imageReferences === manifest.documents.reduce((sum, item) => sum + item.imageCount, 0) && manifest.files.length === catalog.articles.length + assetCount + 3, '资料文件集合不完整。');
     return manifest;
   }
-  function imageFiles(snapshot) {
-    const files = new Map();
-    for (const image of snapshot?.articles?.flatMap(article => article.images) || []) files.set(image.sha256, image.data);
-    return files;
-  }
-  async function validateState(state, catalog, imageSnapshot = state?.snapshot) {
-    assert(state?.schemaVersion === 1 && state.files && typeof state.files === 'object' && !Array.isArray(state.files), '资料缓存格式无效。');
-    const manifest = await manifestFor(state.latest, state.manifestBase64, catalog);
-    assert(Object.keys(state.files).length <= manifest.files.length, '资料缓存包含未知文件。');
-    const images = imageFiles(imageSnapshot);
-    const bytesByPath = new Map();
-    const cleanFiles = Object.create(null);
-    for (const record of manifest.files) {
-      const encoded = state.files[record.path] || (record.path.startsWith('assets/') ? images.get(record.sha256) : null);
-      const bytes = decode(encoded);
-      assert(bytes.length === record.bytes && await digest(bytes) === record.sha256, '资料文件校验失败：' + record.path);
-      bytesByPath.set(record.path, bytes);
-      if (!record.path.startsWith('assets/')) cleanFiles[record.path] = encoded;
-    }
-    for (const file of Object.keys(state.files)) assert(manifest.files.some(record => record.path === file), '资料缓存包含未知文件。');
+
+  // 单篇文档校验：与清单、来源版本和原文目录一致，配图路径即内容哈希。
+  function checkDocument(state, document, catalog) {
+    const manifest = state.manifest;
     const source = manifest.sources[0];
-    const articles = [];
-    for (const [index, summary] of manifest.documents.entries()) {
-      const definition = catalog.articles[index];
-      const document = parse(bytesByPath.get(summary.path));
-      assert(document.schemaVersion === 1 && document.id === definition.id && document.title === definition.title && JSON.stringify(document.lessonIDs) === JSON.stringify(definition.lessonIDs) && Array.isArray(document.images) && document.images.length === summary.imageCount, '原文定义与资料清单不一致。');
-      assert(document.source?.id === source.id && document.source.repository === source.repository && document.source.revision === source.revision && document.source.path === definition.path && document.source.url === summary.url && document.source.license === 'MIT' && document.source.downloadedAt === source.downloadedAt && document.source.rawURL === root.YueqianMaterials.rawURL(source.revision, definition.path), '原文来源与资料清单不一致。');
-      const articleImages = document.images.map(image => {
-        assert(safeFilePath(image.path) && image.path.startsWith('assets/') && hashPattern.test(image.sha256) && image.path.split('/')[1].startsWith(image.sha256 + '.') && bytesByPath.has(image.path) && typeof image.sourcePath === 'string' && typeof image.alt === 'string' && image.sourceURL === root.YueqianMaterials.rawURL(source.revision, image.sourcePath), '原图来源与清单不一致。');
-        return { path: image.sourcePath, alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, data: encode(bytesByPath.get(image.path)) };
-      });
-      articles.push({ ...definition, markdown: document.markdown, sha256: document.sha256, images: articleImages });
-    }
-    const snapshot = { schemaVersion: 1, repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt, licenseText: decoder.decode(bytesByPath.get('LICENSE.txt')), articles };
-    await root.YueqianMaterials.validateSnapshot(snapshot, catalog);
-    const index = parse(bytesByPath.get('index.json'));
-    assert(index.schemaVersion === 1 && Array.isArray(index.documents) && index.documents.length === articles.length && index.documents.every((document, offset) => document.id === articles[offset].id && document.url === manifest.documents[offset].url), '检索索引与资料不一致。');
-    return { schemaVersion: 1, latest: state.latest, manifestBase64: state.manifestBase64, files: cleanFiles, snapshot };
+    const summary = manifest.documents.find(item => item.id === document?.id);
+    const definition = catalog.articles.find(item => item.id === document?.id);
+    const files = new Set(manifest.files.map(record => record.path));
+    assert(summary && definition && document.schemaVersion === 1 && document.title === definition.title && JSON.stringify(document.lessonIDs) === JSON.stringify(definition.lessonIDs) && Array.isArray(document.images) && document.images.length === summary.imageCount, '原文定义与资料清单不一致。');
+    assert(document.source?.id === source.id && document.source.repository === source.repository && document.source.revision === source.revision && document.source.path === definition.path && document.source.url === summary.url && document.source.license === 'MIT' && document.source.downloadedAt === source.downloadedAt && document.source.rawURL === root.YueqianMaterials.rawURL(source.revision, definition.path), '原文来源与资料清单不一致。');
+    for (const image of document.images) assert(safeFilePath(image.path) && image.path.startsWith('assets/') && hashPattern.test(image.sha256) && image.path.slice(7).startsWith(image.sha256 + '.') && files.has(image.path) && typeof image.sourcePath === 'string' && typeof image.alt === 'string' && image.sourceURL === root.YueqianMaterials.rawURL(source.revision, image.sourcePath), '原图来源与清单不一致。');
+    return document;
   }
-  async function fromSeed(seed, snapshot, catalog) { return validateState(seed, catalog, snapshot); }
-  async function fetchBytes(url, limit, fetcher, budget) {
+
+  async function fetchBytes(url, limit, fetcher, budget, cache = 'no-store') {
     const controller = new AbortController();
     let reader;
     let timer;
@@ -122,7 +88,7 @@
     const timeout = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reader?.cancel().catch(() => {}); reject(new Error('资料请求超时。')); }, Math.min(20000, remaining)); });
     const operation = (async () => {
       budget.requests++;
-      const response = await fetcher(url.href, { method: 'GET', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', cache: 'no-store', signal: controller.signal });
+      const response = await fetcher(url.href, { method: 'GET', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', cache, signal: controller.signal });
       assert(response.ok && (!response.url || response.url === url.href), '资料来源无法访问或发生跳转（HTTP ' + response.status + '）。');
       assert(Number(response.headers.get('content-length')) <= limit, '资料文件超出大小限制。');
       const chunks = [];
@@ -148,31 +114,130 @@
     })();
     try { return await Promise.race([operation, timeout]); } finally { clearTimeout(timer); }
   }
+  function newBudget() { return { requests: 0, downloadedBytes: 0, reusedFiles: 0, startedAt: Date.now() }; }
+
+  // Cache API 封装；测试或不支持的环境可注入内存实现。
+  let cacheStorage = () => root.caches;
+  async function openCache() { const storage = cacheStorage(); return storage ? storage.open(cacheName) : null; }
+  function fileURL(state, path) { return new URL('releases/' + state.latest.releaseID + '/' + path, state.base).href; }
+  function record(state, path) { const value = state.manifest.files.find(item => item.path === path); assert(value, '资料清单中没有该文件：' + path); return value; }
+  async function cachedBytes(url) {
+    const cache = await openCache().catch(() => null);
+    const response = cache && await cache.match(url).catch(() => null);
+    return response ? new Uint8Array(await response.arrayBuffer()) : null;
+  }
+  async function storeBytes(url, bytes, type) {
+    const cache = await openCache().catch(() => null);
+    if (cache) await cache.put(url, new Response(bytes, { headers: { 'Content-Type': type, 'Content-Length': String(bytes.length) } })).catch(() => {});
+  }
+  const types = { json: 'application/json', txt: 'text/plain; charset=utf-8', webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg' };
+  function typeOf(path) { return types[path.split('.').pop()] || 'application/octet-stream'; }
+
+  // 读取资料文件：先读本机缓存（信任，不再校验）；缓存缺失时下载，校验字节数与 SHA-256 后写入缓存。
+  async function file(state, path, fetcher = fetch, budget = newBudget()) {
+    const url = fileURL(state, path);
+    const cached = await cachedBytes(url);
+    if (cached) return cached;
+    const expected = record(state, path);
+    const bytes = await fetchBytes(new URL(url), expected.bytes, fetcher, budget, 'default');
+    assert(bytes.length === expected.bytes && await digest(bytes) === expected.sha256, '资料文件校验失败：' + path);
+    await storeBytes(url, bytes, typeOf(path));
+    return bytes;
+  }
+  const documents = new Map();
+  async function documentFor(state, id, catalog, fetcher = fetch) {
+    const key = state.latest.releaseID + ':' + id;
+    if (!documents.has(key)) {
+      const summary = state.manifest.documents.find(item => item.id === id);
+      assert(summary, '资料中没有这篇原文。');
+      documents.set(key, file(state, summary.path, fetcher).then(bytes => checkDocument(state, parse(bytes), catalog)).catch(error => { documents.delete(key); throw error; }));
+    }
+    return documents.get(key);
+  }
+  function assetURL(state, path) { return fileURL(state, path); }
+  // 后台把已显示的原图存入缓存（浏览器 HTTP 缓存命中时不重复下载），离线时可读。
+  async function cacheAssets(state, paths, fetcher = fetch) {
+    let stored = 0;
+    for (const path of paths) {
+      try { if (!(await cachedBytes(fileURL(state, path)))) { await file(state, path, fetcher); stored++; } } catch { /* 下次查看再试 */ }
+    }
+    return stored;
+  }
+  async function cachedAssetBlobURL(url) {
+    const bytes = await cachedBytes(url);
+    return bytes ? URL.createObjectURL(new Blob([bytes], { type: typeOf(url) })) : null;
+  }
+
+  // 首次打开（本机没有已校验版本）：读取指针与清单并校验，正文与原图按需读取。
+  async function load(value, catalog, fetcher = fetch) {
+    const base = baseURL(value);
+    const budget = newBudget();
+    const latest = pointer(parse(await fetchBytes(new URL('latest.json', base), 4096, fetcher, budget)));
+    const manifest = await manifestFor(latest, await fetchBytes(new URL(latest.manifestPath, base), 1048576, fetcher, budget, 'default'), catalog);
+    return { schemaVersion: 2, base: base.href, latest, manifest, verifiedAt: new Date().toISOString() };
+  }
+
+  // 已保存状态只做结构检查（不重算哈希）；结构异常时由调用方重新下载。
+  function restore(saved) {
+    assert(saved?.schemaVersion === 2 && typeof saved.base === 'string' && saved.manifest?.releaseID === pointer(saved.latest).releaseID && Array.isArray(saved.manifest.documents) && Array.isArray(saved.manifest.files) && saved.manifest.sources?.length === 1, '保存的资料版本无效。');
+    return saved;
+  }
+
+  // 检查更新：版本相同只读指针；版本变化时校验新清单，下载并校验检索索引与全部正文，原图按哈希复用已缓存文件，
+  // 全部通过后才返回新状态（由调用方原子保存）；任一步失败保留旧版本。
   async function refresh(value, current, catalog, fetcher = fetch, onProgress = () => {}) {
     const base = baseURL(value);
-    const valid = await validateState(current, catalog);
-    const budget = { requests: 0, downloadedBytes: 0, reusedFiles: 0, startedAt: Date.now() };
+    const budget = newBudget();
     const latest = pointer(parse(await fetchBytes(new URL('latest.json', base), 4096, fetcher, budget)));
-    if (latest.releaseID === valid.latest.releaseID) {
-      assert(latest.manifestSha256 === valid.latest.manifestSha256, '相同版本的清单发生冲突。');
-      return { state: valid, changed: false, budget };
+    if (current && current.base === base.href && latest.releaseID === current.latest.releaseID) {
+      assert(latest.manifestSha256 === current.latest.manifestSha256, '相同版本的清单发生冲突。');
+      return { state: current, changed: false, budget };
     }
-    const manifestBase64 = encode(await fetchBytes(new URL(latest.manifestPath, base), 1048576, fetcher, budget));
-    const manifest = await manifestFor(latest, manifestBase64, catalog);
-    const previousManifest = parse(decode(valid.manifestBase64, 1048576));
-    const images = imageFiles(valid.snapshot);
-    const previousByHash = new Map(previousManifest.files.map(record => [record.sha256, valid.files[record.path] || images.get(record.sha256)]));
-    const files = Object.create(null);
-    for (const [offset, record] of manifest.files.entries()) {
+    const manifest = await manifestFor(latest, await fetchBytes(new URL(latest.manifestPath, base), 1048576, fetcher, budget), catalog);
+    const state = { schemaVersion: 2, base: base.href, latest, manifest, verifiedAt: new Date().toISOString() };
+    const previousByHash = new Map((current?.manifest.files || []).map(item => [item.sha256, fileURL(current, item.path)]));
+    const required = manifest.files.filter(item => !item.path.startsWith('assets/') && item.path !== 'coverage.json');
+    for (const [offset, item] of manifest.files.entries()) {
       assert(Date.now() - budget.startedAt < 120000, '资料更新超时。');
       onProgress('正在校验 ' + (offset + 1) + ' / ' + manifest.files.length);
-      let data = previousByHash.get(record.sha256);
-      if (data) budget.reusedFiles++;
-      else data = encode(await fetchBytes(new URL('releases/' + latest.releaseID + '/' + record.path, base), record.bytes, fetcher, budget));
-      files[record.path] = data;
+      const reuse = previousByHash.get(item.sha256);
+      const bytes = reuse ? await cachedBytes(reuse) : null;
+      if (bytes && bytes.length === item.bytes) { await storeBytes(fileURL(state, item.path), bytes, typeOf(item.path)); budget.reusedFiles++; }
+      else if (required.includes(item)) {
+        const downloaded = await fetchBytes(new URL(fileURL(state, item.path)), item.bytes, fetcher, budget);
+        assert(downloaded.length === item.bytes && await digest(downloaded) === item.sha256, '资料文件校验失败：' + item.path);
+        await storeBytes(fileURL(state, item.path), downloaded, typeOf(item.path));
+      }
     }
-    const state = await validateState({ schemaVersion: 1, latest, manifestBase64, files }, catalog);
+    for (const summary of manifest.documents) checkDocument(state, parse(await file(state, summary.path, fetcher, budget)), catalog);
     return { state, changed: true, budget };
   }
-  root.YueqianContentRelease = { fromSeed, validateState, refresh, endpoint, baseURL };
+
+  // 删除旧版本的缓存条目（新版本已复制需要复用的文件）。
+  async function prune(state) {
+    const cache = await openCache().catch(() => null);
+    if (!cache) return 0;
+    const keep = new URL('releases/' + state.latest.releaseID + '/', state.base).href;
+    let removed = 0;
+    for (const request of await cache.keys()) if (request.url.includes('/releases/') && !request.url.startsWith(keep)) { await cache.delete(request); removed++; }
+    return removed;
+  }
+
+  // 本机检索用的轻量快照：标题、来源路径与纯文本（来自 index.json），不含原图。
+  async function searchSnapshot(state, catalog, fetcher = fetch) {
+    const index = parse(await file(state, 'index.json', fetcher));
+    const source = state.manifest.sources[0];
+    assert(index.schemaVersion === 1 && Array.isArray(index.documents) && index.documents.length === state.manifest.documents.length, '检索索引与资料不一致。');
+    const articles = catalog.articles.map(definition => {
+      const entry = index.documents.find(item => item.id === definition.id);
+      assert(entry && typeof entry.text === 'string', '检索索引与资料不一致。');
+      return { ...definition, markdown: entry.text };
+    });
+    return { schemaVersion: 1, repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt, articles };
+  }
+
+  root.YueqianContentRelease = {
+    cacheName, endpoint, baseURL, manifestFor, checkDocument, load, restore, refresh, prune, file, documentFor, assetURL, cacheAssets, cachedAssetBlobURL, searchSnapshot,
+    setCacheStorage(provider) { cacheStorage = provider; documents.clear(); }
+  };
 })(globalThis);

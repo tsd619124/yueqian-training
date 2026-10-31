@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const revisionPattern = /^[a-f0-9]{40}$/;
 const hashPattern = /^[a-f0-9]{64}$/;
@@ -97,6 +98,28 @@ export function coverageReport(index, configuration) {
   };
 }
 
+// 读取原图像素尺寸，写入文档供客户端预留版面（img width/height），避免加载时跳动。
+export function imageSize(bytes) {
+  const ascii = (start, end) => bytes.toString('ascii', start, end);
+  if (bytes.length >= 24 && bytes[0] === 137 && ascii(1, 4) === 'PNG') return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+  if (bytes.length >= 30 && ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') {
+    const chunk = ascii(12, 16);
+    if (chunk === 'VP8X') return { width: 1 + bytes.readUIntLE(24, 3), height: 1 + bytes.readUIntLE(27, 3) };
+    if (chunk === 'VP8L') { const bits = bytes.readUInt32LE(21); return { width: 1 + (bits & 0x3fff), height: 1 + ((bits >> 14) & 0x3fff) }; }
+    if (chunk === 'VP8 ') return { width: bytes.readUInt16LE(26) & 0x3fff, height: bytes.readUInt16LE(28) & 0x3fff };
+  }
+  if (bytes[0] === 255 && bytes[1] === 216) {
+    let offset = 2;
+    while (offset + 9 < bytes.length && bytes[offset] === 255) {
+      const marker = bytes[offset + 1];
+      const length = bytes.readUInt16BE(offset + 2);
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) return { width: bytes.readUInt16BE(offset + 7), height: bytes.readUInt16BE(offset + 5) };
+      offset += 2 + length;
+    }
+  }
+  throw new Error('无法读取原图尺寸。');
+}
+
 function imageExtension(image, bytes) {
   if (image.mimeType === 'image/webp' && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') return 'webp';
   if (image.mimeType === 'image/png' && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return 'png';
@@ -128,7 +151,9 @@ export function buildRelease(snapshot, registry, topicConfiguration) {
       const assetPath = `assets/${image.sha256}.${imageExtension(image, bytes)}`;
       files.set(assetPath, bytes);
       imageReferences++;
-      return { path: assetPath, sourcePath: image.path, sourceURL: sourceURL(source.repository, snapshot.revision, image.path, true), alt: image.alt, mimeType: image.mimeType, sha256: image.sha256 };
+      const { width, height } = imageSize(bytes);
+      requireValue(width > 0 && height > 0 && width <= 16384 && height <= 16384, '原图尺寸无效。');
+      return { path: assetPath, sourcePath: image.path, sourceURL: sourceURL(source.repository, snapshot.revision, image.path, true), alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, width, height };
     });
     const documentPath = `documents/${article.id}.json`;
     const document = { schemaVersion: 1, id: article.id, title: article.title, lessonIDs: article.lessonIDs, markdown: article.markdown, sha256: article.sha256, images, source: { id: source.id, publisher: source.publisher, repository: source.repository, revision: snapshot.revision, path: article.path, url, rawURL: sourceURL(source.repository, snapshot.revision, article.path, true), downloadedAt: snapshot.fetchedAt, license: 'MIT' } };
@@ -224,6 +249,26 @@ export async function verifyLatest(output) {
   const manifest = await verifyReleaseDirectory(path.join(output, 'releases', latest.releaseID), latest.manifestSha256);
   requireValue(manifest.releaseID === latest.releaseID, '当前版本与内容不一致。');
   return manifest;
+}
+
+// 随站点发布的资料库（与 iOS ContentLibrary 逐字节相同）。base64 快照退役后，它是正式图文的唯一来源。
+export const bundledLibraryDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../yueqian-training/content-library');
+
+// 由资料库目录还原 buildRelease 所需的快照（原文、原图字节、来源与许可），全量校验哈希；同内容重建得到同一 releaseID。
+export async function readLibrarySnapshot(directory = bundledLibraryDirectory) {
+  const manifest = await verifyLatest(directory);
+  const releaseDirectory = path.join(directory, 'releases', manifest.releaseID);
+  requireValue(manifest.sources.length === 1, '资料库只能有一个来源。');
+  const source = manifest.sources[0];
+  const articles = [];
+  for (const summary of manifest.documents) {
+    const document = JSON.parse(await fs.readFile(path.join(releaseDirectory, summary.path), 'utf8'));
+    requireValue(document.id === summary.id && document.source?.revision === source.revision && document.source.repository === source.repository, '资料文档与清单不一致：' + summary.id);
+    const images = [];
+    for (const image of document.images) images.push({ path: image.sourcePath, alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, data: (await fs.readFile(path.join(releaseDirectory, image.path))).toString('base64') });
+    articles.push({ id: document.id, title: document.title, path: document.source.path, lessonIDs: document.lessonIDs, markdown: document.markdown, sha256: document.sha256, images });
+  }
+  return { schemaVersion: 1, repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt, licenseText: await fs.readFile(path.join(releaseDirectory, 'LICENSE.txt'), 'utf8'), articles };
 }
 
 export function searchIndex(index, query, limit = 10) {

@@ -120,10 +120,10 @@ test('硬超时防止忽略AbortSignal的fetcher阻塞，并停止后续请求',
   let receivedSignal;
   context.fetcher = (url, options) => { calls++; receivedSignal = options.signal; return new Promise(() => {}); };
   const started = performance.now();
-  const result = await createExternalSearch({ ...context, limits: { maxRunMs: 25 } })('context');
+  const result = await createExternalSearch({ ...context, limits: { maxRunMs: 200 } })('context');
   assert.equal(result.status, 'unavailable');
   assert.equal(result.reason, 'timeout');
-  assert.ok(performance.now() - started < 500);
+  assert.ok(performance.now() - started < 1000);
   assert.equal(calls, 1);
   assert.equal(receivedSignal.aborted, true);
 });

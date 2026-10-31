@@ -7,11 +7,21 @@ import { copySearchDirectory, loadPublishedIndex, writePublishedIndex } from './
 // Service Worker 之外仍需发布、但不进入预缓存的文件。
 export const unprecachedWebFiles = ['sw.js', '使用说明-手机同步与部署.md'];
 
+// Web 1.15 起课程内容拆为 content/*.json；除根目录文件外只允许这一层子目录。
 function webFileName(reference) {
   const name = reference.replace(/^\.\//u, '');
   if (!name || name === '/') return 'index.html';
-  if (name.includes('/') || name.includes('\\') || name.startsWith('.') || /[?#]/u.test(name)) throw new Error('Web 文件引用超出发布根目录：' + reference);
+  const parts = name.split('/');
+  if (name.includes('\\') || /[?#]/u.test(name) || parts.some(part => !part || part.startsWith('.')) || parts.length > 2 || (parts.length === 2 && parts[0] !== 'content')) throw new Error('Web 文件引用超出发布根目录：' + reference);
   return name;
+}
+
+// 显式发布的数据文件：version.json（更新检查）与 content/*.json（课程内容），存在即发布。
+async function dataWebFiles(web) {
+  const files = [];
+  if ((await fs.stat(path.join(web, 'version.json')).catch(() => null))?.isFile()) files.push('version.json');
+  for (const entry of await fs.readdir(path.join(web, 'content'), { withFileTypes: true }).catch(() => [])) if (entry.isFile() && /^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.json$/u.test(entry.name)) files.push('content/' + entry.name);
+  return files;
 }
 
 // 版本号与缓存名只在 index.html 和 sw.js 中维护，发布清单读取它们，避免三处手工同步。
@@ -29,9 +39,9 @@ export async function readWebRelease(web) {
   for (const page of ['index.html', 'materials.html']) {
     let html;
     try { html = await fs.readFile(path.join(web, page), 'utf8'); } catch (error) { if (error.code === 'ENOENT') continue; throw error; }
-    for (const match of html.matchAll(/\b(?:src|href)\s*=\s*"(?:\.\/)?([A-Za-z0-9_][A-Za-z0-9_.-]*\.[A-Za-z0-9]+)"/gu)) referenced.push(match[1]);
+    for (const match of html.matchAll(/\b(?:src|href)\s*=\s*"(?:\.\/)?((?:content\/)?[A-Za-z0-9_][A-Za-z0-9_.-]*\.[A-Za-z0-9]+)"/gu)) referenced.push(match[1]);
   }
-  const files = [...new Set([...precached, ...referenced, ...unprecachedWebFiles])].sort();
+  const files = [...new Set([...precached, ...referenced, ...unprecachedWebFiles, ...await dataWebFiles(web)])].sort();
   for (const file of files) {
     const stat = await fs.stat(path.join(web, file)).catch(() => null);
     if (!stat?.isFile()) throw new Error((precached.includes(file) ? 'sw.js ASSETS 列出的文件不存在：' : '页面引用或发布文件不存在：') + file);
@@ -138,7 +148,10 @@ export async function prepareSite(root, destination, previousURL = null, { searc
   await verifyLatest(path.join(web, 'content-library'));
   await fs.mkdir(destination, { recursive: true });
   if ((await fs.readdir(destination)).length) throw new Error('发布暂存目录必须为空。');
-  for (const file of webRelease.files) await fs.copyFile(path.join(web, file), path.join(destination, file));
+  for (const file of webRelease.files) {
+    await fs.mkdir(path.dirname(path.join(destination, file)), { recursive: true });
+    await fs.copyFile(path.join(web, file), path.join(destination, file));
+  }
   const sync = await fs.readFile(path.join(web, 'sync-config.js'), 'utf8');
   if (sync.replace(/\/\*[\s\S]*?\*\//gu, '').replace(/^\s*\/\/.*$/gmu, '').trim()) throw new Error('同步配置不是空凭据模板。');
   await fs.cp(path.join(web, 'content-library'), path.join(destination, 'content-library'), { recursive: true, filter: source => path.basename(source) !== '.generated.json' });

@@ -19,7 +19,8 @@ concurrency:
 jobs:
   publish:
     if: github.event.repository.private == false
-    runs-on: ubuntu-latest
+    # 固定运行器版本：ubuntu-latest 将迁移到 26，届时需验证后再升级。
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
       name: github-pages
@@ -31,19 +32,8 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Check content and failure protection
-        run: node --test content-pipeline/*.test.mjs
-      - name: Build and verify approved materials
-        run: |
-          node content-pipeline/run.mjs build
-          node content-pipeline/run.mjs check
-          node native-app/scripts/export-content-release.mjs --check
-          node native-app/scripts/test-content-release.mjs
-          node native-app/scripts/test-external-materials.mjs
-      - name: Check native catalog and teaching kit match the Web source
-        run: |
-          node native-app/scripts/export-content.mjs --check
-          node native-app/scripts/verify-content-kit.mjs
+      - name: Run the shared release check list (tests, build, cross-client consistency)
+        run: node content-pipeline/release.mjs check --ci
       - name: Refresh source discovery, falling back to the published catalog
         env:
           GH_TOKEN: ${{ github.token }}

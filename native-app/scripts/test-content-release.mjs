@@ -1,21 +1,34 @@
+// Web 原文资料库客户端（content-release.js）：按需读取、首次下载校验、缓存后信任、增量更新与失败保留。
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { buildRelease, sha256 } from '../../content-pipeline/lib.mjs';
+import { buildRelease, readLibrarySnapshot, sha256 } from '../../content-pipeline/lib.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const web = path.join(root, 'yueqian-training');
-for (const file of ['external-catalog.js', 'external-snapshot.js', 'external-materials.js', 'content-release-seed.js', 'content-release.js', 'material-search.js']) await import(path.join(web, file));
+for (const file of ['external-catalog.js', 'external-materials.js', 'content-release.js', 'material-search.js']) await import(path.join(web, file));
 const catalog = globalThis.YUEQIAN_EXTERNAL_CATALOG;
-const snapshot = globalThis.YUEQIAN_EXTERNAL_SEED;
 const client = globalThis.YueqianContentRelease;
 const search = globalThis.YueqianMaterialSearch;
 const registry = JSON.parse(fs.readFileSync(path.join(root, 'content-pipeline/sources.json')));
 const topics = JSON.parse(fs.readFileSync(path.join(root, 'content-pipeline/topics.json')));
-const seed = await client.fromSeed(globalThis.YUEQIAN_CONTENT_RELEASE, snapshot, catalog);
+const snapshot = await readLibrarySnapshot();
+const current = buildRelease(snapshot, registry, topics);
 const checks = [];
 async function check(name, run) { await run(); checks.push(name); }
+
+class MemoryCache {
+  constructor() { this.entries = new Map(); }
+  async match(request) { const bytes = this.entries.get(typeof request === 'string' ? request : request.url); return bytes ? new Response(bytes) : undefined; }
+  async put(request, response) { this.entries.set(typeof request === 'string' ? request : request.url, new Uint8Array(await response.arrayBuffer())); }
+  async keys() { return [...this.entries.keys()].map(url => ({ url })); }
+  async delete(request) { return this.entries.delete(request.url); }
+}
+let cache = new MemoryCache();
+client.setCacheStorage(() => ({ open: async name => { assert.equal(name, 'yueqian-content-v1'); return cache; } }));
+function resetCache() { cache = new MemoryCache(); client.setCacheStorage(() => ({ open: async () => cache })); }
+
 function pointer(bundle) { return { schemaVersion: 1, releaseID: bundle.releaseID, manifestPath: 'releases/' + bundle.releaseID + '/manifest.json', manifestSha256: sha256(bundle.files.get('manifest.json')) }; }
 function fixtureFetch(bundle, requests, modify = value => value) {
   return async (value, options) => {
@@ -23,10 +36,9 @@ function fixtureFetch(bundle, requests, modify = value => value) {
     requests.push(url.pathname);
     assert.equal(url.origin, 'https://library.example');
     assert.equal(options.credentials, 'omit');
-    assert.equal(options.cache, 'no-store');
     assert.equal(options.redirect, 'error');
     assert.equal(options.body, undefined);
-    if (url.pathname === '/content/latest.json') return new Response(JSON.stringify(pointer(bundle)));
+    if (url.pathname === '/content/latest.json') { assert.equal(options.cache, 'no-store'); return new Response(JSON.stringify(pointer(bundle))); }
     const prefix = '/content/releases/' + bundle.releaseID + '/';
     assert.ok(url.pathname.startsWith(prefix));
     const file = url.pathname.slice(prefix.length);
@@ -34,6 +46,7 @@ function fixtureFetch(bundle, requests, modify = value => value) {
     return bytes ? modify(new Response(bytes), file) : new Response('missing', { status: 404 });
   };
 }
+const base = 'https://library.example/content/';
 const nextSnapshot = structuredClone(snapshot);
 nextSnapshot.revision = 'a'.repeat(40);
 nextSnapshot.fetchedAt = '2026-10-28T08:00:00.000Z';
@@ -43,68 +56,88 @@ const changedImage = nextSnapshot.articles[0].images[0];
 const changedBytes = Buffer.concat([Buffer.from(changedImage.data, 'base64'), Buffer.from([0])]);
 changedImage.data = changedBytes.toString('base64');
 changedImage.sha256 = sha256(changedBytes);
-const bundle = buildRelease(nextSnapshot, registry, topics);
+const next = buildRelease(nextSnapshot, registry, topics);
+const state = await client.load(base, catalog, fixtureFetch(current, []));
 
-await check('两端发布清单与内置 10 篇、49 张原图一致', async () => {
-  assert.equal(seed.snapshot.articles.length, 10);
-  assert.equal(seed.snapshot.articles.flatMap(article => article.images).length, 49);
-  assert.deepEqual(seed.snapshot, snapshot);
-  assert.equal(Object.keys(seed.files).length, 13);
-  assert.ok(Object.keys(seed.files).every(file => !file.startsWith('assets/')));
-  const native = JSON.parse(fs.readFileSync(path.join(root, 'native-app/Sources/YueqianCore/Resources/content-release.json')));
-  assert.deepEqual(seed.latest, native.latest);
+await check('首次打开只读指针与清单并校验，10 篇 49 张原图按需读取', async () => {
+  const requests = [];
+  resetCache();
+  const loaded = await client.load(base, catalog, fixtureFetch(current, requests));
+  assert.deepEqual(requests, ['/content/latest.json', '/content/' + pointer(current).manifestPath]);
+  assert.equal(loaded.manifest.documents.length, 10);
+  assert.equal(loaded.manifest.assetCount, 49);
+  assert.deepEqual(client.restore(structuredClone(loaded)).latest, loaded.latest);
+  assert.throws(() => client.restore({ ...loaded, schemaVersion: 1 }), /无效/);
+});
+
+await check('正文首次下载校验后进缓存；再次打开直接信任缓存，不发网、不重算', async () => {
+  resetCache();
+  const requests = [];
+  const document = await client.documentFor(state, 'ms-rag', catalog, fixtureFetch(current, requests));
+  assert.equal(document.id, 'ms-rag');
+  assert.ok(document.images.every(image => image.width > 0 && image.height > 0));
+  assert.equal(requests.length, 1);
+  client.setCacheStorage(() => ({ open: async () => cache }));
+  const again = await client.documentFor(state, 'ms-rag', catalog, async () => { throw new Error('must not fetch'); });
+  assert.equal(again.markdown, document.markdown);
+  const asset = document.images[0].path;
+  assert.equal(client.assetURL(state, asset), base + 'releases/' + current.releaseID + '/' + asset);
+  assert.equal(await client.cacheAssets(state, document.images.map(image => image.path), fixtureFetch(current, [])), document.images.length);
+  assert.equal(await client.cacheAssets(state, document.images.map(image => image.path), async () => { throw new Error('must not fetch'); }), 0);
+});
+
+await check('下载的正文或原图哈希不符时拒绝，不写入缓存', async () => {
+  resetCache();
+  const bad = fixtureFetch(current, [], (response, file) => file.startsWith('documents/') || file.startsWith('assets/') ? new Response(Buffer.alloc(Number(current.manifest.files.find(item => item.path === file).bytes))) : response);
+  await assert.rejects(client.documentFor(state, 'ms-agents', catalog, bad), /校验失败/);
+  const asset = current.manifest.files.find(item => item.path.startsWith('assets/')).path;
+  await assert.rejects(client.file(state, asset, bad), /校验失败/);
+  assert.equal(cache.entries.size, 0);
 });
 
 await check('资料未变化只读指针，不下载正文或原图', async () => {
   let requests = 0;
-  const result = await client.refresh('https://library.example/content/', seed, catalog, async () => {
-    requests++;
-    return new Response(JSON.stringify(seed.latest));
-  });
+  const result = await client.refresh(base, state, catalog, async () => { requests++; return new Response(JSON.stringify(state.latest)); });
   assert.equal(result.changed, false);
   assert.equal(requests, 1);
-  assert.equal(result.budget.requests, 1);
-  assert.deepEqual(result.state.snapshot, snapshot);
+  assert.equal(result.state, state);
 });
 
-await check('增量下载只取变更哈希，完整校验后返回新版本', async () => {
+await check('增量更新：正文与索引完整下载校验，原图按哈希复用缓存，变更原图查看时再下载', async () => {
+  resetCache();
+  for (const item of current.manifest.files) await cache.put(base + 'releases/' + current.releaseID + '/' + item.path, new Response(current.files.get(item.path)));
   const requests = [];
-  const result = await client.refresh('https://library.example/content', seed, catalog, fixtureFetch(bundle, requests));
-  const previous = JSON.parse(Buffer.from(seed.manifestBase64, 'base64'));
-  const previousHashes = new Set(previous.files.map(file => file.sha256));
-  const changed = bundle.manifest.files.filter(file => !previousHashes.has(file.sha256));
-  assert.equal(requests.length, changed.length + 2);
-  assert.equal(result.budget.reusedFiles, bundle.manifest.files.length - changed.length);
-  assert.equal(requests.filter(file => file.includes('/assets/')).length, 1);
+  const result = await client.refresh(base, state, catalog, fixtureFetch(next, requests));
+  const previousHashes = new Set(current.manifest.files.map(file => file.sha256));
+  const changed = next.manifest.files.filter(file => !previousHashes.has(file.sha256));
+  const changedRequired = changed.filter(file => !file.path.startsWith('assets/') && file.path !== 'coverage.json');
   assert.equal(result.changed, true);
-  assert.deepEqual(result.state.snapshot, nextSnapshot);
-  assert.deepEqual(result.state.snapshot.articles.map(article => article.lessonIDs), snapshot.articles.map(article => article.lessonIDs));
-  assert.equal(seed.snapshot.revision, snapshot.revision);
+  assert.equal(requests.length, 2 + changedRequired.length);
+  assert.equal(requests.filter(file => file.includes('/assets/')).length, 0);
+  assert.equal(result.budget.reusedFiles, next.manifest.files.length - changed.length);
+  const changedAsset = changed.find(file => file.path.startsWith('assets/'));
+  assert.ok(changedAsset);
+  const assetRequests = [];
+  await client.file(result.state, changedAsset.path, fixtureFetch(next, assetRequests));
+  assert.equal(assetRequests.length, 1);
+  assert.equal(await client.prune(result.state), current.manifest.files.length);
+  assert.ok([...cache.entries.keys()].every(url => url.includes('/releases/' + next.releaseID + '/')));
 });
 
-await check('断网、坏原图、坏清单与同版本冲突均保留旧版本', async () => {
-  const originalHash = sha256(JSON.stringify(seed));
-  const missing = fixtureFetch(bundle, [], (response, file) => file.startsWith('assets/') ? new Response('missing', { status: 404 }) : response);
-  await assert.rejects(client.refresh('https://library.example/content/', seed, catalog, missing), /HTTP 404/);
-  const corrupted = fixtureFetch(bundle, [], (response, file) => file.startsWith('assets/') ? new Response(Buffer.alloc(changedBytes.length)) : response);
-  await assert.rejects(client.refresh('https://library.example/content/', seed, catalog, corrupted), /校验失败/);
-  const manifest = fixtureFetch(bundle, [], (response, file) => file === 'manifest.json' ? new Response('{}') : response);
-  await assert.rejects(client.refresh('https://library.example/content/', seed, catalog, manifest), /哈希校验失败/);
-  await assert.rejects(client.refresh('https://library.example/content/', seed, catalog, async () => { throw new Error('offline'); }), /offline/);
-  await assert.rejects(client.refresh('https://library.example/content/', seed, catalog, async () => new Response(JSON.stringify({ ...seed.latest, manifestSha256: 'f'.repeat(64) }))), /冲突/);
-  assert.equal(sha256(JSON.stringify(seed)), originalHash);
+await check('断网、坏正文、坏清单与同版本冲突均保留旧版本', async () => {
+  const original = JSON.stringify(state);
+  await assert.rejects(client.refresh(base, state, catalog, fixtureFetch(next, [], (response, file) => file.startsWith('documents/') ? new Response('missing', { status: 404 }) : response)), /HTTP 404/);
+  await assert.rejects(client.refresh(base, state, catalog, fixtureFetch(next, [], (response, file) => file === 'index.json' ? new Response(Buffer.alloc(next.manifest.files.find(item => item.path === 'index.json').bytes)) : response)), /校验失败/);
+  await assert.rejects(client.refresh(base, state, catalog, fixtureFetch(next, [], (response, file) => file === 'manifest.json' ? new Response('{}') : response)), /哈希校验失败/);
+  await assert.rejects(client.refresh(base, state, catalog, async () => { throw new Error('offline'); }), /offline/);
+  await assert.rejects(client.refresh(base, state, catalog, async () => new Response(JSON.stringify({ ...state.latest, manifestSha256: 'f'.repeat(64) }))), /冲突/);
+  assert.equal(JSON.stringify(state), original);
 });
 
-await check('缓存篡改、额外文件与课程关联更改不能被激活', async () => {
-  const corrupted = structuredClone(seed);
-  corrupted.files['LICENSE.txt'] = Buffer.from('All rights reserved').toString('base64');
-  await assert.rejects(client.validateState(corrupted, catalog), /校验失败/);
-  const extra = structuredClone(seed);
-  extra.files['../escape'] = 'eA==';
-  await assert.rejects(client.validateState(extra, catalog), /未知文件/);
+await check('课程关联被改动的清单不能被激活', async () => {
   const changedCatalog = structuredClone(catalog);
   changedCatalog.articles[0].lessonIDs = ['unapproved-course'];
-  await assert.rejects(client.validateState(seed, changedCatalog), /关联未经审核/);
+  await assert.rejects(client.load(base, changedCatalog, fixtureFetch(current, [])), /关联未经审核/);
 });
 
 await check('服务地址限制公开 HTTPS 或本机 HTTP，拒绝凭证与附带参数', async () => {
@@ -112,9 +145,11 @@ await check('服务地址限制公开 HTTPS 或本机 HTTP，拒绝凭证与附�
   assert.equal(client.endpoint('http://127.0.0.1:8788/api/search').hostname, '127.0.0.1');
   assert.equal(client.endpoint('http://[::1]:8788/').hostname, '[::1]');
   for (const url of ['http://example.com/', 'https://user:secret@example.com/', 'https://example.com/?key=value', 'https://example.com/#part', 'file:///tmp/library', 'javascript:alert(1)']) assert.throws(() => client.endpoint(url));
-  await assert.rejects(client.refresh('https://library.example/', seed, catalog, async () => new Response('x'.repeat(4097))), /限制|过大/);
+  await assert.rejects(client.refresh('https://library.example/', state, catalog, async () => new Response('x'.repeat(4097))), /限制|过大/);
 });
 
+resetCache();
+const searchSource = await client.searchSnapshot(state, catalog, fixtureFetch(current, []));
 const memory = new Map();
 const savedCachedValue = globalThis.YueqianMaterials.cachedValue;
 globalThis.YueqianMaterials.cachedValue = async function (key, value) {
@@ -127,8 +162,8 @@ const external = {
   url: 'https://github.com/microsoft/ai-agents-for-beginners/blob/' + 'b'.repeat(40) + '/context/README.md',
   sha256: 'c'.repeat(64), kind: 'external', reviewStatus: 'unreviewed'
 };
-function response(externalResults = [external], degraded = false, overrides = {}) { return new Response(JSON.stringify({ schemaVersion: 1, query: 'rag', releaseID: seed.latest.releaseID, generatedAt: new Date().toISOString(), cache: { status: 'miss', savedAt: null }, library: { results: [] }, external: { results: externalResults }, degraded, ...overrides })); }
-const queryOptions = { query: 'RAG', snapshot, releaseID: seed.latest.releaseID, searchURL: 'https://search.example/api/search' };
+function response(externalResults = [external], degraded = false, overrides = {}) { return new Response(JSON.stringify({ schemaVersion: 1, query: 'rag', releaseID: state.latest.releaseID, generatedAt: new Date().toISOString(), cache: { status: 'miss', savedAt: null }, library: { results: [] }, external: { results: externalResults }, degraded, ...overrides })); }
+const queryOptions = { query: 'RAG', snapshot: searchSource, releaseID: state.latest.releaseID, searchURL: 'https://search.example/api/search' };
 
 await check('离线与未配置时中英文搜索仍有本机原文，片段来自正文', async () => {
   const result = await search.search({ ...queryOptions, query: '检索增强', searchURL: null, fetcher: () => { throw new Error('must not fetch'); } });

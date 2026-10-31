@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildRelease, discoverSources, searchIndex, validateRegistry, verifyLatest, writeAtomicJSON, writeRelease } from './lib.mjs';
+import { buildRelease, discoverSources, readLibrarySnapshot, searchIndex, validateRegistry, verifyLatest, writeAtomicJSON, writeRelease } from './lib.mjs';
 import { collectDocuments, reconcileIntake } from './intake.mjs';
 import { applyReviewDecisions, buildReviewQueue } from './review.mjs';
 import { renderReviewHTML } from './review-page.mjs';
@@ -43,10 +43,10 @@ async function writeReviewArtifacts(reviewDirectory, report) {
 
 if (command === 'build') {
   if (argumentsList.length) throw new Error('build 只接受 --output。');
+  // 正式图文的来源是随站点发布的资料库（yueqian-training/content-library）；更新来源原文用 native-app/scripts/update-external-materials.mjs。
   await import(pathToFileURL(path.join(root, 'yueqian-training/external-catalog.js')));
-  await import(pathToFileURL(path.join(root, 'yueqian-training/external-snapshot.js')));
   await import(pathToFileURL(path.join(root, 'yueqian-training/external-materials.js')));
-  const snapshot = globalThis.YUEQIAN_EXTERNAL_SEED;
+  const snapshot = await readLibrarySnapshot();
   await globalThis.YueqianMaterials.validateSnapshot(snapshot, globalThis.YUEQIAN_EXTERNAL_CATALOG);
   const bundle = buildRelease(snapshot, registry, topics);
   const result = await writeRelease(output, bundle);

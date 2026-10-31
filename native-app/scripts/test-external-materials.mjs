@@ -1,26 +1,24 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readLibrarySnapshot } from '../../content-pipeline/lib.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const web = path.join(root, 'yueqian-training');
 await import(path.join(web, 'external-catalog.js'));
-await import(path.join(web, 'external-snapshot.js'));
 await import(path.join(web, 'external-materials.js'));
 const catalog = globalThis.YUEQIAN_EXTERNAL_CATALOG;
-const snapshot = globalThis.YUEQIAN_EXTERNAL_SEED;
+// base64 快照已退役：由随包资料库还原同一结构，用于校验下载与排版逻辑。
+const snapshot = await readLibrarySnapshot();
 const materials = globalThis.YueqianMaterials;
 const revision = 'a'.repeat(40);
 const results = [];
 async function check(name, run) { await run(); results.push(name); }
 
-await check('完整原文、49 张原图与原生资源一致', async () => {
+await check('资料库完整原文与 49 张原图通过原文目录校验', async () => {
   await materials.validateSnapshot(snapshot, catalog);
   assert.equal(snapshot.articles.length, 10);
   assert.equal(snapshot.articles.flatMap(article => article.images).length, 49);
-  const native = JSON.parse(fs.readFileSync(path.join(root, 'native-app/Sources/YueqianCore/Resources/external-materials.json'), 'utf8'));
-  assert.deepEqual(snapshot, native);
   for (const article of snapshot.articles) {
     const rendered = materials.renderMarkdown(snapshot, article);
     assert.ok((rendered.html.match(/<img /g) || []).length >= article.images.length, article.id + ' 的配图未完整排版');
@@ -59,7 +57,7 @@ await check('跨版本完整下载原文与原图，保持源文哈希', async (
 
 await check('图片中途失败时拒绝新版本', async () => {
   await assert.rejects(materials.downloadSnapshot(catalog, snapshot, url => url.endsWith('.webp') ? new Response('missing', { status: 404 }) : fixtureFetch(url)), /HTTP 404/);
-  assert.equal(snapshot.revision, globalThis.YUEQIAN_EXTERNAL_SEED.revision);
+  assert.equal(snapshot.revision, (await readLibrarySnapshot()).revision);
 });
 
 await check('授权变化、缺失图片、错误哈希与未审核来源阻断', async () => {
@@ -73,11 +71,13 @@ await check('授权变化、缺失图片、错误哈希与未审核来源阻断'
   assert.throws(() => materials.imageReferences('![不可信](https://example.com/image.png)', catalog.articles[0].path, snapshot.revision), /尚未审核/);
 });
 
-await check('原文安全排版：保留原图和代码，文本不执行', async () => {
+await check('原文安全排版：原图用资料库地址并带尺寸，保留代码，文本不执行', async () => {
   const article = snapshot.articles.find(item => item.id === 'ms-rag');
-  const rendered = materials.renderMarkdown(snapshot, article);
+  const linked = { ...article, images: article.images.map(image => ({ path: image.path, alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, width: 640, height: 480, src: 'https://library.example/content/releases/x/assets/' + image.sha256 + '.webp' })) };
+  const rendered = materials.renderMarkdown(snapshot, linked);
   assert.equal((rendered.html.match(/<img /g) || []).length, article.images.length);
-  assert.ok(rendered.html.includes('data:image/webp;base64,'));
+  assert.ok(!rendered.html.includes('data:image/'));
+  assert.ok(rendered.html.includes('src="https://library.example/content/releases/x/assets/') && rendered.html.includes('width="640" height="480" loading="lazy" decoding="async"'));
   assert.ok(!rendered.html.includes('lesson-banner'));
   assert.ok(rendered.html.includes('Co-op Translator'));
   const unsafe = { ...article, markdown: '<script>alert(1)</script>\n[不执行](javascript:alert)\n```html\n<img src=x onerror=alert(1)>\n```' };

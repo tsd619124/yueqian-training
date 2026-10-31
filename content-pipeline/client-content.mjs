@@ -2,11 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { sha256, verifyLatest, writeAtomicJSON } from './lib.mjs';
 
-function canonical(value) {
-  if (Array.isArray(value)) return value.map(canonical);
-  return value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
-}
-
 async function existing(filePath) {
   try { return await fs.readFile(filePath); }
   catch (error) { if (error.code === 'ENOENT') return null; throw error; }
@@ -29,53 +24,62 @@ async function verifyGenerated(directory) {
   for (const record of marker.files) if (sha256(await fs.readFile(path.join(directory, record.path))) !== record.sha256) throw new Error('资料目录含人工修改，保留现状。');
 }
 
-export async function exportClientContent(output, { webDirectory, nativeSeedPath, check = false }) {
+async function listFiles(directory, prefix = '') {
+  const found = [];
+  for (const entry of await fs.readdir(path.join(directory, prefix), { withFileTypes: true }).catch(error => { if (error.code === 'ENOENT') return []; throw error; })) {
+    const name = prefix + entry.name;
+    if (entry.isDirectory()) found.push(...await listFiles(directory, name + '/'));
+    else if (!entry.isFile()) throw new Error('资料目录不允许符号链接或特殊文件：' + name);
+    else found.push(name);
+  }
+  return found;
+}
+
+async function writeStaged(target, files, marker) {
+  await fs.mkdir(path.dirname(target), { recursive: true });
+  const staging = await fs.mkdtemp(path.join(path.dirname(target), '.content-library-'));
+  let backup = null;
+  try {
+    for (const [name, bytes] of files) {
+      await fs.mkdir(path.dirname(path.join(staging, name)), { recursive: true });
+      await fs.writeFile(path.join(staging, name), bytes, { flag: 'wx' });
+    }
+    if (marker) await writeAtomicJSON(path.join(staging, '.generated.json'), marker);
+    try { await fs.access(target); backup = target + '.previous-' + crypto.randomUUID(); await fs.rename(target, backup); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; backup = null; }
+    try { await fs.rename(staging, target); }
+    catch (error) { if (backup) { await fs.rename(backup, target); backup = null; } throw error; }
+    if (backup) await fs.rm(backup, { recursive: true, force: true });
+  } finally { await fs.rm(staging, { recursive: true, force: true }); }
+}
+
+// 生成两端共用资料库：Web 为 yueqian-training/content-library/（含 .generated.json 登记），
+// iOS 为 Resources/ContentLibrary/，与 Web 逐字节相同（不含 .generated.json 与 search/）。不再生成 base64 种子。
+export async function exportClientContent(output, { webDirectory, nativeLibraryDirectory, check = false }) {
   const manifest = await verifyLatest(output);
   const latestBytes = await fs.readFile(path.join(output, 'latest.json'));
   const latest = JSON.parse(latestBytes);
   const releaseDirectory = path.join(output, 'releases', manifest.releaseID);
   const manifestBytes = await fs.readFile(path.join(releaseDirectory, 'manifest.json'));
   const files = new Map([['latest.json', latestBytes], [latest.manifestPath, manifestBytes]]);
-  const seedFiles = {};
-  for (const record of manifest.files) {
-    const bytes = await fs.readFile(path.join(releaseDirectory, record.path));
-    files.set(`releases/${manifest.releaseID}/${record.path}`, bytes);
-    if (!record.path.startsWith('assets/')) seedFiles[record.path] = bytes.toString('base64');
-  }
-  const seed = { schemaVersion: 1, latest, manifestBase64: manifestBytes.toString('base64'), files: seedFiles };
-  const seedJSON = JSON.stringify(canonical(seed)) + '\n';
-  const seedScript = 'globalThis.YUEQIAN_CONTENT_RELEASE = ' + seedJSON.trimEnd().replace(/</gu, '\\u003c') + ';\n';
+  for (const record of manifest.files) files.set(`releases/${manifest.releaseID}/${record.path}`, await fs.readFile(path.join(releaseDirectory, record.path)));
   const libraryDirectory = path.join(webDirectory, 'content-library');
-  const webSeedPath = path.join(webDirectory, 'content-release-seed.js');
+  const marker = { schemaVersion: 1, releaseID: manifest.releaseID, files: [...files].map(([filePath, bytes]) => ({ path: filePath, sha256: sha256(bytes) })) };
   if (check) {
     for (const [name, expected] of files) if (!(await existing(path.join(libraryDirectory, name)))?.equals(expected)) throw new Error('客户端资料文件缺失或不同步：' + name);
-    if (!(await existing(nativeSeedPath))?.equals(Buffer.from(seedJSON)) || !(await existing(webSeedPath))?.equals(Buffer.from(seedScript))) throw new Error('Web 与 iOS 发布清单种子不同步。');
     await verifyGenerated(libraryDirectory);
+    if (nativeLibraryDirectory) {
+      const nativeFiles = await listFiles(nativeLibraryDirectory);
+      const extra = nativeFiles.filter(name => !files.has(name));
+      if (extra.length || nativeFiles.length !== files.size) throw new Error('iOS ContentLibrary 与 Web 资料库文件集合不同：' + (extra[0] || '缺少文件'));
+      for (const [name, expected] of files) if (!(await existing(path.join(nativeLibraryDirectory, name)))?.equals(expected)) throw new Error('iOS ContentLibrary 文件与 Web 不一致：' + name);
+    }
   } else {
-    await fs.mkdir(webDirectory, { recursive: true });
-    await fs.mkdir(path.dirname(nativeSeedPath), { recursive: true });
-    const staging = await fs.mkdtemp(path.join(webDirectory, '.content-library-'));
-    let backup = null;
-    try {
-      for (const [name, bytes] of files) {
-        await fs.mkdir(path.dirname(path.join(staging, name)), { recursive: true });
-        await fs.writeFile(path.join(staging, name), bytes, { flag: 'wx' });
-      }
-      await writeAtomicJSON(path.join(staging, '.generated.json'), { schemaVersion: 1, releaseID: manifest.releaseID, files: [...files].map(([filePath, bytes]) => ({ path: filePath, sha256: sha256(bytes) })) });
-      try {
-        await fs.access(libraryDirectory);
-        await verifyGenerated(libraryDirectory);
-        backup = libraryDirectory + '.previous-' + crypto.randomUUID();
-        await fs.rename(libraryDirectory, backup);
-      } catch (error) { if (error.code !== 'ENOENT') throw error; }
-      try { await fs.rename(staging, libraryDirectory); }
-      catch (error) { if (backup) { await fs.rename(backup, libraryDirectory); backup = null; } throw error; }
-      if (backup) await fs.rm(backup, { recursive: true, force: true });
-      await writeAtomicJSON(nativeSeedPath, seed);
-      const temporarySeed = webSeedPath + '.' + crypto.randomUUID() + '.tmp';
-      try { await fs.writeFile(temporarySeed, seedScript, { flag: 'wx' }); await fs.rename(temporarySeed, webSeedPath); }
-      finally { await fs.rm(temporarySeed, { force: true }); }
-    } finally { await fs.rm(staging, { recursive: true, force: true }); }
+    try { await fs.access(libraryDirectory); await verifyGenerated(libraryDirectory); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+    await writeStaged(libraryDirectory, files, marker);
+    if (nativeLibraryDirectory) await writeStaged(nativeLibraryDirectory, files, null);
   }
-  return { status: check ? '客户端共用资料校验通过' : '客户端共用资料已生成，未部署', releaseID: manifest.releaseID, documents: manifest.documents.length, images: manifest.assetCount, files: files.size, seedBytes: Buffer.byteLength(seedJSON), libraryDirectory, nativeSeedPath };
+  const bytes = [...files.values()].reduce((total, value) => total + value.length, 0);
+  return { status: check ? '客户端共用资料校验通过（Web 与 iOS 逐字节一致）' : '客户端共用资料已生成，未部署', releaseID: manifest.releaseID, documents: manifest.documents.length, images: manifest.assetCount, files: files.size, bytes, libraryDirectory, nativeLibraryDirectory: nativeLibraryDirectory || null };
 }

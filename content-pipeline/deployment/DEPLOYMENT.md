@@ -4,7 +4,7 @@
 
 ## 已启用的流程
 
-`publish.yml` 对应远端 `.github/workflows/publish.yml`。main 推送、手动运行及每日北京时间 06:17 执行测试、构建、原生教材一致性检查、来源发现、静态检索索引、静态包发布和线上哈希检查。该流程不自动审核新课程。
+`publish.yml` 对应远端 `.github/workflows/publish.yml`。main 推送、手动运行及每日北京时间 06:17 执行 `release.mjs check --ci`（测试、构建、两端资料库与原生教材一致性检查）、来源发现、静态检索索引、静态包发布和线上哈希检查。该流程不自动审核新课程。
 
 - 来源发现失败或校验不通过时，`discover-ci.mjs --fallback` 沿用线上已发布的 `content-discovery.json` 并在 Actions 中告警，Web 发布继续；线上目录也不可用时才停止。
 - `search-index.mjs --previous` 从线上读取上一版索引，复用未变化条目，生成 `content-library/search/latest.json` 与 `index-<sha256>.json`（格式见 [契约](../STATIC-SEARCH-INDEX.md)）。单篇失败保留上一版条目（来源标 `partial`），来源失败保留该来源上一版条目（`retained`），整体无结果或校验不过则保留上一版索引；本次没有可用索引时，`production.mjs` 保留线上上一版。站点同时保留上一版索引文件，供已读到旧指针的客户端完成下载。
@@ -16,13 +16,10 @@
 
 以下命令从项目根目录执行；将 `output/next-worker`、`output/next-site` 换成尚不存在的本次目录。先确保生成内容和正式客户端资源一致。`prepare-search-worker` 拒绝覆盖含人工修改的目录；不要强制删除旧发布目录。
 
+Pages 主站的日常发布用 `node content-pipeline/release.mjs web --push --watch`（不带 `--push` 为演练），详见 [管线说明](../README.md#一键发布-releasemjs)。Worker 仍按下列步骤手工准备：
+
 ```sh
-node --test content-pipeline/*.test.mjs
-node content-pipeline/run.mjs build
-node content-pipeline/run.mjs check
-node native-app/scripts/export-content-release.mjs --check
-node native-app/scripts/export-content.mjs --check
-node native-app/scripts/verify-content-kit.mjs
+node content-pipeline/release.mjs check
 node content-pipeline/discover-ci.mjs --fallback https://tsd619124.github.io/yueqian-training/content-discovery.json
 node content-pipeline/search-index.mjs --previous https://tsd619124.github.io/yueqian-training/content-library/
 node content-pipeline/run.mjs prepare-search-worker

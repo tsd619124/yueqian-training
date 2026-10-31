@@ -87,7 +87,10 @@ button:disabled { opacity: .5; cursor: progress; }
 .source-image-dialog button { border: 1px solid var(--source-line); border-radius: 5px; min-height: 44px; padding: 6px 16px; }
 .source-image-viewport { overflow: auto; max-height: 75dvh; background: #fff; }
 .source-image-viewport img { display: block; max-width: none; }
-@media (prefers-color-scheme: dark) { :root { --source-paper: #141a20; --source-canvas: #1d262e; --source-ink: #e2eaf0; --source-muted: #acbac5; --source-line: #35434d; --source-accent: #7cd4c6; } }
+/* 跟随 App 内主题（materials.html 读取 yueqian.v1 的 theme 设定 data-theme）；未设定时跟随系统。 */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; --source-paper: #141a20; --source-canvas: #1d262e; --source-ink: #e2eaf0; --source-muted: #acbac5; --source-line: #35434d; --source-accent: #7cd4c6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --source-paper: #141a20; --source-canvas: #1d262e; --source-ink: #e2eaf0; --source-muted: #acbac5; --source-line: #35434d; --source-accent: #7cd4c6; } }
 @media (max-width: 900px) { .source-layout { gap: 32px; grid-template-columns: 190px minmax(0, 1fr); padding: 32px 24px 60px; } }
 @media (max-width: 680px) {
   .source-bar-inner { min-height: 64px; padding: 10px 20px; }

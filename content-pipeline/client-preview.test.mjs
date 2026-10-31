@@ -5,14 +5,13 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { buildRelease, writeRelease } from './lib.mjs';
+import { buildRelease, readLibrarySnapshot, writeRelease } from './lib.mjs';
 import { startClientPreview } from './client-preview.mjs';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const registry = JSON.parse(await fs.readFile(path.join(directory, 'sources.json'), 'utf8'));
 const topics = JSON.parse(await fs.readFile(path.join(directory, 'topics.json'), 'utf8'));
-await import('../yueqian-training/external-snapshot.js');
-const snapshot = globalThis.YUEQIAN_EXTERNAL_SEED;
+const snapshot = await readLibrarySnapshot();
 const bundle = buildRelease(snapshot, registry, topics);
 
 async function fixture(context) {

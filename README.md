@@ -1,6 +1,6 @@
 # 跃迁计划 · AI 售前训练营
 
-Web 1.14.1，原生配套内容 2.5.1（7）。学习进度保存在本机，公开仓库不包含个人学习数据或认证凭据。
+Web 1.15.0，原生配套内容 2.6.0（8）。学习进度保存在本机，公开仓库不包含个人学习数据或认证凭据。
 
 - 正式 Web：https://tsd619124.github.io/yueqian-training/
 - 资料主站：https://tsd619124.github.io/yueqian-training/content-library/
@@ -12,21 +12,17 @@ Web 1.14.1，原生配套内容 2.5.1（7）。学习进度保存在本机，公
 
 GitHub Actions 使用公开仓库标准运行器，在 main 更新、手动运行及每日北京时间 06:17 进行测试、来源发现、静态检索索引生成、校验与部署。定时调度可能延迟；发布前检查失败时保留上一线上发布；来源发现或索引生成失败时沿用线上版本并告警；上线后的读回检查带重试并区分传播延迟与损坏。来源发现只刷新候选目录，不自动审核材料或修改课程。Workers 每个实例至多每小时读取一次已校验的来源目录；超过 72 小时未核对的来源暂停外部读取。
 
-当前内容为 10 篇已核准原文、49 张原图；外部检索默认读取静态索引在本机排序，仅覆盖配置仓库候选，明确标记未审核；Workers 检索只在服务连接中主动填写时使用。进度、实操备份、原图缓存和服务连接独立保存。
+当前内容为 10 篇已核准原文、49 张原图；外部检索默认读取静态索引在本机排序，仅覆盖配置仓库候选，明确标记未审核；Workers 检索只在服务连接中主动填写时使用。进度、实操备份、原图缓存和服务连接独立保存。原图为按内容哈希命名的独立文件，页面按需读取，首次查看后缓存供离线阅读。
 
 ## 本地检查
 
 ```sh
-node --test content-pipeline/*.test.mjs
-node content-pipeline/run.mjs build
-node native-app/scripts/export-content-release.mjs --check
-node native-app/scripts/test-content-release.mjs
-node native-app/scripts/test-external-materials.mjs
-node native-app/scripts/export-content.mjs --check
-node native-app/scripts/verify-content-kit.mjs
+node content-pipeline/release.mjs check --ci
 node content-pipeline/discover-ci.mjs
 node content-pipeline/search-index.mjs --previous https://tsd619124.github.io/yueqian-training/content-library/
 ```
+
+`release.mjs check` 是本地与 CI 共用的唯一检查清单：管线与 Web 测试、正式图文构建与校验、Web 与原生资料库逐字节一致、原生教材与教学套件一致、版本号一致。`--ci` 跳过需要 Xcode 的步骤。
 
 来源发现通过已登录的 GitHub CLI 访问配置中的公开仓库；CI 使用只读短期凭据。无模型调用、付费搜索或学习记录上传。
 
@@ -38,4 +34,4 @@ node content-pipeline/search-index.mjs --previous https://tsd619124.github.io/yu
 
 Workers Free 的平台请求/CPU 上限与进程级限流分别生效；进程级限流不代表跨实例全账户配额。用量在 Cloudflare Workers Metrics 查看；可把 Worker 的 `EXTERNAL_SEARCH_ENABLED` 设置为 `false` 暂停外部正文读取，保留库内检索和静态资料。外部调用单次最多 3 篇、1.5 MB、8 秒；缓存最多 24 小时。读回检查验证线上文件哈希与静态检索索引；Worker 库内检索只作告警，失败记录在 Actions。
 
-通过设置页面的服务连接可切换资料备用地址。内置与已缓存资料在主站或搜索服务不可用时仍可阅读。静态备用与主站为独立发布，新增审核内容时需一并部署；每日候选目录更新不会修改正式图文。
+通过设置页面的服务连接可切换资料备用地址。已查看并缓存的原文与原图在主站或搜索服务不可用时仍可阅读。静态备用与主站为独立发布，新增审核内容时需一并部署；每日候选目录更新不会修改正式图文。

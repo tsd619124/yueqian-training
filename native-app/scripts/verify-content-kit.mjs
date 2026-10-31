@@ -7,8 +7,10 @@ import { spawnSync } from 'node:child_process';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const catalog = JSON.parse(fs.readFileSync(path.join(root, 'Sources/YueqianCore/Resources/catalog.json'), 'utf8'));
-// 期望版本只来自 Web 源 index.html 的 APP_VERSION，避免脚本内写死版本号。
-const webVersion = fs.readFileSync(path.join(root, '../yueqian-training/index.html'), 'utf8').match(/\bvar\s+APP_VERSION\s*=\s*'([^']+)'/)?.[1];
+// 期望版本：Web 1.15 起取 content/course.json 的 sourceVersion（课程内容最后变化时的版本，与 APP_VERSION 无关）；
+// 没有该文件时退回 index.html 的 APP_VERSION。脚本内不写死版本号。
+const coursePath = path.join(root, '../yueqian-training/content/course.json');
+const webVersion = fs.existsSync(coursePath) ? JSON.parse(fs.readFileSync(coursePath, 'utf8')).sourceVersion : fs.readFileSync(path.join(root, '../yueqian-training/index.html'), 'utf8').match(/\bvar\s+APP_VERSION\s*=\s*'([^']+)'/)?.[1];
 const materials = Object.values(catalog.lessons).flatMap(lesson => lesson.mat);
 const checks = [];
 function check(label, action) {
@@ -94,7 +96,7 @@ const expectedAdditions = [
   "七类成果索引：从选型到入职计划"
 ];
 check('新增 28 份材料、60 个主题及完整入口', () => {
-  assert.ok(webVersion, '无法从 yueqian-training/index.html 读取 APP_VERSION');
+  assert.ok(webVersion, '无法从 content/course.json 或 index.html 读取课程版本');
   assert.equal(catalog.sourceVersion, webVersion, '原生教材版本与 Web 不一致，请运行 native-app/scripts/export-content.mjs');
   assert.equal(materials.length, 141);
   assert.equal(Object.keys(catalog.lessons).length, 60);

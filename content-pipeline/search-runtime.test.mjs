@@ -4,14 +4,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
-import { buildRelease, writeRelease } from './lib.mjs';
+import { buildRelease, readLibrarySnapshot, writeRelease } from './lib.mjs';
 import { createFileCache, loadSearchBundle, prepareSearchWorker, startSearchServer } from './search-runtime.mjs';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const registry = JSON.parse(await fs.readFile(path.join(directory, 'sources.json'), 'utf8'));
 const topics = JSON.parse(await fs.readFile(path.join(directory, 'topics.json'), 'utf8'));
-await import('../yueqian-training/external-snapshot.js');
-const bundle = buildRelease(globalThis.YUEQIAN_EXTERNAL_SEED, registry, topics);
+const bundledSnapshot = await readLibrarySnapshot();
+const bundle = buildRelease(bundledSnapshot, registry, topics);
 
 async function temporaryOutput(context) {
   const output = await fs.mkdtemp(path.join(os.tmpdir(), 'yueqian-search-runtime-'));
@@ -25,7 +25,7 @@ test('内容包完整校验已核准索引，候选目录缺失不影响正式�
   const content = await loadSearchBundle(output);
   assert.equal(content.releaseID, bundle.releaseID);
   assert.equal(content.index.documents.length, 10);
-  assert.equal(content.sources[0].revision, globalThis.YUEQIAN_EXTERNAL_SEED.revision);
+  assert.equal(content.sources[0].revision, bundledSnapshot.revision);
   assert.equal(content.discovery, null);
   assert.equal((await loadSearchBundle(output)).bundleID, content.bundleID);
 });
@@ -48,7 +48,7 @@ test('本机 HTTP 返回中文命中、固定版本出处及健康信息', async
   assert.equal(response.status, 200);
   assert.ok(result.library.results.length > 0);
   assert.equal(result.library.results[0].reviewStatus, 'approved');
-  assert.ok(result.library.results[0].url.includes('/blob/' + globalThis.YUEQIAN_EXTERNAL_SEED.revision + '/'));
+  assert.ok(result.library.results[0].url.includes('/blob/' + bundledSnapshot.revision + '/'));
   assert.equal(externalRequests, 0);
   assert.equal((await (await fetch(runtime.url + '/health')).json()).documents, 10);
   assert.equal((await fetch(runtime.url + '/api/search?q=x&limit=0')).status, 400);

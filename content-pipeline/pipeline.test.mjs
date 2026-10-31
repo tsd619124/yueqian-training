@@ -4,11 +4,10 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { buildRelease, coverageReport, discoverSources, searchIndex, sha256, validateRegistry, verifyLatest, writeRelease } from './lib.mjs';
+import { buildRelease, coverageReport, discoverSources, readLibrarySnapshot, searchIndex, sha256, validateRegistry, verifyLatest, writeRelease } from './lib.mjs';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
-await import('../yueqian-training/external-snapshot.js');
-const snapshot = globalThis.YUEQIAN_EXTERNAL_SEED;
+const snapshot = await readLibrarySnapshot();
 const registry = JSON.parse(await fs.readFile(path.join(directory, 'sources.json'), 'utf8'));
 const topics = JSON.parse(await fs.readFile(path.join(directory, 'topics.json'), 'utf8'));
 const bundle = buildRelease(snapshot, registry, topics);
