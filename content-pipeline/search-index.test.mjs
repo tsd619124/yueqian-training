@@ -237,8 +237,10 @@ test('从线上读取上一版：404 视为首次，哈希不符给出警告', a
   assert.match((await loadPublishedIndex('http://example.test/content-library/')).warning, /HTTPS/);
 });
 
-test('正式资料库的 10 篇已发布文档可读取为排除列表', async () => {
+test('正式资料库的 15 篇多来源文档可读取为排除列表', async () => {
   const documents = await publishedDocuments(fileURLToPath(new URL('../yueqian-training/content-library', import.meta.url)));
-  assert.equal(documents.length, 10);
-  assert.ok(documents.every(item => item.sourceID === 'microsoft-genai' && item.path.startsWith('translations/zh-CN/')));
+  assert.equal(documents.length, 15);
+  assert.ok(documents.some(item => item.sourceID === 'microsoft-genai' && item.path.startsWith('translations/zh-CN/')));
+  assert.ok(documents.some(item => item.sourceID === 'microsoft-agents'));
+  assert.ok(documents.some(item => item.sourceID === 'openai-cookbook'));
 });

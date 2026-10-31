@@ -30,7 +30,7 @@ test('首次上线仅登记真实当前发布，不伪造上一版', async conte
 test('保留已校验的上一发布，并拒绝哈希损坏文件', async context => {
   const directory = await temporary(context);
   const snapshot = structuredClone(bundledSnapshot);
-  snapshot.revision = 'a'.repeat(40);
+  snapshot.sources = snapshot.sources.map(source => ({ ...source, revision: 'a'.repeat(40) }));
   const previous = buildRelease(snapshot, registry, topics);
   let broken = false;
   context.mock.method(globalThis, 'fetch', async address => {

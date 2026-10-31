@@ -26,6 +26,10 @@
     return query;
   }
   function text(markdown) { return markdown.replace(/<!--[\s\S]*?-->/g, '').replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/<[^>]*>/g, ' ').replace(/[#*_`|]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function sourceFor(snapshot, article) {
+    if (Array.isArray(snapshot.sources)) return snapshot.sources.find(source => source.id === article.sourceID) || snapshot.sources[0];
+    return { id: 'microsoft-genai', repository: snapshot.repository, revision: snapshot.revision };
+  }
   function local(snapshot, value) {
     const query = normalize(value);
     const terms = new Set([query, ...(query.match(/[a-z0-9][a-z0-9_.-]*/g) || [])]);
@@ -38,7 +42,8 @@
       if (!matched.length) return [];
       const positions = matched.map(term => body.toLowerCase().indexOf(term)).filter(index => index >= 0);
       const offset = Math.max(0, (positions.length ? Math.min(...positions) : 0) - 50);
-      return [{ id: article.id, title: article.title, excerpt: body.slice(offset, offset + 240), url: root.YueqianMaterials.sourceURL(snapshot, article), repository: snapshot.repository, revision: snapshot.revision, sourceID: 'microsoft-genai', kind: 'library', reviewStatus: 'approved', score: matched.length + (article.title.toLowerCase().includes(query) ? 20 : 0), checkedAt: null }];
+      const source = sourceFor(snapshot, article);
+      return [{ id: article.id, title: article.title, excerpt: body.slice(offset, offset + 240), url: root.YueqianMaterials.sourceURL(snapshot, article), repository: source.repository, revision: source.revision, sourceID: source.id, kind: 'library', reviewStatus: 'approved', score: matched.length + (article.title.toLowerCase().includes(query) ? 20 : 0), checkedAt: null }];
     }).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).slice(0, 20);
   }
   // 与 content-pipeline/search-common.mjs 的 queryTerms / rankDocuments 逐行一致，改动需同步三端并重跑一致性测试。

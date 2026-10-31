@@ -32,14 +32,14 @@ async function environment(context) {
 test('iOS ContentLibrary 与 Web content-library 逐字节相同，原图为独立文件，不生成 base64 种子', async context => {
   const { output, options, bundle } = await environment(context);
   const result = await exportClientContent(output, options);
-  assert.equal(result.documents, 10);
-  assert.equal(result.images, 49);
+  assert.equal(result.documents, 15);
+  assert.equal(result.images, 58);
   const library = path.join(options.webDirectory, 'content-library');
   const webFiles = (await tree(library)).filter(name => name !== '.generated.json');
   assert.deepEqual(await tree(options.nativeLibraryDirectory), webFiles);
   for (const name of webFiles) assert.deepEqual(await fs.readFile(path.join(options.nativeLibraryDirectory, name)), await fs.readFile(path.join(library, name)));
   assert.equal(webFiles.length, bundle.manifest.files.length + 2);
-  assert.equal(webFiles.filter(name => name.includes('/assets/')).length, 49);
+  assert.equal(webFiles.filter(name => name.includes('/assets/')).length, 58);
   const document = JSON.parse(await fs.readFile(path.join(library, 'releases', bundle.releaseID, 'documents/ms-rag.json')));
   assert.ok(document.images.every(image => Number.isInteger(image.width) && Number.isInteger(image.height) && image.width > 0));
   await assert.rejects(fs.access(path.join(options.webDirectory, 'content-release-seed.js')));

@@ -130,20 +130,26 @@ function imageExtension(image, bytes) {
 export function buildRelease(snapshot, registry, topicConfiguration) {
   validateRegistry(registry);
   validateTopics(topicConfiguration);
-  const source = registry.sources.find(item => item.repository === snapshot?.repository && item.allowSnapshotPublication);
-  requireValue(source && snapshot.schemaVersion === 1 && revisionPattern.test(snapshot.revision) && Number.isFinite(Date.parse(snapshot.fetchedAt)), '快照没有获准发布的来源或版本。');
-  requireValue(typeof snapshot.licenseText === 'string' && snapshot.licenseText.includes('MIT License') && Array.isArray(snapshot.articles) && snapshot.articles.length > 0 && snapshot.articles.length <= 100, '原文授权或文档清单无效。');
+  requireValue(snapshot?.schemaVersion === 2 && Array.isArray(snapshot.sources) && snapshot.sources.length > 0 && snapshot.sources.length <= 8, '快照不是多来源格式或来源数量无效。');
+  const sources = snapshot.sources.map(item => {
+    const definition = registry.sources.find(source => source.id === item.id && source.repository === item.repository && source.allowSnapshotPublication);
+    requireValue(definition && revisionPattern.test(item.revision) && Number.isFinite(Date.parse(item.fetchedAt)) && typeof item.licenseText === 'string' && item.licenseText.includes('MIT License'), '快照没有获准发布的来源、版本或 MIT 授权：' + (item.id || '未命名'));
+    return { id: definition.id, publisher: definition.publisher, repository: definition.repository, revision: item.revision, fetchedAt: item.fetchedAt, licenseText: item.licenseText };
+  });
+  const bySource = new Map(sources.map(source => [source.id, source]));
+  requireValue(Array.isArray(snapshot.articles) && snapshot.articles.length > 0 && snapshot.articles.length <= 100, '原文清单无效。');
   const files = new Map();
   const index = { schemaVersion: 1, documents: [] };
   const summaries = [];
   const identities = new Set();
   let imageReferences = 0;
   for (const article of snapshot.articles) {
-    requireValue(typeof article.id === 'string' && identifierPattern.test(article.id) && !identities.has(article.id) && typeof article.title === 'string' && Array.isArray(article.lessonIDs), '文档 ID、标题或关联无效。');
+    const source = bySource.get(article.sourceID);
+    requireValue(source && typeof article.id === 'string' && identifierPattern.test(article.id) && !identities.has(article.id) && typeof article.title === 'string' && Array.isArray(article.lessonIDs), '文档 ID、来源、标题或关联无效。');
     requireValue(typeof article.markdown === 'string' && Buffer.byteLength(article.markdown) <= 700000 && sha256(article.markdown) === article.sha256, '原文哈希校验失败。');
     requireValue(Array.isArray(article.images) && article.images.length <= 24, '文档图片清单无效。');
     identities.add(article.id);
-    const url = sourceURL(source.repository, snapshot.revision, article.path);
+    const url = sourceURL(source.repository, source.revision, article.path);
     const images = article.images.map(image => {
       requireValue(typeof image.data === 'string' && image.data.length <= 6000000 && typeof image.alt === 'string', '原图数据无效。');
       const bytes = Buffer.from(image.data, 'base64');
@@ -153,10 +159,10 @@ export function buildRelease(snapshot, registry, topicConfiguration) {
       imageReferences++;
       const { width, height } = imageSize(bytes);
       requireValue(width > 0 && height > 0 && width <= 16384 && height <= 16384, '原图尺寸无效。');
-      return { path: assetPath, sourcePath: image.path, sourceURL: sourceURL(source.repository, snapshot.revision, image.path, true), alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, width, height };
+      return { path: assetPath, sourcePath: image.path, sourceURL: sourceURL(source.repository, source.revision, image.path, true), alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, width, height };
     });
     const documentPath = `documents/${article.id}.json`;
-    const document = { schemaVersion: 1, id: article.id, title: article.title, lessonIDs: article.lessonIDs, markdown: article.markdown, sha256: article.sha256, images, source: { id: source.id, publisher: source.publisher, repository: source.repository, revision: snapshot.revision, path: article.path, url, rawURL: sourceURL(source.repository, snapshot.revision, article.path, true), downloadedAt: snapshot.fetchedAt, license: 'MIT' } };
+    const document = { schemaVersion: 1, id: article.id, title: article.title, lessonIDs: article.lessonIDs, markdown: article.markdown, sha256: article.sha256, images, source: { id: source.id, publisher: source.publisher, repository: source.repository, revision: source.revision, path: article.path, url, rawURL: sourceURL(source.repository, source.revision, article.path, true), downloadedAt: source.fetchedAt, license: 'MIT' } };
     files.set(documentPath, jsonBytes(document));
     summaries.push({ id: article.id, title: article.title, path: documentPath, sourceID: source.id, url, lessonIDs: article.lessonIDs, imageCount: images.length });
     index.documents.push({ id: article.id, title: article.title, url, path: documentPath, sourceID: source.id, lessonIDs: article.lessonIDs, text: plainText(article.markdown) });
@@ -164,9 +170,10 @@ export function buildRelease(snapshot, registry, topicConfiguration) {
   const coverage = coverageReport(index, topicConfiguration);
   files.set('index.json', jsonBytes(index));
   files.set('coverage.json', jsonBytes(coverage));
-  files.set('LICENSE.txt', Buffer.from(snapshot.licenseText));
+  for (const source of sources) files.set(`licenses/${source.id}.txt`, Buffer.from(source.licenseText));
+  files.set('LICENSE.txt', Buffer.from(sources.map(source => '===== ' + source.id + ' =====\n' + source.licenseText.trim()).join('\n\n') + '\n'));
   const records = [...files.entries()].sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0).map(([filePath, bytes]) => ({ path: filePath, bytes: bytes.length, sha256: sha256(bytes) }));
-  const content = { schemaVersion: 1, sources: [{ id: source.id, repository: source.repository, revision: snapshot.revision, downloadedAt: snapshot.fetchedAt }], documents: summaries, imageReferences, assetCount: records.filter(record => record.path.startsWith('assets/')).length, files: records };
+  const content = { schemaVersion: 2, sources: sources.map(source => ({ id: source.id, publisher: source.publisher, repository: source.repository, revision: source.revision, downloadedAt: source.fetchedAt })), documents: summaries, imageReferences, assetCount: records.filter(record => record.path.startsWith('assets/')).length, files: records };
   const releaseID = sha256(jsonBytes(content));
   const manifest = { ...content, releaseID };
   files.set('manifest.json', jsonBytes(manifest));
@@ -176,7 +183,7 @@ export function buildRelease(snapshot, registry, topicConfiguration) {
 }
 
 function verifyManifest(manifest, manifestBytes, expectedHash) {
-  requireValue(manifest?.schemaVersion === 1 && hashPattern.test(manifest.releaseID) && Array.isArray(manifest.files) && manifest.files.length <= 3000, '发布清单格式无效。');
+  requireValue(manifest?.schemaVersion === 2 && hashPattern.test(manifest.releaseID) && Array.isArray(manifest.files) && manifest.files.length <= 3000, '发布清单格式无效。');
   const { releaseID, ...content } = manifest;
   requireValue(sha256(jsonBytes(content)) === releaseID && (!expectedHash || sha256(manifestBytes) === expectedHash), '发布清单哈希校验失败。');
   const identities = new Set();
@@ -258,17 +265,31 @@ export const bundledLibraryDirectory = path.resolve(path.dirname(fileURLToPath(i
 export async function readLibrarySnapshot(directory = bundledLibraryDirectory) {
   const manifest = await verifyLatest(directory);
   const releaseDirectory = path.join(directory, 'releases', manifest.releaseID);
-  requireValue(manifest.sources.length === 1, '资料库只能有一个来源。');
-  const source = manifest.sources[0];
+  requireValue(Array.isArray(manifest.sources) && manifest.sources.length > 0 && manifest.sources.length <= 8, '资料库来源清单无效。');
+  const filePaths = new Set((manifest.files || []).map(record => record.path));
+  const sources = [];
+  for (const source of manifest.sources) {
+    const licensePath = filePaths.has(`licenses/${source.id}.txt`) ? `licenses/${source.id}.txt` : 'LICENSE.txt';
+    sources.push({
+      id: source.id,
+      repository: source.repository,
+      revision: source.revision,
+      fetchedAt: source.downloadedAt,
+      licenseText: await fs.readFile(path.join(releaseDirectory, licensePath), 'utf8')
+    });
+  }
+  const bySource = new Map(sources.map(source => [source.id, source]));
   const articles = [];
   for (const summary of manifest.documents) {
     const document = JSON.parse(await fs.readFile(path.join(releaseDirectory, summary.path), 'utf8'));
-    requireValue(document.id === summary.id && document.source?.revision === source.revision && document.source.repository === source.repository, '资料文档与清单不一致：' + summary.id);
+    const sourceID = summary.sourceID || document.source?.id || sources[0].id;
+    const source = bySource.get(sourceID);
+    requireValue(source && document.id === summary.id && document.source?.revision === source.revision && document.source.repository === source.repository, '资料文档与清单不一致：' + summary.id);
     const images = [];
     for (const image of document.images) images.push({ path: image.sourcePath, alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, data: (await fs.readFile(path.join(releaseDirectory, image.path))).toString('base64') });
-    articles.push({ id: document.id, title: document.title, path: document.source.path, lessonIDs: document.lessonIDs, markdown: document.markdown, sha256: document.sha256, images });
+    articles.push({ id: document.id, title: document.title, sourceID, path: document.source.path, lessonIDs: document.lessonIDs, markdown: document.markdown, sha256: document.sha256, images });
   }
-  return { schemaVersion: 1, repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt, licenseText: await fs.readFile(path.join(releaseDirectory, 'LICENSE.txt'), 'utf8'), articles };
+  return { schemaVersion: 2, sources, articles };
 }
 
 export function searchIndex(index, query, limit = 10) {

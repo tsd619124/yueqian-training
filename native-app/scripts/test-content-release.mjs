@@ -48,8 +48,7 @@ function fixtureFetch(bundle, requests, modify = value => value) {
 }
 const base = 'https://library.example/content/';
 const nextSnapshot = structuredClone(snapshot);
-nextSnapshot.revision = 'a'.repeat(40);
-nextSnapshot.fetchedAt = '2026-10-28T08:00:00.000Z';
+nextSnapshot.sources = nextSnapshot.sources.map(source => source.id === 'microsoft-genai' ? { ...source, revision: 'a'.repeat(40), fetchedAt: '2026-10-28T08:00:00.000Z' } : source);
 nextSnapshot.articles[0].markdown += '\n\n增量更新校验内容。\n';
 nextSnapshot.articles[0].sha256 = sha256(nextSnapshot.articles[0].markdown);
 const changedImage = nextSnapshot.articles[0].images[0];
@@ -59,13 +58,13 @@ changedImage.sha256 = sha256(changedBytes);
 const next = buildRelease(nextSnapshot, registry, topics);
 const state = await client.load(base, catalog, fixtureFetch(current, []));
 
-await check('首次打开只读指针与清单并校验，10 篇 49 张原图按需读取', async () => {
+await check('首次打开只读指针与清单并校验，15 篇 58 张原图按需读取', async () => {
   const requests = [];
   resetCache();
   const loaded = await client.load(base, catalog, fixtureFetch(current, requests));
   assert.deepEqual(requests, ['/content/latest.json', '/content/' + pointer(current).manifestPath]);
-  assert.equal(loaded.manifest.documents.length, 10);
-  assert.equal(loaded.manifest.assetCount, 49);
+  assert.equal(loaded.manifest.documents.length, 15);
+  assert.equal(loaded.manifest.assetCount, 58);
   assert.deepEqual(client.restore(structuredClone(loaded)).latest, loaded.latest);
   assert.throws(() => client.restore({ ...loaded, schemaVersion: 1 }), /无效/);
 });

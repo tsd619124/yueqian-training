@@ -24,8 +24,19 @@ const sampleBytes = fs.readFileSync(path.join(fixtures, 'search-index-sample.jso
 const sample = JSON.parse(sampleBytes);
 const expectations = JSON.parse(fs.readFileSync(path.join(fixtures, 'search-index-expectations.json'))).expectations;
 const base = 'https://library.example/content/';
-const snapshot = { repository: 'microsoft/generative-ai-for-beginners', revision: 'a'.repeat(40), articles: [] };
-globalThis.YueqianMaterials.sourceURL = () => 'https://github.com/microsoft/generative-ai-for-beginners/blob/' + 'a'.repeat(40) + '/x.md';
+const snapshot = {
+  schemaVersion: 2,
+  sources: [
+    { id: 'microsoft-genai', repository: 'microsoft/generative-ai-for-beginners', revision: 'a'.repeat(40) },
+    { id: 'microsoft-agents', repository: 'microsoft/ai-agents-for-beginners', revision: 'b'.repeat(40) },
+    { id: 'openai-cookbook', repository: 'openai/openai-cookbook', revision: 'c'.repeat(40) }
+  ],
+  articles: []
+};
+globalThis.YueqianMaterials.sourceURL = (value, article) => {
+  const source = Array.isArray(value?.sources) ? value.sources.find(item => item.id === article.sourceID) : value;
+  return 'https://github.com/' + source.repository + '/blob/' + source.revision + '/' + article.path;
+};
 
 function sha(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
 function bundle(index = sample, overrides = {}) {
@@ -69,6 +80,29 @@ test('本地排序逐条复现管线生成的期望：ID、顺序、score 与 ex
     }
   }
   assert.ok(expectations.length >= 5);
+});
+
+test('多来源快照的本机原文结果使用文章自己的 sourceID 与版本', () => {
+  const multi = {
+    schemaVersion: 2,
+    sources: snapshot.sources,
+    articles: [
+      { id: 'ms-rag', title: 'RAG 与向量数据库', sourceID: 'microsoft-genai', path: 'translations/zh-CN/15-rag-and-vector-databases/README.md', lessonIDs: ['w2.0'], markdown: '检索增强生成把检索与生成结合起来。' },
+      { id: 'ma-memory', title: 'Memory for AI Agents', sourceID: 'microsoft-agents', path: '13-agent-memory/README.md', lessonIDs: ['ref.agent'], markdown: 'Agent memory keeps context across turns.' }
+    ]
+  };
+  const results = search.local(multi, 'memory');
+  assert.equal(results.length, 1);
+  assert.equal(results[0].id, 'ma-memory');
+  assert.equal(results[0].sourceID, 'microsoft-agents');
+  assert.equal(results[0].repository, 'microsoft/ai-agents-for-beginners');
+  assert.equal(results[0].revision, 'b'.repeat(40));
+  assert.equal(results[0].url, 'https://github.com/microsoft/ai-agents-for-beginners/blob/' + 'b'.repeat(40) + '/13-agent-memory/README.md');
+  assert.equal(search.validItem(results[0], 'library'), true);
+  const chinese = search.local(multi, '检索增强');
+  assert.equal(chinese[0].sourceID, 'microsoft-genai');
+  assert.equal(chinese[0].revision, 'a'.repeat(40));
+  assert.ok(chinese[0].url.includes('/microsoft/generative-ai-for-beginners/blob/' + 'a'.repeat(40) + '/'));
 });
 
 test('首次下载、哈希未变不重复下载、变化后原子替换', async () => {

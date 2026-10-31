@@ -24,8 +24,8 @@ test('内容包完整校验已核准索引，候选目录缺失不影响正式�
   const output = await temporaryOutput(context);
   const content = await loadSearchBundle(output);
   assert.equal(content.releaseID, bundle.releaseID);
-  assert.equal(content.index.documents.length, 10);
-  assert.equal(content.sources[0].revision, bundledSnapshot.revision);
+  assert.equal(content.index.documents.length, 15);
+  assert.equal(content.sources[0].revision, bundledSnapshot.sources[0].revision);
   assert.equal(content.discovery, null);
   assert.equal((await loadSearchBundle(output)).bundleID, content.bundleID);
 });
@@ -48,9 +48,9 @@ test('本机 HTTP 返回中文命中、固定版本出处及健康信息', async
   assert.equal(response.status, 200);
   assert.ok(result.library.results.length > 0);
   assert.equal(result.library.results[0].reviewStatus, 'approved');
-  assert.ok(result.library.results[0].url.includes('/blob/' + bundledSnapshot.revision + '/'));
+  assert.ok(result.library.results[0].url.includes('/blob/' + bundledSnapshot.sources[0].revision + '/'));
   assert.equal(externalRequests, 0);
-  assert.equal((await (await fetch(runtime.url + '/health')).json()).documents, 10);
+  assert.equal((await (await fetch(runtime.url + '/health')).json()).documents, 15);
   assert.equal((await fetch(runtime.url + '/api/search?q=x&limit=0')).status, 400);
   assert.equal((await fetch(runtime.url + '/api/search?q=x', { method: 'POST' })).status, 405);
   assert.equal((await fetch(runtime.url + '/')).status, 404);

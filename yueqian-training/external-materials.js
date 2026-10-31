@@ -1,10 +1,9 @@
 (function (root) {
   'use strict';
 
-  const repository = 'microsoft/generative-ai-for-beginners';
+  const defaultRepository = 'microsoft/generative-ai-for-beginners';
   const maximumSnapshotBytes = 32 * 1024 * 1024;
   const maximumImageBytes = 4 * 1024 * 1024;
-  const commitURL = 'https://api.github.com/repos/' + repository + '/git/ref/heads/main';
   const imagePattern = /!\[([^\]\n]*)\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g;
 
   function assert(condition, message) {
@@ -23,26 +22,55 @@
     return typeof value === 'string' && /^[a-f0-9]{40}$/.test(value);
   }
 
-  function rawURL(revision, path) {
+  function catalogSources(catalog) {
+    assert(catalog?.schemaVersion === 2 && Array.isArray(catalog.sources) && catalog.sources.length > 0 && catalog.sources.length <= 8, '资料来源配置无效。');
+    const ids = new Set();
+    for (const source of catalog.sources) {
+      assert(source && typeof source.id === 'string' && !ids.has(source.id) && typeof source.repository === 'string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(source.repository), '资料来源条目无效。');
+      ids.add(source.id);
+    }
+    return catalog.sources;
+  }
+
+  function sourceForCatalog(catalog, sourceID) {
+    const source = catalogSources(catalog).find(item => item.id === sourceID);
+    assert(source, '资料来源未登记：' + sourceID);
+    return source;
+  }
+
+  function sourceForSnapshot(snapshot, sourceID) {
+    const source = Array.isArray(snapshot?.sources) ? snapshot.sources.find(item => item.id === sourceID) : null;
+    assert(source && validRevision(source.revision) && typeof source.repository === 'string', '资料快照缺少来源：' + sourceID);
+    return source;
+  }
+
+  function resolvedSource(value, article) {
+    if (value && Array.isArray(value.sources)) return sourceForSnapshot(value, article?.sourceID || value.sources[0].id);
+    return value;
+  }
+
+  function rawURL(revision, path, repository = defaultRepository) {
     assert(validRevision(revision), '来源版本无效。');
+    assert(typeof repository === 'string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository), '来源仓库无效。');
     assert(typeof path === 'string' && /^[A-Za-z0-9_./-]+$/.test(path) && !path.split('/').includes('..') && !path.startsWith('/'), '来源路径无效。');
     return 'https://raw.githubusercontent.com/' + repository + '/' + revision + '/' + path;
   }
 
-  function sourceURL(snapshot, article, english) {
+  function sourceURL(value, article, english) {
+    const source = resolvedSource(value, article);
     const path = english ? article.path.replace('translations/zh-CN/', '') : article.path;
-    return 'https://github.com/' + repository + '/blob/' + snapshot.revision + '/' + path;
+    return 'https://github.com/' + source.repository + '/blob/' + source.revision + '/' + path;
   }
 
-  function imageReferences(markdown, articlePath, revision) {
+  function imageReferences(markdown, articlePath, revision, repository = defaultRepository) {
     const references = new Map();
     for (const match of markdown.matchAll(imagePattern)) {
-      if (/lesson-banner|img\.youtube\.com|img\.shields\.io/.test(match[2])) continue;
-      const url = new URL(match[2], rawURL(revision, articlePath));
+      if (/lesson-banner|lesson-\d+-thumbnail|img\.youtube\.com|img\.shields\.io/.test(match[2])) continue;
+      const url = new URL(match[2], rawURL(revision, articlePath, repository));
       const prefix = '/' + repository + '/' + revision + '/';
       assert(url.protocol === 'https:' && url.hostname === 'raw.githubusercontent.com' && url.pathname.startsWith(prefix) && !url.search && !url.hash, '原文包含尚未审核的图片来源，请查看源站；本次更新未替换缓存。');
       const path = url.pathname.slice(prefix.length);
-      assert((path.startsWith('translated_images/zh-CN/') || path.includes('/images/')) && /\.(png|jpe?g|webp)$/i.test(path), '原文图片格式或路径未通过检查。');
+      assert((path.startsWith('translated_images/zh-CN/') || path.startsWith('images/') || path.includes('/images/')) && /\.(png|jpe?g|webp)$/i.test(path), '原文图片格式或路径未通过检查。');
       references.set(path, { path, alt: match[1] });
     }
     assert(references.size <= 24, '单篇图片数量超出上限。');
@@ -107,18 +135,36 @@
     return bytes;
   }
 
+  async function fetchRetry(url, limit, fetcher) {
+    let lastError;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try { return await fetchBytes(url, limit, fetcher); }
+      catch (error) {
+        lastError = error;
+        if (!/fetch failed|ECONNRESET|socket disconnected|ETIMEDOUT|network/i.test(String(error?.message || '')) || attempt === 3) throw error;
+        await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
+      }
+    }
+    throw lastError;
+  }
+
   async function validateSnapshot(snapshot, catalog) {
-    assert(snapshot && snapshot.schemaVersion === 1 && snapshot.repository === repository && catalog.repository === repository, '图文资料格式或来源不匹配。');
-    assert(validRevision(snapshot.revision) && Number.isFinite(Date.parse(snapshot.fetchedAt)), '来源版本或日期无效。');
-    assert(typeof snapshot.licenseText === 'string' && snapshot.licenseText.includes('MIT License') && snapshot.licenseText.includes('Copyright (c) Microsoft Corporation.'), '未找到有效的来源授权声明。');
+    const definitions = catalogSources(catalog);
+    assert(snapshot && snapshot.schemaVersion === 2 && Array.isArray(snapshot.sources) && snapshot.sources.length === definitions.length, '图文资料格式或来源不匹配。');
+    for (const definition of definitions) {
+      const source = snapshot.sources.find(item => item.id === definition.id);
+      assert(source && source.repository === definition.repository && validRevision(source.revision) && Number.isFinite(Date.parse(source.fetchedAt)), '来源版本或日期无效：' + definition.id);
+      assert(typeof source.licenseText === 'string' && source.licenseText.includes('MIT License'), '未找到有效的来源授权声明：' + definition.id);
+    }
     assert(snapshot.articles?.length === catalog.articles.length && JSON.stringify(snapshot).length <= maximumSnapshotBytes, '图文资料数量或大小不匹配。');
     for (let index = 0; index < catalog.articles.length; index++) {
       const article = snapshot.articles[index];
       const definition = catalog.articles[index];
-      assert(article && article.id === definition.id && article.path === definition.path && article.title === definition.title && JSON.stringify(article.lessonIDs) === JSON.stringify(definition.lessonIDs), '图文资料与课程关联不匹配。');
+      const source = sourceForSnapshot(snapshot, definition.sourceID);
+      assert(article && article.id === definition.id && article.sourceID === definition.sourceID && article.path === definition.path && article.title === definition.title && JSON.stringify(article.lessonIDs) === JSON.stringify(definition.lessonIDs), '图文资料与课程关联不匹配。');
       assert(typeof article.markdown === 'string' && article.markdown.length > 100 && article.markdown.length < 600000, '原文正文缺失或过大。');
       assert(await digest(new TextEncoder().encode(article.markdown)) === article.sha256, '原文缓存校验失败。');
-      const expected = imageReferences(article.markdown, article.path, snapshot.revision);
+      const expected = imageReferences(article.markdown, article.path, source.revision, source.repository);
       assert(Array.isArray(article.images) && expected.length === article.images.length, '原图未下载完整。');
       for (let imageIndex = 0; imageIndex < expected.length; imageIndex++) {
         const image = article.images[imageIndex];
@@ -131,22 +177,31 @@
   }
 
   async function downloadSnapshot(catalog, current, fetcher = fetch, onProgress = () => {}) {
-    assert(catalog.repository === repository && catalog.articles.length <= 16, '资料来源配置无效。');
-    onProgress('正在检查来源…');
-    const commit = JSON.parse(new TextDecoder().decode(await fetchBytes(commitURL, 500000, fetcher)));
-    const revision = commit.object?.sha;
-    assert(validRevision(revision), '来源返回的版本无效。');
-    if (current && revision === current.revision) return current;
-    const licenseText = new TextDecoder('utf-8', { fatal: true }).decode(await fetchBytes(rawURL(revision, 'LICENSE'), 30000, fetcher));
-    assert(licenseText.includes('MIT License') && licenseText.includes('Copyright (c) Microsoft Corporation.'), '来源授权已变化，请先核对；继续使用已有资料。');
-    const snapshot = { schemaVersion: 1, repository, revision, fetchedAt: new Date().toISOString(), licenseText, articles: [] };
+    const definitions = catalogSources(catalog);
+    assert(catalog.articles.length <= 48, '资料来源配置无效。');
+    onProgress('正在检查 ' + definitions.length + ' 个来源…');
+    const sources = [];
+    const fetchedAt = new Date().toISOString();
+    for (const definition of definitions) {
+      const commit = JSON.parse(new TextDecoder().decode(await fetchRetry('https://api.github.com/repos/' + definition.repository + '/git/ref/heads/' + (definition.branch || 'main'), 500000, fetcher)));
+      const revision = commit.object?.sha;
+      assert(validRevision(revision), '来源返回的版本无效：' + definition.id);
+      const licenseText = new TextDecoder('utf-8', { fatal: true }).decode(await fetchRetry(rawURL(revision, definition.licensePath || 'LICENSE', definition.repository), 30000, fetcher));
+      assert(licenseText.includes('MIT License'), '来源授权已变化，请先核对；继续使用已有资料：' + definition.id);
+      sources.push({ id: definition.id, repository: definition.repository, revision, fetchedAt, licenseText });
+    }
+    const sameSources = current?.schemaVersion === 2 && Array.isArray(current.sources) && definitions.every(definition => current.sources.find(source => source.id === definition.id && source.repository === definition.repository && source.revision === sources.find(item => item.id === definition.id)?.revision));
+    const sameCatalog = sameSources && current.articles.length === catalog.articles.length && current.articles.every((article, index) => article.id === catalog.articles[index].id && article.sourceID === catalog.articles[index].sourceID && article.path === catalog.articles[index].path && article.title === catalog.articles[index].title && JSON.stringify(article.lessonIDs) === JSON.stringify(catalog.articles[index].lessonIDs));
+    if (sameCatalog) return current;
+    const snapshot = { schemaVersion: 2, sources, articles: [] };
     let downloadedBytes = 0;
     for (const definition of catalog.articles) {
+      const source = sourceForSnapshot(snapshot, definition.sourceID);
       onProgress('正在下载 ' + (snapshot.articles.length + 1) + ' / ' + catalog.articles.length);
-      const markdown = new TextDecoder('utf-8', { fatal: true }).decode(await fetchBytes(rawURL(revision, definition.path), 600000, fetcher));
+      const markdown = new TextDecoder('utf-8', { fatal: true }).decode(await fetchRetry(rawURL(source.revision, definition.path, source.repository), 600000, fetcher).catch(error => { throw new Error('下载原文失败：' + definition.id + '：' + error.message); }));
       const images = [];
-      for (const reference of imageReferences(markdown, definition.path, revision)) {
-        const bytes = await fetchBytes(rawURL(revision, reference.path), maximumImageBytes, fetcher);
+      for (const reference of imageReferences(markdown, definition.path, source.revision, source.repository)) {
+        const bytes = await fetchRetry(rawURL(source.revision, reference.path, source.repository), maximumImageBytes, fetcher).catch(error => { throw new Error('下载原图失败：' + definition.id + ' ' + reference.path + '：' + error.message); });
         downloadedBytes += bytes.length;
         assert(downloadedBytes <= 22 * 1024 * 1024, '图文资料总大小超出限制。');
         images.push({ ...reference, mimeType: imageMime(bytes), sha256: await digest(bytes), data: toBase64(bytes) });
@@ -168,6 +223,7 @@
   }
 
   function renderMarkdown(snapshot, article) {
+    const source = resolvedSource(snapshot, article);
     const images = new Map(article.images.map(image => [image.path, image]));
     const tokens = [];
     const headings = [];
@@ -176,19 +232,22 @@
     function inline(value) {
       const protectedText = value.replace(/`([^`]+)`/g, (_, code) => token('<code>' + escapeHTML(code) + '</code>'))
         .replace(/!\[([^\]]*)\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g, (_, alt, target) => {
-          const path = new URL(target, rawURL(snapshot.revision, article.path)).pathname.split('/' + snapshot.revision + '/')[1];
+          const path = new URL(target, rawURL(source.revision, article.path, source.repository)).pathname.split('/' + source.revision + '/')[1];
           const image = images.get(path);
           if (!image) return escapeHTML(alt);
           // 资料库原图用普通地址（image.src）；Node 校验仍可传 base64（image.data）。
           const src = image.src || 'data:' + image.mimeType + ';base64,' + image.data;
           const size = Number.isInteger(image.width) && Number.isInteger(image.height) ? ' width="' + image.width + '" height="' + image.height + '"' : '';
-          return token('<figure><a href="' + rawURL(snapshot.revision, image.path) + '" target="_blank" rel="noopener noreferrer"><img data-source-path="' + escapeHTML(image.path) + '" src="' + escapeHTML(src) + '" alt="' + escapeHTML(image.alt) + '"' + size + ' loading="lazy" decoding="async"></a></figure>');
+          return token('<figure><a href="' + rawURL(source.revision, image.path, source.repository) + '" target="_blank" rel="noopener noreferrer"><img data-source-path="' + escapeHTML(image.path) + '" src="' + escapeHTML(src) + '" alt="' + escapeHTML(image.alt) + '"' + size + ' loading="lazy" decoding="async"></a></figure>');
         })
         .replace(/\[([^\]\n]+)\]\(([^\s)]+)\)/g, (_, label, target) => {
+          if (/^\u0000\d+\u0000$/.test(label)) return label;
           const href = safeLink(target, snapshot, article);
           return href ? token('<a href="' + escapeHTML(href) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(label) + '</a>') : label;
         });
-      return escapeHTML(protectedText.replace(/<br\s*\/?>/gi, ' ').replace(/<\/?(?:strong|b)>/gi, '**').replace(/<[^>]*>/g, '')).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/_([^_]+)_/g, '<em>$1</em>').replace(/\u0000(\d+)\u0000/g, (_, index) => tokens[Number(index)]);
+      let html = escapeHTML(protectedText.replace(/<br\s*\/?>/gi, ' ').replace(/<\/?(?:strong|b)>/gi, '**').replace(/<[^>]*>/g, '')).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/_([^_]+)_/g, '<em>$1</em>');
+      for (let pass = 0; pass < 8 && html.includes('\u0000'); pass++) html = html.replace(/\u0000(\d+)\u0000/g, (_, index) => tokens[Number(index)]);
+      return html;
     }
     const lines = article.markdown.replace(/<!--[\s\S]*?-->/g, '').split(/\r?\n/);
     const output = [];
@@ -196,7 +255,7 @@
     while (index < lines.length) {
       const line = lines[index].trim();
       index++;
-      if (!line || /lesson-banner|img\.youtube\.com|img\.shields\.io/.test(line)) continue;
+      if (!line || /lesson-banner|lesson-\d+-thumbnail|img\.youtube\.com|img\.shields\.io/.test(line)) continue;
       if (/^```|^~~~/.test(line)) {
         const delimiter = line.slice(0, 3);
         const language = line.slice(3).trim();
@@ -306,9 +365,10 @@
     if (lessonID) selectedID = catalog.articles.find(article => article.lessonIDs.includes(lessonID))?.id || selectedID;
     if (!catalog.articles.some(article => article.id === selectedID)) selectedID = catalog.articles[0].id;
 
-    function sourceMeta() {
-      const source = release.manifest.sources[0];
-      return { repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt };
+    function sourceMeta(article) {
+      const sources = release.manifest.sources;
+      const source = article ? sources.find(item => item.id === article.sourceID) || sources[0] : sources[0];
+      return { id: source.id, repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt };
     }
     function statusText() {
       if (settings.checkedAt) return '上次检查 ' + new Date(settings.checkedAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -381,8 +441,8 @@
         return;
       }
       if (serial !== renderSerial || current !== release) return;
-      const meta = sourceMeta();
       const article = { ...definition, markdown: document_.markdown, images: document_.images.map(image => ({ path: image.sourcePath, alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, width: image.width, height: image.height, src: releaseClient.assetURL(current, image.path), file: image.path })) };
+      const meta = sourceMeta(article);
       const rendered = renderMarkdown(meta, article);
       document.getElementById('source-title').textContent = rendered.title;
       document.getElementById('source-original').href = sourceURL(meta, article);
@@ -464,11 +524,11 @@
       searchPanel.hidden = false;
       try {
         const term = searchClient.normalize(query.value);
-        const snapshot = await ensureSearchSnapshot().catch(() => ({ repository: catalog.repository, revision: '0'.repeat(40), articles: [] }));
+        const snapshot = await ensureSearchSnapshot().catch(() => ({ schemaVersion: 2, sources: [], articles: [] }));
         if (serial !== searchSerial) return;
         renderSearchGroups({ library: searchClient.local(snapshot, term), external: [] }, snapshot);
         searchStatus.textContent = services.searchURL ? '正在检索配置的官方来源，已显示本机原文…' : '正在搜索已保存的原文与官方来源索引…';
-        const result = await searchClient.search({ query: term, snapshot, releaseID: release?.latest.releaseID || snapshot.revision, searchURL: services.searchURL, contentBaseURL: location.protocol === 'file:' ? null : services.contentBaseURL });
+        const result = await searchClient.search({ query: term, snapshot, releaseID: release?.latest.releaseID || '0'.repeat(64), searchURL: services.searchURL, contentBaseURL: location.protocol === 'file:' ? null : services.contentBaseURL });
         if (serial !== searchSerial) return;
         renderSearchGroups(result, snapshot);
         searchStatus.textContent = result.message;

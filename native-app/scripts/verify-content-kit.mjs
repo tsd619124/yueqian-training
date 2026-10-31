@@ -98,7 +98,7 @@ const expectedAdditions = [
 check('新增 28 份材料、60 个主题及完整入口', () => {
   assert.ok(webVersion, '无法从 content/course.json 或 index.html 读取课程版本');
   assert.equal(catalog.sourceVersion, webVersion, '原生教材版本与 Web 不一致，请运行 native-app/scripts/export-content.mjs');
-  assert.equal(materials.length, 141);
+  assert.equal(materials.length, 144);
   assert.equal(Object.keys(catalog.lessons).length, 60);
   assert.equal(catalog.entries.length, 60);
   for (const title of expectedAdditions) material(title);

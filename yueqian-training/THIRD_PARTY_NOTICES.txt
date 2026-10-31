@@ -1,11 +1,13 @@
-Microsoft Generative AI for Beginners
+跃迁计划 · 外部图文资料
+
+===== microsoft-genai =====
 https://github.com/microsoft/generative-ai-for-beginners
-Revision: e01dec498a0cf7413422647b83388e68accec5fd
-Retrieved: 2026-10-27T16:11:33.127Z
+Revision: 30621ff0cf7c8fb21d1806c9883ae45224770c72
+Retrieved: 2026-10-31T14:48:30.821Z
 
-The included Chinese translation and original images are downloaded from the source repository. The original Markdown is retained in the snapshot.
+The original Markdown and images are downloaded from the source repository and retained in the content library.
 
-    MIT License
+MIT License
 
     Copyright (c) Microsoft Corporation.
 
@@ -27,3 +29,60 @@ The included Chinese translation and original images are downloaded from the sou
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE
 
+===== microsoft-agents =====
+https://github.com/microsoft/ai-agents-for-beginners
+Revision: f09e94ffe170f8af6d3db7c42987bbe4db227723
+Retrieved: 2026-10-31T14:48:30.821Z
+
+The original Markdown and images are downloaded from the source repository and retained in the content library.
+
+MIT License
+
+    Copyright (c) Microsoft Corporation.
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE
+
+===== openai-cookbook =====
+https://github.com/openai/openai-cookbook
+Revision: f5819076643583e2c2a77268e7fe522e927499d0
+Retrieved: 2026-10-31T14:48:30.821Z
+
+The original Markdown and images are downloaded from the source repository and retained in the content library.
+
+MIT License
+
+Copyright (c) 2025 OpenAI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

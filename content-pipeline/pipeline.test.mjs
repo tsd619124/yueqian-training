@@ -46,22 +46,29 @@ async function temporaryOutput(context) {
 }
 
 test('静态包保留全部已核准原文、原图与来源版本', () => {
-  assert.equal(bundle.manifest.documents.length, 10);
-  assert.equal(bundle.manifest.imageReferences, 49);
-  assert.equal(bundle.manifest.assetCount, 49);
+  assert.equal(bundle.manifest.documents.length, 15);
+  assert.equal(bundle.manifest.imageReferences, 58);
+  assert.equal(bundle.manifest.assetCount, 58);
   assert.ok(bundle.totalBytes < registry.budget.maxReleaseBytes);
   for (const article of snapshot.articles) {
     const document = JSON.parse(bundle.files.get(`documents/${article.id}.json`));
     assert.equal(document.markdown, article.markdown);
     assert.equal(document.sha256, article.sha256);
     assert.deepEqual(document.lessonIDs, article.lessonIDs);
-    assert.ok(document.source.url.includes('/blob/' + snapshot.revision + '/'));
-    assert.ok(document.source.rawURL.includes(snapshot.revision));
-    assert.equal(document.source.downloadedAt, snapshot.fetchedAt);
+    const source = snapshot.sources.find(item => item.id === article.sourceID);
+    assert.ok(source);
+    assert.equal(document.source.id, source.id);
+    assert.ok(document.source.url.includes('/blob/' + source.revision + '/'));
+    assert.ok(document.source.rawURL.includes(source.revision));
+    assert.equal(document.source.downloadedAt, source.fetchedAt);
     assert.equal(document.source.publishedAt, undefined);
     for (const image of document.images) assert.equal(sha256(bundle.files.get(image.path)), image.sha256);
   }
-  assert.equal(bundle.files.get('LICENSE.txt').toString(), snapshot.licenseText);
+  const license = bundle.files.get('LICENSE.txt').toString();
+  for (const source of snapshot.sources) {
+    assert.ok(license.includes('===== ' + source.id + ' ====='));
+    assert.equal(bundle.files.get('licenses/' + source.id + '.txt').toString(), source.licenseText);
+  }
 });
 
 test('相同内容构建产生相同版本和文件字节', () => {
@@ -81,7 +88,7 @@ test('原文与图片损坏在写入前阻断', () => {
 });
 
 test('未核准来源和超出成本大小的内容不能发布', () => {
-  assert.throws(() => buildRelease({ ...snapshot, repository: registry.sources[1].repository }, registry, topics), /没有获准/);
+  assert.throws(() => buildRelease({ ...snapshot, sources: snapshot.sources.map((source, index) => index === 0 ? { ...source, repository: 'evil/repo' } : source) }, registry, topics), /没有获准/);
   assert.throws(() => buildRelease(snapshot, { ...registry, budget: { ...registry.budget, maxReleaseBytes: 100 } }, topics), /成本大小上限/);
 });
 
@@ -112,7 +119,7 @@ test('写入中途失败清理临时目录并保留旧发布', async context => 
   const output = await temporaryOutput(context);
   await writeRelease(output, bundle);
   const pointer = await fs.readFile(path.join(output, 'latest.json'));
-  const next = buildRelease({ ...snapshot, revision: 'd'.repeat(40) }, registry, topics);
+  const next = buildRelease({ ...snapshot, sources: snapshot.sources.map(source => ({ ...source, revision: 'd'.repeat(40) })) }, registry, topics);
   const originalWrite = fs.writeFile;
   context.mock.method(fs, 'writeFile', async (filePath, ...argumentsList) => {
     if (filePath.includes('.staging-') && filePath.endsWith('index.json')) throw new Error('模拟磁盘中断');
@@ -139,9 +146,10 @@ test('中文与英文检索返回已收录原文片段和固定版本来源', ()
   assert.ok(chinese[0].matchedTerms.includes('向量'));
   const english = searchIndex(index, 'NearestNeighbors');
   assert.ok(english.some(result => result.id === 'ms-rag'));
+  const primaryRevision = snapshot.sources.find(source => source.id === 'microsoft-genai').revision;
   for (const result of [...chinese, ...english]) {
     assert.ok(index.documents.find(document => document.id === result.id).text.includes(result.excerpt));
-    assert.ok(result.url.includes(snapshot.revision));
+    assert.ok(result.url.includes(primaryRevision));
   }
   assert.deepEqual(searchIndex(index, '   '), []);
   assert.throws(() => searchIndex(index, 'a'.repeat(257)), /检索参数/);

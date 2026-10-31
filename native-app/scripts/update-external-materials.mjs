@@ -21,20 +21,20 @@ const imageCount = snapshot => snapshot.articles.reduce((total, article) => tota
 
 if (argumentsList.includes('--check')) {
   const snapshot = await materials.validateSnapshot(await readLibrarySnapshot(), catalog);
-  console.log(JSON.stringify({ status: '资料库原文、原图哈希与原文目录一致', articles: snapshot.articles.length, images: imageCount(snapshot), revision: snapshot.revision }, null, 2));
+  console.log(JSON.stringify({ status: '资料库原文、原图哈希与原文目录一致', sources: snapshot.sources.length, articles: snapshot.articles.length, images: imageCount(snapshot), revisions: Object.fromEntries(snapshot.sources.map(source => [source.id, source.revision.slice(0, 12)])) }, null, 2));
 } else {
   const current = await readLibrarySnapshot().catch(() => null);
-  const sameCatalog = current && current.articles.length === catalog.articles.length && current.articles.every((article, index) => article.id === catalog.articles[index].id && article.path === catalog.articles[index].path && article.title === catalog.articles[index].title && JSON.stringify(article.lessonIDs) === JSON.stringify(catalog.articles[index].lessonIDs));
+  const sameCatalog = current && current.sources.length === catalog.sources.length && current.sources.every((source, index) => source.id === catalog.sources[index].id && source.repository === catalog.sources[index].repository) && current.articles.length === catalog.articles.length && current.articles.every((article, index) => article.id === catalog.articles[index].id && article.sourceID === catalog.articles[index].sourceID && article.path === catalog.articles[index].path && article.title === catalog.articles[index].title && JSON.stringify(article.lessonIDs) === JSON.stringify(catalog.articles[index].lessonIDs));
   // 原文目录有变化（新增、改标题或课程关联）时必须重新下载；否则来源未更新则直接返回。
   const snapshot = await materials.downloadSnapshot(catalog, sameCatalog ? current : null, fetch, message => process.stdout.write(message + '\n'));
-  if (snapshot === current) { console.log(JSON.stringify({ status: '来源仓库没有新提交，资料保持不变', revision: current.revision }, null, 2)); process.exit(0); }
+  if (snapshot === current) { console.log(JSON.stringify({ status: '来源仓库没有新提交，资料保持不变', revisions: Object.fromEntries(current.sources.map(source => [source.id, source.revision.slice(0, 12)])) }, null, 2)); process.exit(0); }
   const registry = validateRegistry(JSON.parse(fs.readFileSync(path.join(root, 'content-pipeline/sources.json'), 'utf8')));
   const topics = JSON.parse(fs.readFileSync(path.join(root, 'content-pipeline/topics.json'), 'utf8'));
   const output = path.join(root, 'output/content-pipeline');
   const bundle = buildRelease(snapshot, registry, topics);
   await writeRelease(output, bundle);
   const exported = await exportClientContent(output, { webDirectory: web, nativeLibraryDirectory: path.join(root, 'native-app/Sources/YueqianCore/Resources/ContentLibrary') });
-  const notices = 'Microsoft Generative AI for Beginners\nhttps://github.com/' + snapshot.repository + '\nRevision: ' + snapshot.revision + '\nRetrieved: ' + snapshot.fetchedAt + '\n\nThe included Chinese translation and original images are downloaded from the source repository. The original Markdown is retained in the content library.\n\n' + snapshot.licenseText + '\n';
+  const notices = '跃迁计划 · 外部图文资料\n\n' + snapshot.sources.map(source => '===== ' + source.id + ' =====\nhttps://github.com/' + source.repository + '\nRevision: ' + source.revision + '\nRetrieved: ' + source.fetchedAt + '\n\nThe original Markdown and images are downloaded from the source repository and retained in the content library.\n\n' + source.licenseText.trim()).join('\n\n') + '\n';
   fs.writeFileSync(path.join(web, 'THIRD_PARTY_NOTICES.txt'), notices);
-  console.log(JSON.stringify({ status: '已下载并导出新资料版本，未部署', articles: snapshot.articles.length, images: imageCount(snapshot), revision: snapshot.revision, releaseID: exported.releaseID, bytes: exported.bytes }, null, 2));
+  console.log(JSON.stringify({ status: '已下载并导出新资料版本，未部署', sources: snapshot.sources.length, articles: snapshot.articles.length, images: imageCount(snapshot), revisions: Object.fromEntries(snapshot.sources.map(source => [source.id, source.revision.slice(0, 12)])), releaseID: exported.releaseID, bytes: exported.bytes }, null, 2));
 }

@@ -78,10 +78,11 @@ test('真实 HTTP 连接复用正式库内检索与健康接口，不访问外�
   assert.equal(result.library.results[0].kind, 'library');
   assert.equal(result.library.results[0].reviewStatus, 'approved');
   assert.equal(result.external.status, 'not-requested');
-  assert.ok(result.library.results[0].url.startsWith('https://github.com/' + snapshot.repository + '/blob/' + snapshot.revision + '/'));
+  const primary = snapshot.sources.find(source => source.id === 'microsoft-genai');
+  assert.ok(result.library.results[0].url.startsWith('https://github.com/' + primary.repository + '/blob/' + primary.revision + '/'));
   const health = await request(runtime.url, '/health');
   assert.equal(health.status, 200);
-  assert.equal(JSON.parse(health.body).documents, 10);
+  assert.equal(JSON.parse(health.body).documents, 15);
   assert.equal((await request(runtime.url, '/api/search?q=x&limit=0')).status, 400);
   assert.equal(runtime.externalRequests(), 0);
 });
