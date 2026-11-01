@@ -32,8 +32,14 @@
     if (Array.isArray(snapshot.sources)) return snapshot.sources.find(source => source.id === article.sourceID) || snapshot.sources[0];
     return { id: 'microsoft-genai', repository: snapshot.repository, revision: snapshot.revision };
   }
-  function local(snapshot, value) {
+  // 匹配模式与 content-pipeline/search-common.mjs 一致：fuzzy（默认，命中任一词即收录）与
+  // precise（每个查询单元都必须命中，同义词只影响排序与摘要）。已收录原文与外部索引共用。
+  const searchModes = ['fuzzy', 'precise'];
+  function normalizeMode(value) { return value === 'precise' ? 'precise' : 'fuzzy'; }
+  function local(snapshot, value, mode = 'fuzzy') {
     const query = normalize(value);
+    const precise = normalizeMode(mode) === 'precise';
+    const units = tokens(query);
     const terms = new Set([query, ...(query.match(/[a-z0-9][a-z0-9_.-]*/g) || [])]);
     for (const sequence of query.match(/[\u3400-\u9fff]+/g) || []) for (let i = 0; i < sequence.length - 1; i++) terms.add(sequence.slice(i, i + 2));
     for (const group of aliases) if (group.some(alias => query.includes(alias))) for (const alias of group) terms.add(alias);
@@ -42,10 +48,14 @@
       const haystack = (article.title + ' ' + body).toLowerCase();
       const matched = [...terms].filter(term => haystack.includes(term));
       if (!matched.length) return [];
+      const matchedDirect = units.filter(term => includesTerm(haystack, term));
+      if (precise && !(units.length && matchedDirect.length === units.length)) return [];
       const positions = matched.map(term => body.toLowerCase().indexOf(term)).filter(index => index >= 0);
       const offset = Math.max(0, (positions.length ? Math.min(...positions) : 0) - 50);
       const source = sourceFor(snapshot, article);
-      return [{ id: article.id, title: article.title, excerpt: body.slice(offset, offset + 240), url: root.YueqianMaterials.sourceURL(snapshot, article), repository: source.repository, revision: source.revision, sourceID: source.id, kind: 'library', reviewStatus: 'approved', score: matched.length + (article.title.toLowerCase().includes(query) ? 20 : 0), checkedAt: null }];
+      const score = matched.length + (article.title.toLowerCase().includes(query) ? 20 : 0);
+      const matchKind = units.length > 0 && matchedDirect.length === units.length ? 'exact' : 'expanded';
+      return [{ id: article.id, title: article.title, excerpt: body.slice(offset, offset + 240), url: root.YueqianMaterials.sourceURL(snapshot, article), repository: source.repository, revision: source.revision, sourceID: source.id, kind: 'library', reviewStatus: 'approved', score, checkedAt: null, matchedTerms: matched, matchedDirect, matchedExpanded: matched.filter(term => !matchedDirect.includes(term)), matchKind }];
     }).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).slice(0, 20);
   }
   // 与 content-pipeline/search-common.mjs 的 queryTerms / rankDocuments 逐行一致，改动需同步三端并重跑一致性测试。
@@ -77,20 +87,25 @@
     const escaped = term.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
     return new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`, 'u').test(text);
   }
-  function rankDocuments(documents, query, configuration, limit = 10) {
+  function rankDocuments(documents, query, configuration, limit = 10, mode = 'fuzzy') {
     const { normalized, direct, expanded } = queryTerms(query, configuration);
+    const precise = normalizeMode(mode) === 'precise';
     return documents.flatMap(document => {
       const title = (document.title || '').normalize('NFKC').toLowerCase();
       const text = (document.text || '').normalize('NFKC').toLowerCase();
       const sourcePath = (document.path || '').normalize('NFKC').toLowerCase().replace(/[-_/]/gu, ' ');
-      const matchedTerms = [...direct, ...expanded].filter(term => includesTerm(title + ' ' + sourcePath + ' ' + text, term));
-      if (!matchedTerms.length) return [];
+      const haystack = title + ' ' + sourcePath + ' ' + text;
+      const matchedDirect = direct.filter(term => includesTerm(haystack, term));
+      const matchedExpanded = expanded.filter(term => includesTerm(haystack, term));
+      const matchedTerms = [...matchedDirect, ...matchedExpanded];
+      if (precise ? !direct.length || matchedDirect.length !== direct.length : !matchedTerms.length) return [];
+      const matchKind = direct.length > 0 && matchedDirect.length === direct.length ? 'exact' : 'expanded';
       const score = (title.includes(normalized) ? 20 : 0) + (text.includes(normalized) ? 8 : 0) + matchedTerms.reduce((total, term) => total + (direct.includes(term) ? 2 : 1) * (includesTerm(title, term) ? 4 : includesTerm(sourcePath, term) ? 3 : 1), 0);
       const original = document.text || '';
       const lowerOriginal = original.toLowerCase();
       const positions = matchedTerms.map(term => lowerOriginal.indexOf(term)).filter(position => position >= 0);
       const offset = Math.max(0, (positions.length ? Math.min(...positions) : 0) - 60);
-      return [{ ...document, score, matchedTerms, excerpt: original.slice(offset, offset + 280) }];
+      return [{ ...document, score, matchedTerms, matchedDirect, matchedExpanded, matchKind, excerpt: original.slice(offset, offset + 280) }];
     }).sort((left, right) => right.score - left.score || left.id.localeCompare(right.id, 'en')).slice(0, limit);
   }
   function isLegacySearchURL(value) { return typeof value === 'string' && legacySearchURLs.includes(value.trim()); }
@@ -181,15 +196,18 @@
     try { return await indexRefreshing; } finally { indexRefreshing = null; }
   }
   function indexTime(state) { return new Date(state.index.generatedAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }); }
-  function indexResults(state, query, limit = 10) {
+  function indexResults(state, query, limit = 10, mode = 'fuzzy') {
     const checkedAt = new Map(state.index.sources.map(source => [source.id, source.checkedAt]));
-    return rankDocuments(state.index.documents, query, { topics: state.index.topics }, limit).map(item => ({ id: item.id, title: item.title, excerpt: item.excerpt, url: item.url, repository: item.repository, revision: item.revision, sourceID: item.sourceID, kind: 'external', reviewStatus: 'unreviewed', sha256: item.sha256, score: item.score, checkedAt: checkedAt.get(item.sourceID) || null }));
+    return rankDocuments(state.index.documents, query, { topics: state.index.topics }, limit, mode).map(item => ({ id: item.id, title: item.title, excerpt: item.excerpt, url: item.url, repository: item.repository, revision: item.revision, sourceID: item.sourceID, kind: 'external', reviewStatus: 'unreviewed', sha256: item.sha256, score: item.score, matchedTerms: item.matchedTerms, matchedDirect: item.matchedDirect, matchedExpanded: item.matchedExpanded, matchKind: item.matchKind, checkedAt: checkedAt.get(item.sourceID) || null }));
   }
-  async function staticExternal(query, contentBaseURL, fetcher) {
+  async function staticExternal(query, contentBaseURL, fetcher, mode = 'fuzzy') {
+    const precise = normalizeMode(mode) === 'precise';
     let state = await cachedIndex();
     if (!state && contentBaseURL && online()) state = (await refreshIndex({ contentBaseURL, fetcher })).state;
     if (!state) return { state: null, external: [], message: online() ? '外部来源索引暂未获取，已显示本机原文结果。' : '外部来源索引尚未下载，联网后自动获取。' };
-    return { state, external: indexResults(state, query), message: '已搜索保存的原文与外部来源索引（更新于 ' + indexTime(state) + '）。' };
+    const external = indexResults(state, query, 10, mode);
+    const message = (precise ? '已按精准匹配搜索本机原文与外部来源索引（更新于 ' : '已搜索保存的原文与外部来源索引（更新于 ') + indexTime(state) + '）。' + (precise && !external.length ? '精准匹配要求每个检索词都命中，可改用模糊匹配。' : '');
+    return { state, external, message };
   }
   function validItem(item, kind) {
     if (!item || item.kind !== kind || item.reviewStatus !== (kind === 'external' ? 'unreviewed' : 'approved') || typeof item.id !== 'string' || item.id.length > 200 || typeof item.title !== 'string' || item.title.length > 400 || typeof item.excerpt !== 'string' || item.excerpt.length > 1500 || repositories[item.sourceID] !== item.repository || !/^[a-f0-9]{40}$/.test(item.revision)) return false;
@@ -200,12 +218,13 @@
       return url.origin === 'https://github.com' && !url.username && !url.password && !url.search && !url.hash && url.pathname.startsWith(prefix) && url.pathname.length > prefix.length && !/%2e|%2f|%5c/i.test(url.pathname);
     } catch { return false; }
   }
-  function responseValue(value, query, releaseID) {
-    if (value?.schemaVersion !== 1 || normalize(value.query) !== query || value.releaseID !== releaseID || !['none', 'miss', 'fresh', 'stale'].includes(value.cache?.status) || !Array.isArray(value.library?.results) || !Array.isArray(value.external?.results) || value.library.results.length > 20 || value.external.results.length > 20 || !value.library.results.every(item => validItem(item, 'library')) || !value.external.results.every(item => validItem(item, 'external'))) throw new Error('检索服务返回的来源或内容版本无效。');
+  function responseValue(value, query, releaseID, mode) {
+    if (value?.schemaVersion !== 1 || normalize(value.query) !== query || value.releaseID !== releaseID || !['none', 'miss', 'fresh', 'stale'].includes(value.cache?.status) || !Array.isArray(value.library?.results) || !Array.isArray(value.external?.results) || value.library.results.length > 20 || value.external.results.length > 20 || !value.library.results.every(item => validItem(item, 'library')) || !value.external.results.every(item => validItem(item, 'external')) || value.mode !== undefined && !searchModes.includes(value.mode)) throw new Error('检索服务返回的来源或内容版本无效。');
     const stale = value.cache.status === 'stale';
     const savedAt = Date.parse(value.cache.savedAt ?? value.generatedAt);
     if (!Number.isFinite(savedAt) || savedAt > Date.now() + 60000 || Date.now() - savedAt > 86400000 || stale && !value.cache.savedAt) throw new Error('检索缓存时间无效。');
-    return { query, releaseID, library: value.library.results, external: value.external.results, degraded: value.degraded === true || stale, reason: typeof value.reason === 'string' ? value.reason.slice(0, 100) : null, stale, savedAt: Math.min(savedAt, Date.now()) };
+    // 旧版检索服务没有 mode 字段：按 fuzzy 处理，与本机默认行为一致。
+    return { query, releaseID, mode: normalizeMode(value.mode), library: value.library.results, external: value.external.results, degraded: value.degraded === true || stale, reason: typeof value.reason === 'string' ? value.reason.slice(0, 100) : null, stale, savedAt: Math.min(savedAt, Date.now()) };
   }
   async function readCache() {
     try {
@@ -214,11 +233,11 @@
     } catch {}
     return [];
   }
-  async function cached(key, query, releaseID) {
+  async function cached(key, query, releaseID, mode = 'fuzzy') {
     const entry = (await readCache()).find(item => item.key === key);
     if (!entry || !Number.isFinite(entry.savedAt) || entry.savedAt > Date.now() || Date.now() - entry.savedAt > 86400000) return null;
     try {
-      if (entry.value.query !== query || entry.value.releaseID !== releaseID || entry.value.savedAt !== entry.savedAt || typeof entry.value.stale !== 'boolean' || !Array.isArray(entry.value.library) || !Array.isArray(entry.value.external) || entry.value.library.length > 20 || entry.value.external.length > 20 || !entry.value.library.every(item => validItem(item, 'library')) || !entry.value.external.every(item => validItem(item, 'external'))) return null;
+      if (entry.value.query !== query || entry.value.releaseID !== releaseID || normalizeMode(entry.value.mode) !== normalizeMode(mode) || entry.value.savedAt !== entry.savedAt || typeof entry.value.stale !== 'boolean' || !Array.isArray(entry.value.library) || !Array.isArray(entry.value.external) || entry.value.library.length > 20 || entry.value.external.length > 20 || !entry.value.library.every(item => validItem(item, 'library')) || !entry.value.external.every(item => validItem(item, 'external'))) return null;
       return entry;
     } catch { return null; }
   }
@@ -230,7 +249,7 @@
     });
     return cacheWriting;
   }
-  async function remote(url, fetcher, query, releaseID) {
+  async function remote(url, fetcher, query, releaseID, mode = 'fuzzy') {
     const controller = new AbortController();
     let reader;
     let timer;
@@ -255,38 +274,39 @@
       } else { const bytes = new Uint8Array(await response.arrayBuffer()); size = bytes.length; chunks.push(bytes); }
       if (size > 1048576 || !size) throw new Error('检索响应为空或过大。');
       const bytes = new Uint8Array(size); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-      return responseValue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)), query, releaseID);
+      return responseValue(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)), query, releaseID, mode);
     })();
     try { return await Promise.race([operation, timeout]); } finally { clearTimeout(timer); }
   }
-  async function search({ query: value, snapshot, releaseID, searchURL, contentBaseURL = null, fetcher = fetch }) {
+  async function search({ query: value, snapshot, releaseID, searchURL, contentBaseURL = null, fetcher = fetch, mode = 'fuzzy' }) {
     const query = normalize(value);
-    const library = local(snapshot, query);
+    const searchMode = normalizeMode(mode);
+    const library = local(snapshot, query, searchMode);
     if (isLegacySearchURL(searchURL)) searchURL = null;
     if (!searchURL) {
-      const indexed = await staticExternal(query, contentBaseURL, fetcher);
-      return { library, external: indexed.external, degraded: false, message: indexed.message, cache: indexed.state ? 'index' : 'none', indexGeneratedAt: indexed.state?.index.generatedAt || null };
+      const indexed = await staticExternal(query, contentBaseURL, fetcher, searchMode);
+      return { library, external: indexed.external, mode: searchMode, degraded: false, message: indexed.message, cache: indexed.state ? 'index' : 'none', indexGeneratedAt: indexed.state?.index.generatedAt || null };
     }
     const endpoint = root.YueqianContentRelease.endpoint(searchURL);
-    const key = releaseID + ':' + endpoint.href + ':' + query;
-    const entry = await cached(key, query, releaseID);
+    const key = releaseID + ':' + endpoint.href + ':' + searchMode + ':' + query;
+    const entry = await cached(key, query, releaseID, searchMode);
     function combine(value) {
       const map = new Map(library.map(item => [item.url, item]));
       for (const item of value.library) if (!map.has(item.url)) map.set(item.url, item);
       return [...map.values()].slice(0, 20);
     }
     if (entry && !entry.value.stale && Date.now() - entry.savedAt < 300000) return { ...entry.value, library: combine(entry.value), cache: 'fresh', message: entry.value.degraded ? '联网资料暂不完整，已保留可用结果。' : '已搜索保存资料与配置的外部来源。' };
-    endpoint.search = new URLSearchParams({ q: query, scope: 'all', limit: '10' }).toString();
+    endpoint.search = new URLSearchParams({ q: query, scope: 'all', limit: '10', ...(searchMode === 'precise' ? { mode: 'precise' } : {}) }).toString();
     try {
-      const value = await remote(endpoint, fetcher, query, releaseID);
-      if (value.degraded && entry) return { library: combine(entry.value), external: entry.value.external, degraded: true, cache: 'stale', message: '联网检索受限，正在显示此前保存的检索结果。' };
+      const value = await remote(endpoint, fetcher, query, releaseID, searchMode);
+      if (value.degraded && entry) return { library: combine(entry.value), external: entry.value.external, mode: searchMode, degraded: true, cache: 'stale', message: '联网检索受限，正在显示此前保存的检索结果。' };
       try { await saveCache(key, value); } catch {}
       return { ...value, library: combine(value), cache: value.stale ? 'stale' : 'miss', message: value.stale ? '联网检索受限，正在显示此前保存的检索结果。' : value.degraded ? '联网资料暂不完整，已保留可用结果。' : '已搜索保存资料与配置的外部来源。' };
     } catch {
-      if (entry) return { library: combine(entry.value), external: entry.value.external, degraded: true, cache: 'stale', message: '联网检索未完成，正在显示此前保存的检索结果。' };
-      const indexed = await staticExternal(query, null, fetcher);
-      return indexed.state ? { library, external: indexed.external, degraded: true, cache: 'index', message: '联网检索未完成，' + indexed.message } : { library, external: [], degraded: true, cache: 'miss', message: '联网检索未完成，已保留本机原文结果。' };
+      if (entry) return { library: combine(entry.value), external: entry.value.external, mode: searchMode, degraded: true, cache: 'stale', message: '联网检索未完成，正在显示此前保存的检索结果。' };
+      const indexed = await staticExternal(query, null, fetcher, searchMode);
+      return indexed.state ? { library, external: indexed.external, mode: searchMode, degraded: true, cache: 'index', message: '联网检索未完成，' + indexed.message } : { library, external: [], mode: searchMode, degraded: true, cache: 'miss', message: '联网检索未完成，已保留本机原文结果。' };
     }
   }
-  root.YueqianMaterialSearch = { normalize, local, search, validItem, queryTerms, rankDocuments, validIndex, indexPointer, refreshIndex, cachedIndex, indexResults, isLegacySearchURL, resetIndexMemory: () => { indexMemory = null; } };
+  root.YueqianMaterialSearch = { normalize, local, search, validItem, queryTerms, rankDocuments, validIndex, indexPointer, refreshIndex, cachedIndex, indexResults, isLegacySearchURL, searchModes, normalizeMode, resetIndexMemory: () => { indexMemory = null; } };
 })(globalThis);

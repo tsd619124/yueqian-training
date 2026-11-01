@@ -27,6 +27,13 @@
         <input id="materials-search" class="source-search" type="search" maxlength="256" placeholder="搜索原文与外部资料" aria-label="搜索原文与外部资料" aria-controls="materials-search-results">
         <button type="submit">搜索</button>
       </form>
+      <p class="source-muted"><label for="materials-search-mode">匹配方式</label>
+        <select id="materials-search-mode" aria-describedby="materials-search-mode-help">
+          <option value="precise" selected>精准（每个检索词都命中）</option>
+          <option value="fuzzy">模糊（含同义扩展）</option>
+        </select>
+        <span id="materials-search-mode-help">精准只收录正文命中全部检索词的结果；模糊会额外带入同义主题词。</span>
+      </p>
       <nav id="materials-list" aria-label="选择原文"></nav>
       <div class="source-update-settings">
         <label><input type="checkbox" id="materials-automatic" checked>每天自动检查更新</label>

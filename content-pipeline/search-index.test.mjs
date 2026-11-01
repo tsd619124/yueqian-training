@@ -7,6 +7,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { rankDocuments } from './search-common.mjs';
 import { buildSearchIndex, copySearchDirectory, courseKey, loadPublishedIndex, publishedDocuments, readSearchDirectory, truncateText, validateSearchIndex, validateSearchPointer, writeSearchOutput } from './search-index.mjs';
+import { createSearchHandler, createSearchService } from './search-service.mjs';
 
 const registry = JSON.parse(await fs.readFile(new URL('./sources.json', import.meta.url)));
 const topics = JSON.parse(await fs.readFile(new URL('./topics.json', import.meta.url)));
@@ -59,16 +60,78 @@ async function temporary(context) {
   return directory;
 }
 
-test('rankDocuments 复现跨端一致性夹具的 ID、顺序、score 与 excerpt', () => {
-  assert.ok(expectations.expectations.length >= 5);
+test('rankDocuments 复现跨端一致性夹具的 ID、顺序、score、摘要与命中说明', () => {
+  assert.ok(expectations.expectations.length >= 10);
+  const columns = ({ id, score, excerpt, matchKind, matchedDirect, matchedExpanded }) => ({ id, score, excerpt, matchKind, matchedDirect, matchedExpanded });
   for (const expectation of expectations.expectations) {
-    const actual = rankDocuments(sample.documents, expectation.query, { topics: sample.topics }).map(({ id, score, excerpt }) => ({ id, score, excerpt }));
-    assert.deepEqual(actual, expectation.results, expectation.query);
+    assert.ok(['fuzzy', 'precise'].includes(expectation.mode), expectation.query);
+    const actual = rankDocuments(sample.documents, expectation.query, { topics: sample.topics }, 10, expectation.mode).map(columns);
+    assert.deepEqual(actual, expectation.results, expectation.mode + ' ' + expectation.query);
   }
+  for (const mode of ['fuzzy', 'precise']) assert.ok(expectations.expectations.some(item => item.mode === mode), mode);
+});
+
+test('fuzzy 缺省与未知模式逐字一致；precise 是 fuzzy 中 matchKind=exact 的子集', () => {
+  for (const expectation of expectations.expectations.filter(item => item.mode === 'fuzzy')) {
+    const { query } = expectation;
+    const configuration = { topics: sample.topics };
+    const fuzzy = rankDocuments(sample.documents, query, configuration);
+    assert.deepEqual(rankDocuments(sample.documents, query, configuration, 10, 'fuzzy'), fuzzy, query);
+    assert.deepEqual(rankDocuments(sample.documents, query, configuration, 10, 'unknown'), fuzzy, query);
+    assert.deepEqual(fuzzy.map(({ id, score, excerpt }) => ({ id, score, excerpt })), expectation.results.map(({ id, score, excerpt }) => ({ id, score, excerpt })), query);
+    const precise = rankDocuments(sample.documents, query, configuration, 10, 'precise');
+    const exact = fuzzy.filter(item => item.matchKind === 'exact');
+    assert.deepEqual(precise.map(({ id, score, excerpt, matchedDirect, matchedExpanded }) => ({ id, score, excerpt, matchedDirect, matchedExpanded })), exact.map(({ id, score, excerpt, matchedDirect, matchedExpanded }) => ({ id, score, excerpt, matchedDirect, matchedExpanded })), query);
+    for (const item of precise) assert.ok(item.matchedDirect.length > 0);
+    for (const item of fuzzy) assert.deepEqual(item.matchedTerms, [...item.matchedDirect, ...item.matchedExpanded], query);
+  }
+});
+
+test('多单元查询要求每个查询单元都命中，同义扩展不参与收录', () => {
+  const topics = { topics: sample.topics };
+  // 只有第 5 篇正文含「问数」；第 6 篇只讲 ChatBI 语义层，仍会被同义扩展带进 fuzzy。
+  const fuzzy = rankDocuments(sample.documents, '问数', topics);
+  const precise = rankDocuments(sample.documents, '问数', topics, 10, 'precise');
+  assert.deepEqual(fuzzy.map(item => [item.id, item.matchKind]), [['didilili-agents:0000000000000005', 'exact'], ['didilili-agents:0000000000000006', 'expanded'], ['microsoft-genai:0000000000000004', 'expanded']]);
+  assert.deepEqual(precise.map(item => [item.id, item.matchedDirect]), [['didilili-agents:0000000000000005', ['问数']]]);
+  // 「ChatBI 问数」两个单元分别命中两篇，没有一篇同时命中，precise 为空。
+  assert.deepEqual(rankDocuments(sample.documents, 'ChatBI 问数', topics, 10, 'precise'), []);
+  assert.equal(rankDocuments(sample.documents, 'ChatBI 问数', topics).length, 3);
+  // 只命中主题同义词、没有命中查询单元的文档：fuzzy 收录，precise 不收录。
+  const synonymOnly = [{ id: 'microsoft-agents:0000000000000007', title: 'Storage layout', text: 'Vector storage keeps embeddings. 向量数据库。', path: 'x/README.md' }];
+  assert.equal(rankDocuments(synonymOnly, 'rag', topics).length, 1);
+  assert.equal(rankDocuments(synonymOnly, 'rag', topics)[0].matchKind, 'expanded');
+  assert.deepEqual(rankDocuments(synonymOnly, 'rag', topics, 10, 'precise'), []);
+  // 英文按整词边界：storage 不算命中 rag（两种模式都不收录）。
+  const boundary = [{ ...synonymOnly[0], text: 'Storage keeps embeddings.', title: 'Storage layout' }];
+  assert.deepEqual(rankDocuments(boundary, 'rag', topics), []);
+  assert.deepEqual(rankDocuments(boundary, 'rag', topics, 10, 'precise'), []);
+  // 没有查询单元（只有停用词）时 precise 不收录。
+  assert.deepEqual(rankDocuments(sample.documents, 'the of', topics, 10, 'precise'), []);
 });
 
 test('一致性夹具本身满足 schema v1 约束', () => {
   validateSearchIndex(sample, { bytes: Buffer.from(JSON.stringify(sample)) });
+});
+
+test('检索服务透传 mode：响应带 mode，结果附命中说明，非法 mode 返回 400', async () => {
+  const external = () => ({ status: 'ok', results: [] });
+  const service = createSearchService({ index: sample, releaseID: 'a'.repeat(64), sources: sample.sources, topics: { topics: sample.topics }, externalSearch: async () => external() });
+  const fuzzy = await service.search({ query: '问数', scope: 'library' });
+  assert.equal(fuzzy.body.mode, 'fuzzy');
+  assert.deepEqual(fuzzy.body.library.results.map(item => item.id), ['didilili-agents:0000000000000005', 'didilili-agents:0000000000000006', 'microsoft-genai:0000000000000004']);
+  assert.deepEqual(fuzzy.body.library.results.map(item => item.matchKind), ['exact', 'expanded', 'expanded']);
+  const precise = await service.search({ query: '问数', scope: 'library', mode: 'precise' });
+  assert.equal(precise.body.mode, 'precise');
+  assert.deepEqual(precise.body.library.results.map(item => [item.id, item.matchKind, item.matchedDirect, item.matchedExpanded]), [['didilili-agents:0000000000000005', 'exact', ['问数'], fuzzy.body.library.results[0].matchedExpanded]]);
+  assert.deepEqual(precise.body.library.results[0].matchedTerms, [...precise.body.library.results[0].matchedDirect, ...precise.body.library.results[0].matchedExpanded]);
+  assert.deepEqual(service.info.modes, ['fuzzy', 'precise']);
+  const handle = createSearchHandler(service);
+  const response = await handle(new Request('http://localhost/api/search?q=%E9%97%AE%E6%95%B0&scope=library&mode=precise'));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).mode, 'precise');
+  assert.equal((await handle(new Request('http://localhost/api/search?q=rag&mode=unknown'))).status, 400);
+  assert.equal((await handle(new Request('http://localhost/api/search?q=rag&mode=fuzzy'))).status, 200);
 });
 
 test('课程目录键将中文翻译与英文原课视为同一课程', () => {

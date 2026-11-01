@@ -36,6 +36,17 @@
       "documentCount": 1,
       "totalMatchingFiles": 1,
       "selectionLimited": false
+    },
+    {
+      "id": "didilili-agents",
+      "repository": "didilili/ai-agents-from-zero",
+      "publisher": "didilili",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "checkedAt": "2026-10-30T00:00:00.000Z",
+      "status": "ready",
+      "documentCount": 2,
+      "totalMatchingFiles": 2,
+      "selectionLimited": false
     }
   ],
   "topics": [
@@ -97,6 +108,18 @@
         "context engineering",
         "上下文工程"
       ]
+    },
+    {
+      "id": "chatbi",
+      "title": "ChatBI 与 NL2SQL",
+      "terms": [
+        "NL2SQL",
+        "text to sql",
+        "问数",
+        "ChatBI",
+        "语义层",
+        "metric layer"
+      ]
     }
   ],
   "documents": [
@@ -147,6 +170,30 @@
       "sha256": "0000000000000000000000000000000000000000000000000000000000000004",
       "title": "Function calling",
       "text": "Function calling connects the model with external tools and APIs. 函数调用 与工具调用。"
+    },
+    {
+      "id": "didilili-agents:0000000000000005",
+      "sourceID": "didilili-agents",
+      "repository": "didilili/ai-agents-from-zero",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "path": "实战项目-电商问数/1-指标口径与问数.md",
+      "url": "https://github.com/didilili/ai-agents-from-zero/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/%E5%AE%9E%E6%88%98%E9%A1%B9%E7%9B%AE-%E7%94%B5%E5%95%86%E9%97%AE%E6%95%B0/1-%E6%8C%87%E6%A0%87%E5%8F%A3%E5%BE%84%E4%B8%8E%E9%97%AE%E6%95%B0.md",
+      "blobSHA": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "title": "电商问数：从指标口径到 SQL",
+      "text": "电商问数先统一指标口径，再把自然语言问题翻译成 SQL 查询。问数的准确率取决于口径治理。"
+    },
+    {
+      "id": "didilili-agents:0000000000000006",
+      "sourceID": "didilili-agents",
+      "repository": "didilili/ai-agents-from-zero",
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "path": "chatbi/2-语义层设计.md",
+      "url": "https://github.com/didilili/ai-agents-from-zero/blob/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/chatbi/2-%E8%AF%AD%E4%B9%89%E5%B1%82%E8%AE%BE%E8%AE%A1.md",
+      "blobSHA": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "title": "ChatBI 语义层设计",
+      "text": "ChatBI 通过语义层统一指标定义，NL2SQL 只负责把问题翻译成查询语句。"
     }
   ]
 }

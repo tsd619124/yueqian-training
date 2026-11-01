@@ -370,11 +370,14 @@
     const updateButton = document.getElementById('materials-update');
     const automatic = document.getElementById('materials-automatic');
     const query = document.getElementById('materials-search');
+    const searchModeSelect = document.getElementById('materials-search-mode');
     const searchPanel = document.getElementById('materials-search-panel');
     const searchStatus = document.getElementById('materials-search-status');
     const searchResults = document.getElementById('materials-search-results');
     const servicesForm = document.getElementById('materials-services-form');
     const servicesStatus = document.getElementById('materials-services-status');
+    // 页面默认精准匹配：每个检索词都要命中，结果才出现在外部来源里；可切到模糊匹配扩大范围。
+    function searchMode() { return searchClient?.normalizeMode ? searchClient.normalizeMode(searchModeSelect?.value) : 'fuzzy'; }
     let release = null;
     let searchSnapshot = null;
     let searchSnapshotLoading = null;
@@ -420,16 +423,17 @@
 
     function renderList() {
       const term = query.value.trim().toLowerCase();
+      const mode = searchMode();
       let matchingIDs = null;
       if (term && searchClient) {
         if (searchSnapshot) {
-          try { matchingIDs = new Set(searchClient.local(searchSnapshot, term).map(article => article.id)); }
+          try { matchingIDs = new Set(searchClient.local(searchSnapshot, term, mode).map(article => article.id)); }
           catch { matchingIDs = new Set(); }
         } else ensureSearchSnapshot().then(renderList, () => {});
       }
       const articles = catalog.articles.filter(article => (!lessonID || article.lessonIDs.includes(lessonID)) && (!term || (matchingIDs ? matchingIDs.has(article.id) : article.title.toLowerCase().includes(term))));
       const list = document.getElementById('materials-list');
-      list.innerHTML = articles.map(article => '<button type="button" data-article="' + article.id + '"' + (article.id === selectedID ? ' aria-current="page"' : '') + '>' + escapeHTML(article.title) + '</button>').join('') || '<p class="source-muted">没有匹配的原文。</p>';
+      list.innerHTML = articles.map(article => '<button type="button" data-article="' + article.id + '"' + (article.id === selectedID ? ' aria-current="page"' : '') + '>' + escapeHTML(article.title) + '</button>').join('') || '<p class="source-muted">' + (mode === 'precise' ? '精准匹配下没有全部命中的原文。' : '没有匹配的原文。') + '</p>';
       revealCurrentArticle(list);
     }
 
@@ -502,6 +506,16 @@
       releaseClient.cachedAssetBlobURL(image.src).then(url => { if (url) image.src = url; }).catch(() => {});
     }
 
+    // 命中原因：`命中：…` 是查询词本身命中；`同义扩展：…` 只在「仅靠主题同义词才被收录」时显示。
+    function matchNote(item) {
+      const direct = Array.isArray(item.matchedDirect) ? item.matchedDirect : [];
+      const expanded = Array.isArray(item.matchedExpanded) ? item.matchedExpanded : [];
+      const parts = [];
+      if (direct.length) parts.push('命中：' + direct.slice(0, 8).join('、'));
+      if (item.matchKind === 'expanded' && expanded.length) parts.push('同义扩展：' + expanded.slice(0, 8).join('、') + (expanded.length > 8 ? ' 等' : ''));
+      return parts.length ? parts.join(' · ') : null;
+    }
+
     function renderSearchGroups(result, snapshot) {
       searchResults.replaceChildren();
       for (const [kind, title, items] of [['library', '已入库原文', result.library], ['external', '外部来源 · 未审核', result.external]]) {
@@ -545,6 +559,13 @@
           metadata.append(source);
           metadata.append(document.createTextNode(kind === 'external' ? ' · 未审核' : ' · 已入库'));
           article.append(title, excerpt, metadata);
+          const note = matchNote(item);
+          if (note) {
+            const reason = document.createElement('p');
+            reason.className = 'source-result-meta source-result-match';
+            reason.textContent = note;
+            article.append(reason);
+          }
           group.append(article);
         }
         searchResults.append(group);
@@ -557,11 +578,12 @@
       searchPanel.hidden = false;
       try {
         const term = searchClient.normalize(query.value);
+        const mode = searchMode();
         const snapshot = await ensureSearchSnapshot().catch(() => ({ schemaVersion: 2, sources: [], articles: [] }));
         if (serial !== searchSerial) return;
-        renderSearchGroups({ library: searchClient.local(snapshot, term), external: [] }, snapshot);
+        renderSearchGroups({ library: searchClient.local(snapshot, term, mode), external: [] }, snapshot);
         searchStatus.textContent = services.searchURL ? '正在检索配置的外部来源，已显示本机原文…' : '正在搜索已保存的原文与外部来源索引…';
-        const result = await searchClient.search({ query: term, snapshot, releaseID: release?.latest.releaseID || '0'.repeat(64), searchURL: services.searchURL, contentBaseURL: location.protocol === 'file:' ? null : services.contentBaseURL });
+        const result = await searchClient.search({ query: term, snapshot, mode, releaseID: release?.latest.releaseID || '0'.repeat(64), searchURL: services.searchURL, contentBaseURL: location.protocol === 'file:' ? null : services.contentBaseURL });
         if (serial !== searchSerial) return;
         renderSearchGroups(result, snapshot);
         searchStatus.textContent = result.message;
@@ -674,6 +696,11 @@
       }
     });
     document.getElementById('materials-search-form')?.addEventListener('submit', event => { event.preventDefault(); search(); });
+    searchModeSelect?.addEventListener('change', async () => {
+      searchSerial++;
+      renderList();
+      if (searchPanel && !searchPanel.hidden && query.value.trim()) await search();
+    });
     document.getElementById('materials-search-close')?.addEventListener('click', () => { searchSerial++; searchPanel.hidden = true; query.focus(); });
     servicesForm?.addEventListener('submit', async event => {
       event.preventDefault();

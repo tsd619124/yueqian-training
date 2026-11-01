@@ -1,4 +1,4 @@
-import { normalizeQuery, rankDocuments } from './search-common.mjs';
+import { normalizeQuery, normalizeSearchMode, rankDocuments, searchModes } from './search-common.mjs';
 
 const defaults = {
   cacheTtlMs: 300000, maxStaleMs: 86400000, maxCacheEntries: 128,
@@ -28,8 +28,8 @@ function safeExternalResult(result, sources) {
 }
 
 function publicExternal(result) {
-  const { id, title, url, sourceID, publisher, repository, revision, sha256, path, score, matchedTerms, excerpt, checkedAt, downloadedAt } = result;
-  return { id, title, url, sourceID, publisher, repository, revision, sha256, path, score, matchedTerms, excerpt, checkedAt, downloadedAt, kind: 'external', reviewStatus: 'unreviewed' };
+  const { id, title, url, sourceID, publisher, repository, revision, sha256, path, score, matchedTerms, matchedDirect, matchedExpanded, matchKind, excerpt, checkedAt, downloadedAt } = result;
+  return { id, title, url, sourceID, publisher, repository, revision, sha256, path, score, matchedTerms, matchedDirect, matchedExpanded, matchKind, excerpt, checkedAt, downloadedAt, kind: 'external', reviewStatus: 'unreviewed' };
 }
 
 export function createSearchService({ index, releaseID, bundleID = releaseID, sources, topics, externalSearch, cache, limits: overrides = {}, now = () => Date.now() }) {
@@ -87,15 +87,16 @@ export function createSearchService({ index, releaseID, bundleID = releaseID, so
     } finally { clearTimeout(timer); }
   }
 
-  async function search({ query: input, scope = 'all', limit = 10 }, { clientID = 'local' } = {}) {
+  async function search({ query: input, scope = 'all', limit = 10, mode: inputMode = 'fuzzy' }, { clientID = 'local' } = {}) {
     const query = normalizeQuery(input);
+    const mode = normalizeSearchMode(inputMode);
     if (!['all', 'library', 'external'].includes(scope) || !Number.isInteger(limit) || limit < 1 || limit > 20) throw new Error('scope 或 limit 参数无效。');
     const timestamp = now();
     const allowed = consume(String(clientID).slice(0, 128), timestamp);
-    const localResults = scope === 'external' ? [] : rankDocuments(index.documents, query, topics, limit).map(result => {
+    const localResults = scope === 'external' ? [] : rankDocuments(index.documents, query, topics, limit, mode).map(result => {
       const source = sources.find(item => item.id === result.sourceID);
-      const { id, title, url, path, sourceID, lessonIDs, score, matchedTerms, excerpt } = result;
-      return { id, title, url, path, sourceID, publisher: source?.publisher, lessonIDs, score, matchedTerms, excerpt, repository: source?.repository, revision: source?.revision, kind: 'library', reviewStatus: 'approved' };
+      const { id, title, url, path, sourceID, lessonIDs, score, matchedTerms, matchedDirect, matchedExpanded, matchKind, excerpt } = result;
+      return { id, title, url, path, sourceID, publisher: source?.publisher, lessonIDs, score, matchedTerms, matchedDirect, matchedExpanded, matchKind, excerpt, repository: source?.repository, revision: source?.revision, kind: 'library', reviewStatus: 'approved' };
     });
     const key = `${bundleID}:${query}`;
     const entry = scope === 'library' ? null : await cached(key, timestamp);
@@ -136,7 +137,7 @@ export function createSearchService({ index, releaseID, bundleID = releaseID, so
       statusCode: !allowed && !localResults.length && !external.results.length ? 429 : scope === 'external' && external.status === 'unavailable' && !external.results.length ? 503 : 200,
       retryAfter: !allowed || reason === 'external-budget' || reason === 'upstream-cooldown' ? Math.max(1, Math.ceil((Math.max(windowStart + limits.windowMs, (clients.get(String(clientID).slice(0, 128))?.startedAt ?? windowStart) + limits.windowMs, cooldownUntil) - now()) / 1000)) : null,
       body: {
-        schemaVersion: 1, query, scope, releaseID, generatedAt: new Date(now()).toISOString(),
+        schemaVersion: 1, query, scope, mode, searchModes, releaseID, generatedAt: new Date(now()).toISOString(),
         method: 'keyword-with-topic-aliases', degraded, reason,
         library: { status: scope === 'external' ? 'not-requested' : 'ok', results: localResults }, external,
         results: [...localResults, ...external.results].slice(0, limit),
@@ -144,7 +145,7 @@ export function createSearchService({ index, releaseID, bundleID = releaseID, so
       }
     };
   }
-  return { search, info: { releaseID, documents: index.documents.length, method: 'keyword-with-topic-aliases', rateLimitScope: 'process-or-worker-isolate' } };
+  return { search, info: { releaseID, documents: index.documents.length, method: 'keyword-with-topic-aliases', modes: searchModes, rateLimitScope: 'process-or-worker-isolate' } };
 }
 
 export function createSearchHandler(service, { allowedOrigin = null } = {}) {
@@ -158,13 +159,15 @@ export function createSearchHandler(service, { allowedOrigin = null } = {}) {
     if (request.method === 'OPTIONS' && origin === allowedOrigin) return new Response(null, { status: 204, headers: { ...headers, 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-max-age': '600' } });
     if (request.method !== 'GET') { headers.allow = 'GET, OPTIONS'; return reply({ error: 'method-not-allowed' }, 405); }
     if (url.pathname === '/health') return reply({ status: 'ok', ...service.info });
-    if (request.url.length > 2048 || [...url.searchParams.keys()].some(key => !['q', 'scope', 'limit'].includes(key) || url.searchParams.getAll(key).length !== 1)) return reply({ error: 'invalid-parameters' }, 400);
+    if (request.url.length > 2048 || [...url.searchParams.keys()].some(key => !['q', 'scope', 'limit', 'mode'].includes(key) || url.searchParams.getAll(key).length !== 1)) return reply({ error: 'invalid-parameters' }, 400);
     const limit = url.searchParams.get('limit');
     if (limit !== null && !/^(?:[1-9]|1[0-9]|20)$/u.test(limit)) return reply({ error: 'invalid-limit' }, 400);
+    const mode = url.searchParams.get('mode');
+    if (mode !== null && !searchModes.includes(mode)) return reply({ error: 'invalid-mode', message: 'mode 只能是 fuzzy 或 precise。' }, 400);
     try {
-      const result = await service.search({ query: url.searchParams.get('q'), scope: url.searchParams.get('scope') || 'all', limit: limit === null ? 10 : Number(limit) }, { clientID });
+      const result = await service.search({ query: url.searchParams.get('q'), scope: url.searchParams.get('scope') || 'all', limit: limit === null ? 10 : Number(limit), mode: mode ?? 'fuzzy' }, { clientID });
       if (result.retryAfter) headers['retry-after'] = String(result.retryAfter);
       return reply(result.body, result.statusCode);
-    } catch { return reply({ error: 'invalid-query', message: '请使用 1–256 字检索词、scope=all/library/external，以及 1–20 的 limit。' }, 400); }
+    } catch { return reply({ error: 'invalid-query', message: '请使用 1–256 字检索词、scope=all/library/external、mode=fuzzy/precise，以及 1–20 的 limit。' }, 400); }
   };
 }

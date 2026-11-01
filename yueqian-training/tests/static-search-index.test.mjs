@@ -64,22 +64,79 @@ test('样例索引通过合同校验', () => {
   assert.doesNotThrow(() => search.validIndex(structuredClone(sample)));
 });
 
-test('本地排序逐条复现管线生成的期望：ID、顺序、score 与 excerpt', () => {
+test('本地排序逐条复现管线生成的期望：ID、顺序、score、摘要与命中说明', () => {
   const state = { index: sample };
+  const columns = ({ id, score, excerpt, matchKind, matchedDirect, matchedExpanded }) => ({ id, score, excerpt, matchKind, matchedDirect, matchedExpanded });
   for (const expectation of expectations) {
-    const results = search.indexResults(state, expectation.query);
-    assert.deepEqual(results.map(item => ({ id: item.id, score: item.score, excerpt: item.excerpt })), expectation.results, expectation.query);
-    const ranked = search.rankDocuments(sample.documents, expectation.query, { topics: sample.topics });
-    assert.deepEqual(ranked.map(item => [item.id, item.score, item.excerpt]), expectation.results.map(item => [item.id, item.score, item.excerpt]));
+    assert.ok(['fuzzy', 'precise'].includes(expectation.mode), expectation.query);
+    const results = search.indexResults(state, expectation.query, 10, expectation.mode);
+    assert.deepEqual(results.map(columns), expectation.results, expectation.mode + ' ' + expectation.query);
+    const ranked = search.rankDocuments(sample.documents, expectation.query, { topics: sample.topics }, 10, expectation.mode);
+    assert.deepEqual(ranked.map(columns), expectation.results, expectation.mode + ' ' + expectation.query);
     for (const item of results) {
       assert.equal(search.validItem(item, 'external'), true, item.id);
       assert.equal(item.kind, 'external');
       assert.equal(item.reviewStatus, 'unreviewed');
       assert.equal(item.checkedAt, sample.sources.find(source => source.id === item.sourceID).checkedAt);
-      assert.deepEqual(Object.keys(item).sort(), ['checkedAt', 'excerpt', 'id', 'kind', 'repository', 'reviewStatus', 'revision', 'score', 'sha256', 'sourceID', 'title', 'url']);
+      assert.deepEqual(Object.keys(item).sort(), ['checkedAt', 'excerpt', 'id', 'kind', 'matchKind', 'matchedDirect', 'matchedExpanded', 'matchedTerms', 'repository', 'reviewStatus', 'revision', 'score', 'sha256', 'sourceID', 'title', 'url']);
+      assert.deepEqual(item.matchedTerms, [...item.matchedDirect, ...item.matchedExpanded]);
+      if (expectation.mode === 'precise') assert.equal(item.matchKind, 'exact', item.id);
     }
   }
-  assert.ok(expectations.length >= 5);
+  assert.ok(expectations.length >= 10);
+  for (const mode of ['fuzzy', 'precise']) assert.ok(expectations.some(item => item.mode === mode), mode);
+});
+
+test('模糊为默认：缺省与未知模式逐字一致，精准只收录全部命中的结果', () => {
+  const state = { index: sample };
+  for (const expectation of expectations.filter(item => item.mode === 'fuzzy')) {
+    const { query } = expectation;
+    const fuzzy = search.indexResults(state, query);
+    assert.deepEqual(search.indexResults(state, query, 10, 'fuzzy'), fuzzy, query);
+    assert.deepEqual(search.indexResults(state, query, 10, 'unknown'), fuzzy, query);
+    const precise = search.indexResults(state, query, 10, 'precise');
+    assert.deepEqual(precise, fuzzy.filter(item => item.matchKind === 'exact'), query);
+  }
+});
+
+test('「问数」在精准模式只返回正文含该词的原文，模糊模式带入同义主题词并标明同义扩展', () => {
+  const state = { index: sample };
+  const fuzzy = search.indexResults(state, '问数');
+  assert.deepEqual(fuzzy.map(item => [item.id, item.matchKind]), [['didilili-agents:0000000000000005', 'exact'], ['didilili-agents:0000000000000006', 'expanded'], ['microsoft-genai:0000000000000004', 'expanded']]);
+  assert.deepEqual(fuzzy[1].matchedDirect, []);
+  assert.ok(fuzzy[1].matchedExpanded.includes('chatbi'));
+  const precise = search.indexResults(state, '问数', 10, 'precise');
+  assert.deepEqual(precise.map(item => [item.id, item.matchedDirect]), [['didilili-agents:0000000000000005', ['问数']]]);
+  assert.deepEqual(search.indexResults(state, 'ChatBI 问数', 10, 'precise'), []);
+});
+
+test('已收录原文的本地检索同样支持两种模式，整词边界与同义词不参与收录', () => {
+  const multi = {
+    schemaVersion: 2,
+    sources: snapshot.sources,
+    articles: [
+      { id: 'ms-rag', title: 'RAG 与向量数据库', sourceID: 'microsoft-genai', path: 'translations/zh-CN/15-rag-and-vector-databases/README.md', lessonIDs: ['w2.0'], markdown: '检索增强生成把检索与生成结合起来。' },
+      { id: 'ma-memory', title: 'Memory for AI Agents', sourceID: 'microsoft-agents', path: '13-agent-memory/README.md', lessonIDs: ['ref.agent'], markdown: 'Agent memory keeps context across turns. Vector storage holds the embeddings.' },
+      { id: 'ma-storage', title: 'Storage layout', sourceID: 'microsoft-agents', path: '13-storage/README.md', lessonIDs: ['ref.agent'], markdown: 'Vector storage keeps embeddings; retrieval reads them back.' }
+    ]
+  };
+  // fuzzy：子串命中即收录（rag ⊂ storage），ms-rag 是整词命中。
+  const fuzzy = search.local(multi, 'rag');
+  assert.deepEqual(fuzzy.map(item => item.id).sort(), ['ma-memory', 'ma-storage', 'ms-rag']);
+  assert.equal(fuzzy.find(item => item.id === 'ms-rag').matchKind, 'exact');
+  assert.equal(fuzzy.find(item => item.id === 'ma-storage').matchKind, 'expanded');
+  // precise：查询单元 rag 必须在正文或标题里整词出现，ms-rag 命中；只讲 storage 的两篇不收录。
+  assert.deepEqual(search.local(multi, 'rag', 'precise').map(item => item.id), ['ms-rag']);
+  // 多单元：两个词都要命中。
+  assert.deepEqual(search.local(multi, 'context memory', 'precise').map(item => item.id), ['ma-memory']);
+  assert.deepEqual(search.local(multi, 'memory 检索', 'precise'), []);
+  // 缺省模式与 fuzzy 一致；未知模式按 fuzzy 处理。
+  assert.deepEqual(search.local(multi, 'rag'), search.local(multi, 'rag', 'fuzzy'));
+  assert.deepEqual(search.local(multi, 'rag'), search.local(multi, 'rag', 'unknown'));
+  assert.equal(search.normalizeMode('precise'), 'precise');
+  assert.equal(search.normalizeMode('fuzzy'), 'fuzzy');
+  assert.equal(search.normalizeMode(undefined), 'fuzzy');
+  assert.deepEqual(search.searchModes, ['fuzzy', 'precise']);
 });
 
 test('多来源快照的本机原文结果使用文章自己的 sourceID 与版本', () => {
@@ -199,10 +256,26 @@ test('无缓存时搜索按需下载；旧默认 Workers 地址视为未配置',
   const fetcher = server(() => good, requests);
   const result = await search.search({ query: '智能体 记忆', snapshot, releaseID: 'r', searchURL: 'https://yueqian-content-search.ricardofeng619.workers.dev/api/search', contentBaseURL: base, fetcher });
   assert.deepEqual(requests, ['/content/search/latest.json', '/content/' + good.pointer.indexPath]);
-  assert.deepEqual(result.external.map(item => [item.id, item.score]), expectations.find(item => item.query === '智能体 记忆').results.map(item => [item.id, item.score]));
+  assert.deepEqual(result.external.map(item => [item.id, item.score]), expectations.find(item => item.query === '智能体 记忆' && item.mode === 'fuzzy').results.map(item => [item.id, item.score]));
   assert.equal(result.degraded, false);
   assert.equal(search.isLegacySearchURL('https://yueqian-content-search.ricardofeng619.workers.dev/api/search'), true);
   assert.equal(search.isLegacySearchURL('https://search.example/api/search'), false);
+});
+
+test('materials 页检索透传模式：精准只留全部命中的结果，空结果提示改用模糊', async () => {
+  reset(); setOnline(true);
+  const good = bundle();
+  const fetcher = server(() => good, []);
+  const fuzzy = await search.search({ query: '问数', snapshot, releaseID: 'r', searchURL: null, contentBaseURL: base, fetcher });
+  assert.equal(fuzzy.mode, 'fuzzy');
+  assert.deepEqual(fuzzy.external.map(item => [item.id, item.matchKind]), [['didilili-agents:0000000000000005', 'exact'], ['didilili-agents:0000000000000006', 'expanded'], ['microsoft-genai:0000000000000004', 'expanded']]);
+  const precise = await search.search({ query: '问数', snapshot, releaseID: 'r', searchURL: null, contentBaseURL: base, fetcher, mode: 'precise' });
+  assert.equal(precise.mode, 'precise');
+  assert.deepEqual(precise.external.map(item => item.id), ['didilili-agents:0000000000000005']);
+  assert.match(precise.message, /精准匹配/);
+  const empty = await search.search({ query: 'ChatBI 问数', snapshot, releaseID: 'r', searchURL: null, contentBaseURL: base, fetcher, mode: 'precise' });
+  assert.deepEqual(empty.external, []);
+  assert.match(empty.message, /可改用模糊匹配/);
 });
 
 test('用户自配检索服务失败时回退本机索引', async () => {
