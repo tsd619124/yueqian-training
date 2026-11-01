@@ -134,6 +134,8 @@ function summarize(output, failed = false) {
   if (pass !== undefined) return `${pass} 通过 / ${fail} 失败`;
   const passed = /"passed":\s*(\d+)/u.exec(output)?.[1];
   if (passed) return `${passed} 项通过`;
+  const quality = /"questions":\s*(\d+),\s*"cases":\s*(\d+)/u.exec(output);
+  if (quality) return `${quality[1]} 题 / ${quality[2]} 案例`;
   const last = output.trim().split('\n').filter(Boolean).pop() || '';
   if (last && !/^[\]}{\[]|^ℹ|^Node\.js/u.test(last.trim())) return last.trim().slice(0, 80);
   const status = /"status":\s*"([^"]+)"/u.exec(output)?.[1];
@@ -157,6 +159,7 @@ export async function checkList({ ci = false } = {}) {
     { id: '原文排版与下载', args: script('test-external-materials.mjs') },
     { id: '原生教材一致', args: [...script('export-content.mjs'), '--check'] },
     { id: '教学套件', args: script('verify-content-kit.mjs') },
+    { id: '内容质量', args: script('check-content-quality.mjs'), after: '教学套件' },
     { id: '版本号', run: versionCheck },
     { id: '站点文件清单', run: async () => { const { readWebRelease } = await import('./production.mjs'); const release = await readWebRelease(web); return `${release.files.length} 个文件，预缓存 ${release.precached.length} 个`; } },
     { id: 'Xcode 工程静态检查', args: script('check-project.mjs'), after: '构建正式图文', local: true }

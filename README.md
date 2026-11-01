@@ -1,6 +1,6 @@
 # 跃迁计划 · AI 售前训练营
 
-Web 1.19.1，原生配套内容 3.3.1（15）。学习进度保存在本机，公开仓库不包含个人学习数据或认证凭据。
+Web 1.21.0，原生配套内容 3.5.0（18）。学习进度保存在本机，公开仓库不包含个人学习数据或认证凭据。
 
 - 正式 Web：https://tsd619124.github.io/yueqian-training/
 - 资料主站：https://tsd619124.github.io/yueqian-training/content-library/

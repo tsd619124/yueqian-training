@@ -6,6 +6,24 @@ var CONTENT_URL='./content/course.json';
 var $=function(s,el){return (el||document).querySelector(s)};
 var $$=function(s,el){return Array.prototype.slice.call((el||document).querySelectorAll(s))};
 
+/* 学习中心原文入口：读取 content-library 的 latest.json → manifest，按来源与篇数生成摘要，不写死来源名。 */
+function materialsEntryText(manifest){var sources=manifest&&manifest.sources,documents=manifest&&manifest.documents;return Array.isArray(sources)&&Array.isArray(documents)&&sources.length>0&&documents.length>0?'原文与配图 · '+sources.length+' 个来源 · '+documents.length+' 篇':'原文与配图'}
+function loadMaterialsEntry(){
+ var entry=document.getElementById('materialsEntry');if(!entry)return;
+ function apply(manifest){entry.textContent=materialsEntryText(manifest)}
+ function fallback(){var catalog=window.YUEQIAN_EXTERNAL_CATALOG;if(catalog)apply({sources:catalog.sources,documents:catalog.articles})}
+ fetch('./content-library/latest.json',{cache:'no-cache'}).then(function(response){
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  return response.json();
+ }).then(function(latest){
+  if(!latest||latest.schemaVersion!==1||typeof latest.manifestPath!=='string'||!/^releases\/[a-f0-9]{64}\/manifest\.json$/.test(latest.manifestPath))throw new Error('资料版本指针无效');
+  return fetch('./content-library/'+latest.manifestPath,{cache:'no-cache'});
+ }).then(function(response){
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  return response.json();
+ }).then(apply).catch(fallback);
+}
+
 /* ================= 启动:先读课程内容(content/course.json),再挂载界面 ================= */
 var booted=false;
 function loadContent(){return fetch(CONTENT_URL,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})}
@@ -867,7 +885,7 @@ function buildRunway(){
   pts.innerHTML+='<circle data-rp="'+i+'" cx="'+p.x+'" cy="'+p.y+'" r="'+(i===0||i===4?6:5)+'" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="2"/>';
  });
  pts.innerHTML+='<text class="rw-flag" x="782" y="8" text-anchor="end">OFFER</text>';
- pts.innerHTML+='<text class="rw-phase" x="30" y="160" text-anchor="start">帆软销售</text>';
+ pts.innerHTML+='<text class="rw-phase" x="30" y="160" text-anchor="start">销售岗</text>';
  updateRunway();
  var dots=$('#rwDots');dots.innerHTML='';
  PHASES.forEach(function(p,i){
@@ -947,7 +965,7 @@ function quizCoverage(){
  var tested=Object.keys(S.quizSeen).filter(function(id){return !!quizQuestion(id)}).length;
  return {tested:tested,total:total};
 }
-function attemptLabel(attempt){return (attempt.mod==='review'?'错题复习':attempt.mod+' 模块')+' · '+attempt.score+' 分'}
+function attemptLabel(attempt){return (attempt.mod==='review'?'错题复习':modNameOf(attempt.mod)+' 自测')+' · '+attempt.score+' 分'}
 function renderLearningEvidence(){
  var coverage=quizCoverage(),read=Object.keys(S.readDone).length,last=S.attempts[S.attempts.length-1];
  $('#learningEvidence').innerHTML='<div class="study-heading"><span class="eyebrow">学习记录</span><button class="btn ghost sm" data-goto="lab">查看学习证据 →</button></div><div class="evidence-metrics"><div><b>'+read+'<span> / '+LEARN_ENTRIES.length+'</span></b><span>确认读完</span></div><div><b>'+coverage.tested+'<span> / '+coverage.total+'</span></b><span>题目覆盖</span></div><div><b>'+S.evidence.length+'</b><span>学习证据</span></div></div><p class="small muted">'+(last?'最近测验：'+esc(attemptLabel(last))+'。':'还没有本版测验记录。')+'自评与任务用于过程跟踪，结合最近成绩和作品检验掌握情况。</p>';
@@ -1101,7 +1119,7 @@ function renderSkills(){
  MODS.forEach(function(m,mi){
   if(mi)html+='<div class="hr"></div>';
   html+='<div class="mod-head" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:'+(mi?'0 0 10px':'0 0 10px')+'">'+
-   '<h3 style="display:flex;align-items:center;gap:8px;font-size:15px">'+icon(m.icon)+esc(m.id+' · '+m.name)+'</h3>'+
+   '<h3 style="display:flex;align-items:center;gap:8px;font-size:15px">'+icon(m.icon)+esc(m.name)+'</h3>'+
    '<span class="small muted" data-mq="'+m.id+'">自测未测</span>'+
    '<span class="tag num" data-mb="'+m.id+'" style="margin-left:auto">0%</span></div><div class="skill-grid">';
   m.nodes.forEach(function(nd){
@@ -1252,7 +1270,7 @@ function renderQuizMods(){
  var due=wrongDue(),tot=wrongTotal();
  var html=MODS.map(function(m){
   var b=S.quiz[m.id],recent=S.latestQuiz[m.id];
-  return '<button class="btn sm" data-qmod="'+m.id+'">'+esc(m.id+' · '+m.name)+(b!=null?' · 最佳 '+b+' 分':'')+(recent?' · 最近 '+recent.score+' 分':'')+'</button>';
+  return '<button class="btn sm" data-qmod="'+m.id+'">'+esc(m.name)+(b!=null?' · 最佳 '+b+' 分':'')+(recent?' · 最近 '+recent.score+' 分':'')+'</button>';
  }).join('');
  if(tot)html+='<button class="btn sm" id="qReview" data-action="quiz-review" style="background:var(--orange-soft);color:var(--orange)">'+icon('i-refresh')+'错题本 '+tot+' 道'+(due?' · '+due+' 到期':'')+'</button>';
  $('#quizMods').innerHTML=html;
@@ -1261,7 +1279,7 @@ function startQuiz(mid){QM={mod:mid,idx:0,picked:null,correct:0,list:null,qids:n
 function renderQ(graded){
  var list=qzList(),q=list[QM.idx],last=QM.idx===list.length-1;
  var dots='';list.forEach(function(_,i){dots+='<i class="'+(i<QM.idx?'on':'')+'"></i>'});
- var html='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="tag brand">'+(QM.review?'错题重练':esc(QM.mod)+' 模块')+'</span><span class="small muted">第 '+(QM.idx+1)+' / '+list.length+' 题</span></div><div class="qdots" style="margin-top:10px">'+dots+'</div>';
+ var html='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="tag brand">'+(QM.review?'错题重练':esc(modNameOf(QM.mod))+' 自测')+'</span><span class="small muted">第 '+(QM.idx+1)+' / '+list.length+' 题</span></div><div class="qdots" style="margin-top:10px">'+dots+'</div>';
  html+='<p style="font-size:17px;font-weight:700;margin:4px 0 6px">'+esc(q.q)+'</p><div>';
  q.o.forEach(function(o,i){
   var cls='opt'+(graded?(i===q.ans?' ok':(i===QM.picked?' no':'')):'');
@@ -1583,6 +1601,8 @@ REGION_ORDER.forEach(function(name){DIRTY[name]=true});
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.21.0',d:'11-01',items:['原文与配图页语义化修复：原文列表与搜索结果补列表语义，搜索面板用标题关联，纯图标按钮补可读名称；页内标题层级收敛为唯一 h1','读屏与键盘：侧栏「选择原文」导航保留可读名称，空态也有说明，移动端 44px 热区不变','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
+ {v:'1.20.0',d:'11-01',items:['第一阶段迭代：学习进度与训练掌握度改为双指标度量，评价规则与版本说明保持一致','新增 96 题间隔复习，按 1/3/7/14/30 天阶梯安排到期队列，旧错题记录继续兼容','训练同步支持版本化与冲突选择，训练改动自动上传，不再静默覆盖','新增可观测性最小集：关键路径结构化日志、诊断导出与同步失败可见','AX5 四页（今天、学习、训练、我的）无截断、无重叠、无遮挡','文案修复：原文与配图入口按资料清单显示 4 个来源 21 篇，训练副标题去重，产品名统一为「跃迁计划 · AI 售前训练营」并统一 12 周口径']},
  {v:'1.18.0',d:'11-01',items:['外部资料库扩展到 4 个发布来源、21 篇中文原文：新增「电商问数」5 章（ChatBI/NL2SQL 全链路）与 Awesome Text2SQL 中文全景；资料库共 80 处原图','原 4 篇 Microsoft Agents 英文原文改用来源仓库提供的中文译文，OpenAI Cookbook 的 Agents API 篇目替换为 Microsoft Agents「工具使用」中文译文；21 篇全部中文','阅读页按来源显示发布者、仓库与逐来源 MIT 许可，非译文隐藏重复的「英文原文」链接，译文标注“机器翻译，以英文原文为准”','外部检索来源白名单扩展到 5 个仓库并新增一致性检查，可检索新增中文资料']},
  {v:'1.15.0',d:'10-31',items:['课程内容拆成单独的数据文件，与应用外壳一起离线缓存；首次打开只下载应用本身，原文与配图在第一次打开原文页时再缓存','发现新版本时顶部显示「有新版本，点此更新」，点按后切换；不再清空缓存，测验作答中不显示提示，交卷后再提示','弱网下打开：3 秒内没有网络响应就先显示本机缓存的版本','勾选任务、切换技能等操作只重绘当前页面，其他页面切换过去时再更新']},
  {v:'1.14.1',d:'10-30',items:['原文搜索改用随资料发布的官方来源索引：联网时按内容哈希更新，校验通过才替换，离线也能搜索；不再默认连接 workers.dev 检索服务','云同步改按上次同步的云端指纹判断冲突，两台设备离线各自修改后不再静默覆盖；新版本写入的未知字段会原样保留','重置进度保留同步设置，并作为本机新状态推送；云端另有修改时先让你选择','修复 12 周计划每周都显示「本周」、综合进度 25% 里程碑误判、凌晨证据日期早一天、错题本计数与可练题数不一致、非 5 题测验分数错误','教材列表合并为同一列表；技能树点按后在下方显示说明；提示改到底部并可被读屏朗读；存储写满时提醒导出或同步','原文页离线不再显示英文报错，服务连接移到正文下方的高级设置']},
@@ -1662,6 +1682,7 @@ if(lcOK()&&(!navigator||navigator.onLine))pullNow(false);
 initNavigation();
 document.documentElement.classList.remove('booting');
 idle(renderRemaining);
+idle(loadMaterialsEntry);
 watchServiceWorker();
 if(!S.name)$('#onboard').classList.remove('hidden');
 }

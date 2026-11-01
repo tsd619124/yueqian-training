@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>跃迁计划 · 帆软销售 → 上海 AI 售前训练营</title>
-<meta name="description" content="90 天跳槽冲刺:AI 通识、行业格局、售前硬技能、面试叙事与求职实战,一条轨道飞向 Offer。">
+<title>跃迁计划 · AI 售前训练营</title>
+<meta name="description" content="跃迁计划 · AI 售前训练营：12 周 AI 售前训练冲刺，覆盖 AI 通识、行业格局、售前硬技能、面试叙事与求职实战。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230071E3'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='PingFang SC,sans-serif' font-weight='600'%3E跃%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -15,7 +15,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#f5f7fc">
 <script>
-var APP_VERSION='1.19.1';
+var APP_VERSION='1.21.0';
 /* 课程内容与页面并行下载;app.js 读取这个 Promise */
 window.YUEQIAN_CONTENT=fetch('./content/course.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});window.YUEQIAN_CONTENT.catch(function(){});
 </script>
@@ -521,7 +521,7 @@ button:disabled{opacity:.55;cursor:default}
           <summary>跃迁轨道与教练建议</summary>
           <div class="card runway">
             <div class="eyebrow" style="margin-bottom:10px">跃迁轨道 · 12 周</div>
-            <svg id="rwSvg" viewBox="0 0 820 168" role="img" aria-label="从帆软销售到 Offer 的 12 周跃迁轨道"></svg>
+            <svg id="rwSvg" viewBox="0 0 820 168" role="img" aria-label="销售转岗 AI 售前的 12 周跃迁轨道"></svg>
             <div class="rw-dots" id="rwDots"></div>
           </div>
           <div class="coach">
@@ -604,7 +604,7 @@ button:disabled{opacity:.55;cursor:default}
         <h2 class="ptitle">学习中心</h2>
         <div class="seg" style="margin:-4px 0 16px"><button data-sub="plan">周计划</button><button data-sub="learn">学习中心</button><button data-sub="lab">实战</button></div>
         <input type="search" class="field" id="learnSearch" placeholder="搜索全文，如「数据出域」「RAG」" aria-label="搜索学习主题与材料全文">
-        <a class="btn" href="./materials.html" style="margin:12px 0 16px">原文与配图 · Microsoft</a>
+        <a class="btn" href="./materials.html" id="materialsEntry" style="margin:12px 0 16px">原文与配图</a>
         <div class="learn-filters">
           <label>范围<select class="field" id="learnWeek" aria-label="按周次筛选"></select></label>
           <label>状态<select class="field" id="learnState" aria-label="按学习状态筛选"><option value="all">全部状态</option><option value="new">未打开</option><option value="opened">已打开</option><option value="read">已读完</option><option value="done">任务完成</option></select></label>
@@ -631,7 +631,7 @@ button:disabled{opacity:.55;cursor:default}
             <div class="logo-mark me-mark">跃</div>
             <div style="flex:1;min-width:0">
               <h2 style="font-size:19px;letter-spacing:-0.02em" id="meName">准售前</h2>
-              <div class="small muted" style="margin-top:3px">跃迁计划 · 帆软销售 → 上海 AI 售前 · 12 周</div>
+              <div class="small muted" style="margin-top:3px">跃迁计划 · AI 售前训练营 · 12 周</div>
             </div>
             <span class="streak-chip" id="tbStreak" title="连续打卡天数"><svg class="ic" style="width:15px;height:15px"><use href="#i-flame"/></svg><span class="num" id="tbStreakN">0</span><span style="font-weight:500">天</span></span>
           </div>
@@ -703,7 +703,7 @@ button:disabled{opacity:.55;cursor:default}
           <details class="me-item">
             <summary><svg class="ic me-lead"><use href="#i-help"/></svg>关于<span class="me-val mono" id="meVerVal"></span><svg class="ic me-chev"><use href="#i-chev"/></svg></summary>
             <div class="me-body">
-              <p class="small muted" style="margin-bottom:8px">跃迁计划 · 训练系统当前版本 <span class="mono" id="appVer"></span><button class="btn sm" id="updBtn" data-action="update-check" style="margin-left:8px">检查更新</button></p>
+              <p class="small muted" style="margin-bottom:8px">跃迁计划 · AI 售前训练营 · 当前版本 <span class="mono" id="appVer"></span><button class="btn sm" id="updBtn" data-action="update-check" style="margin-left:8px">检查更新</button></p>
               <p class="small muted" style="margin-bottom:4px">有新版时顶部会出现「有新版本，点此更新」，点按后切换；作答中的测验不会被打断。</p>
               <div class="hr" style="margin:12px 0"></div>
               <div class="eyebrow" style="margin-bottom:4px">版本更新</div>
@@ -750,7 +750,7 @@ button:disabled{opacity:.55;cursor:default}
   <div class="modal">
     <div class="app-ic">跃</div>
     <h3>你好,我是小跃</h3>
-    <p class="small muted" style="margin-bottom:14px">接下来 12 周,我陪你完成从帆软销售到上海 AI 售前的转岗:每天 30-45 分钟,打卡、练技能、攒作品、冲面试。先告诉我怎么称呼你。</p>
+    <p class="small muted" style="margin-bottom:14px">接下来 12 周，我陪你完成从销售转岗 AI 售前的准备：每天 30-45 分钟，打卡、练技能、攒作品、冲面试。先告诉我怎么称呼你。</p>
     <input type="text" class="field" id="obName" maxlength="12" placeholder="你的称呼">
     <button class="btn primary" id="obStart" data-action="onboard-start" style="width:100%;margin-top:12px">开始训练</button>
   </div>

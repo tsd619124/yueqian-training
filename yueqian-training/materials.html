@@ -34,7 +34,7 @@
         </select>
         <span id="materials-search-mode-help">精准只收录正文命中全部检索词的结果；模糊会额外带入同义主题词。</span>
       </p>
-      <nav id="materials-list" aria-label="选择原文"></nav>
+      <nav id="materials-list" class="source-list" role="list" aria-label="选择原文"></nav>
       <div class="source-update-settings">
         <label><input type="checkbox" id="materials-automatic" checked>每天自动检查更新</label>
         <p id="materials-status" role="status" aria-live="polite">正在读取已保存的资料…</p>
@@ -42,10 +42,10 @@
       <nav id="source-toc" class="source-toc" aria-label="本篇目录"></nav>
     </aside>
     <main class="source-article">
-      <section id="materials-search-panel" class="source-search-panel" aria-label="资料搜索结果" hidden>
-        <div class="source-search-heading"><h2>搜索结果</h2><button id="materials-search-close" type="button">收起</button></div>
+      <section id="materials-search-panel" class="source-search-panel" aria-labelledby="materials-search-heading" hidden>
+        <div class="source-search-heading"><h2 id="materials-search-heading">搜索结果</h2><button id="materials-search-close" type="button" aria-label="收起搜索结果">收起</button></div>
         <p id="materials-search-status" role="status" aria-live="polite"></p>
-        <div id="materials-search-results"></div>
+        <div id="materials-search-results" role="list" aria-labelledby="materials-search-heading"></div>
       </section>
       <h1 id="source-title" tabindex="-1">原文与配图</h1>
       <div class="source-meta"><span id="source-meta">来源仓库</span><a id="source-original" target="_blank" rel="noopener noreferrer">查看来源</a><a id="source-english" target="_blank" rel="noopener noreferrer" hidden>英文原文</a></div>
@@ -73,6 +73,23 @@
     <form method="dialog"><label>缩放<input id="source-image-scale" type="range" min="1" max="4" step="0.25" value="1"></label><button type="submit">关闭</button></form>
     <div class="source-image-viewport"><img id="source-image-large" alt=""></div>
   </dialog>
-  <noscript>请启用 JavaScript，或在 GitHub 上阅读 Microsoft Generative AI for Beginners 课程。</noscript>
+  <script>
+  /* 页脚只展示下载时间；版本哈希属于技术信息，不直接暴露给读者。 */
+  (function(){
+    function simplifyRevision(){
+      var node=document.getElementById('source-revision');
+      if(!node)return;
+      var match=/下载于\s*(.+)$/.exec(node.textContent||'');
+      var next=match?'原文下载于 '+match[1]:'';
+      if(next&&node.textContent!==next)node.textContent=next;
+    }
+    document.addEventListener('DOMContentLoaded',function(){
+      var node=document.getElementById('source-revision');
+      if(node)new MutationObserver(simplifyRevision).observe(node,{childList:true,characterData:true,subtree:true});
+      simplifyRevision();
+    });
+  })();
+  </script>
+  <noscript>本页需启用 JavaScript；原文来自已审核的公开来源</noscript>
 </body>
 </html>

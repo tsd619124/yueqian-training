@@ -433,7 +433,8 @@
       }
       const articles = catalog.articles.filter(article => (!lessonID || article.lessonIDs.includes(lessonID)) && (!term || (matchingIDs ? matchingIDs.has(article.id) : article.title.toLowerCase().includes(term))));
       const list = document.getElementById('materials-list');
-      list.innerHTML = articles.map(article => '<button type="button" data-article="' + article.id + '"' + (article.id === selectedID ? ' aria-current="page"' : '') + '>' + escapeHTML(article.title) + '</button>').join('') || '<p class="source-muted">' + (mode === 'precise' ? '精准匹配下没有全部命中的原文。' : '没有匹配的原文。') + '</p>';
+      // #materials-list 是 role="list"，条目必须是 role="listitem"；按钮保留 button 语义。
+      list.innerHTML = articles.map(article => '<div class="source-list-item" role="listitem"><button type="button" data-article="' + article.id + '"' + (article.id === selectedID ? ' aria-current="page"' : '') + '>' + escapeHTML(article.title) + '</button></div>').join('') || '<div class="source-list-empty" role="listitem"><p class="source-muted">' + (mode === 'precise' ? '精准匹配下没有全部命中的原文。' : '没有匹配的原文。') + '</p></div>';
       revealCurrentArticle(list);
     }
 
@@ -522,6 +523,8 @@
         const group = document.createElement('section');
         group.className = 'source-search-group';
         group.dataset.resultGroup = kind;
+        // 外层结果容器是 role="list"，每个分组作为 listitem，分组内部再放一组 list（嵌套列表是合法 ARIA）。
+        group.setAttribute('role', 'listitem');
         const heading = document.createElement('h3');
         heading.textContent = title + '（' + items.length + '）';
         group.append(heading);
@@ -535,10 +538,14 @@
           empty.textContent = kind === 'library' ? '没有匹配的已入库原文。' : '暂无可显示的外部结果。';
           group.append(empty);
         }
+        const itemsBox = document.createElement('div');
+        itemsBox.className = 'source-search-items';
+        itemsBox.setAttribute('role', 'list');
         for (const item of items) {
           const article = document.createElement('article');
           article.className = 'source-search-item';
           article.dataset.resultID = item.id;
+          article.setAttribute('role', 'listitem');
           const title = document.createElement('h4');
           if (kind === 'library' && snapshot.articles.some(article => article.id === item.id && sourceURL(snapshot, article) === item.url)) {
             const button = document.createElement('button');
@@ -566,8 +573,9 @@
             reason.textContent = note;
             article.append(reason);
           }
-          group.append(article);
+          itemsBox.append(article);
         }
+        if (items.length) group.append(itemsBox);
         searchResults.append(group);
       }
     }
