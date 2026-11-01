@@ -285,3 +285,25 @@ test('用户自配检索服务失败时回退本机索引', async () => {
   assert.equal(result.degraded, true);
   assert.equal(result.external[0].id, 'microsoft-agents:0000000000000002');
 });
+
+test('旧版检索服务不支持 mode 参数时自动按模糊重试并提示', async () => {
+  reset(); setOnline(true);
+  const calls = [];
+  const payload = JSON.stringify({ schemaVersion: 1, query: '问数', scope: 'all', releaseID: 'r', generatedAt: new Date().toISOString(), degraded: false, reason: null, library: { status: 'ok', results: [] }, external: { status: 'not-requested', results: [] }, cache: { status: 'miss', savedAt: null } });
+  const fetcher = async (value) => {
+    const url = new URL(value);
+    calls.push(url.searchParams.get('mode'));
+    if (url.searchParams.get('mode') === 'precise') return new Response(JSON.stringify({ error: 'invalid-parameters' }), { status: 400 });
+    return new Response(payload);
+  };
+  const first = await search.search({ query: '问数', snapshot, releaseID: 'r', searchURL: 'https://search.example/api/search', contentBaseURL: base, fetcher, mode: 'precise' });
+  assert.deepEqual(calls, ['precise', null]);
+  assert.equal(first.mode, 'fuzzy');
+  assert.equal(first.degraded, true);
+  assert.match(first.message, /较旧/);
+  // 同一页面第二次精准搜索不再试探 mode，直接复用模糊结果。
+  const second = await search.search({ query: '问数', snapshot, releaseID: 'r', searchURL: 'https://search.example/api/search', contentBaseURL: base, fetcher, mode: 'precise' });
+  assert.deepEqual(calls, ['precise', null]);
+  assert.equal(second.mode, 'fuzzy');
+  assert.match(second.message, /较旧/);
+});

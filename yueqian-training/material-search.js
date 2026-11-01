@@ -21,6 +21,9 @@
   let cacheWriting = Promise.resolve();
   let indexMemory = null;
   let indexRefreshing = null;
+  // 旧版检索服务不认识 mode 参数（会回 400）；确认一次后同一页面不再重复试探。
+  const legacyModeNote = '当前检索服务版本较旧，不支持精准匹配，已改用模糊匹配。';
+  const unsupportedModeEndpoints = new Set();
   function normalize(value) {
     if (typeof value !== 'string' || value.length > 256 || /[\u0000-\u001f\u007f]/.test(value)) throw new Error('检索词需为 1–256 字。');
     const query = value.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -256,7 +259,11 @@
     const timeout = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reader?.cancel().catch(() => {}); reject(new Error('联网检索超时。')); }, 12000); });
     const operation = (async () => {
       const response = await fetcher(url.href, { method: 'GET', redirect: 'error', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: controller.signal });
-      if (!response.ok || response.url && response.url !== url.href) throw new Error('联网检索暂时不可用。');
+      if (!response.ok || response.url && response.url !== url.href) {
+        const error = new Error('联网检索暂时不可用。');
+        error.status = response.status;
+        throw error;
+      }
       if (Number(response.headers.get('content-length')) > 1048576) throw new Error('检索响应过大。');
       const chunks = [];
       let size = 0;
@@ -288,6 +295,13 @@
       return { library, external: indexed.external, mode: searchMode, degraded: false, message: indexed.message, cache: indexed.state ? 'index' : 'none', indexGeneratedAt: indexed.state?.index.generatedAt || null };
     }
     const endpoint = root.YueqianContentRelease.endpoint(searchURL);
+    // 旧版检索服务不认识 mode 参数；确认过一次后直接按模糊请求，避免每次精准搜索都多打一次。
+    // 用不含查询串的 origin + pathname 作为服务标识，避免每次搜索都因为 q 不同而重新试探。
+    const endpointKey = endpoint.origin + endpoint.pathname;
+    if (searchMode === 'precise' && unsupportedModeEndpoints.has(endpointKey)) {
+      const fallback = await search({ query: value, snapshot, releaseID, searchURL, contentBaseURL, fetcher, mode: 'fuzzy' });
+      return { ...fallback, degraded: true, message: legacyModeNote + (fallback.message || '') };
+    }
     const key = releaseID + ':' + endpoint.href + ':' + searchMode + ':' + query;
     const entry = await cached(key, query, releaseID, searchMode);
     function combine(value) {
@@ -302,7 +316,13 @@
       if (value.degraded && entry) return { library: combine(entry.value), external: entry.value.external, mode: searchMode, degraded: true, cache: 'stale', message: '联网检索受限，正在显示此前保存的检索结果。' };
       try { await saveCache(key, value); } catch {}
       return { ...value, library: combine(value), cache: value.stale ? 'stale' : 'miss', message: value.stale ? '联网检索受限，正在显示此前保存的检索结果。' : value.degraded ? '联网资料暂不完整，已保留可用结果。' : '已搜索保存资料与配置的外部来源。' };
-    } catch {
+    } catch (error) {
+      // 旧版检索服务（未重新部署的 Workers）把未知的 mode 参数回 400；去掉 mode 重试一次，按模糊结果显示并说明。
+      if (searchMode === 'precise' && error && error.status === 400) {
+        unsupportedModeEndpoints.add(endpointKey);
+        const fallback = await search({ query: value, snapshot, releaseID, searchURL, contentBaseURL, fetcher, mode: 'fuzzy' });
+        return { ...fallback, degraded: true, message: legacyModeNote + (fallback.message || '') };
+      }
       if (entry) return { library: combine(entry.value), external: entry.value.external, mode: searchMode, degraded: true, cache: 'stale', message: '联网检索未完成，正在显示此前保存的检索结果。' };
       const indexed = await staticExternal(query, null, fetcher, searchMode);
       return indexed.state ? { library, external: indexed.external, mode: searchMode, degraded: true, cache: 'index', message: '联网检索未完成，' + indexed.message } : { library, external: [], mode: searchMode, degraded: true, cache: 'miss', message: '联网检索未完成，已保留本机原文结果。' };
