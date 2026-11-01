@@ -58,13 +58,13 @@ changedImage.sha256 = sha256(changedBytes);
 const next = buildRelease(nextSnapshot, registry, topics);
 const state = await client.load(base, catalog, fixtureFetch(current, []));
 
-await check('首次打开只读指针与清单并校验，15 篇 58 张原图按需读取', async () => {
+await check('首次打开只读指针与清单并校验，21 篇 79 张原图按需读取', async () => {
   const requests = [];
   resetCache();
   const loaded = await client.load(base, catalog, fixtureFetch(current, requests));
   assert.deepEqual(requests, ['/content/latest.json', '/content/' + pointer(current).manifestPath]);
-  assert.equal(loaded.manifest.documents.length, 15);
-  assert.equal(loaded.manifest.assetCount, 58);
+  assert.equal(loaded.manifest.documents.length, 21);
+  assert.equal(loaded.manifest.assetCount, 79);
   assert.deepEqual(client.restore(structuredClone(loaded)).latest, loaded.latest);
   assert.throws(() => client.restore({ ...loaded, schemaVersion: 1 }), /无效/);
 });

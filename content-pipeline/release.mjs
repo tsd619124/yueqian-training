@@ -288,7 +288,7 @@ async function commitMessage(webVersion) {
   for (const name of await walk(path.join(web, 'content'))) if (name.endsWith('.json')) sources.push(await fs.readFile(path.join(web, 'content', name), 'utf8'));
   const items = changelogFor(webVersion, sources);
   const title = items.length ? '：' + items[0].split(/[，；。]/u)[0].slice(0, 40) : '';
-  return `发布 Web ${webVersion}${title}\n\n${items.map(item => '- ' + item).join('\n') || '- 资料与站点更新'}\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n`;
+  return `发布 Web ${webVersion}${title}\n\n${items.map(item => '- ' + item).join('\n') || '- 资料与站点更新'}\n\nCo-Authored-By: DeepSeek Harness <noreply@deepseek.com>\n`;
 }
 
 async function syncInto(target, files) {

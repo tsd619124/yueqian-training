@@ -7,7 +7,7 @@ import { sha256, validateRegistry, validateTopics, verifyLatest } from './lib.mj
 
 // 契约见 STATIC-SEARCH-INDEX.md（schema v1）。客户端按同一组上限校验，任何改动需同步三端。
 export const searchIndexLimits = Object.freeze({ maxIndexBytes: 4194304, maxPointerBytes: 16384, maxDocuments: 400, maxTitle: 400, maxText: 12000, maxID: 200, maxTopics: 100 });
-export const allowedSearchSources = Object.freeze({ 'microsoft-genai': 'microsoft/generative-ai-for-beginners', 'microsoft-agents': 'microsoft/ai-agents-for-beginners', 'openai-cookbook': 'openai/openai-cookbook' });
+export const allowedSearchSources = Object.freeze({ 'microsoft-genai': 'microsoft/generative-ai-for-beginners', 'microsoft-agents': 'microsoft/ai-agents-for-beginners', 'openai-cookbook': 'openai/openai-cookbook', 'didilili-agents': 'didilili/ai-agents-from-zero', 'eosphoros-text2sql': 'eosphoros-ai/Awesome-Text2SQL' });
 const buildDefaults = { concurrency: 4, maxDocumentBytes: 700000, maxRunMs: 300000, requestTimeoutMs: 30000, reuseUnchangedForMs: 7 * 86400000 };
 const revisionPattern = /^[a-f0-9]{40}$/u;
 const hashPattern = /^[a-f0-9]{64}$/u;
@@ -27,7 +27,9 @@ function isTimestamp(value) {
 }
 
 function safePath(value) {
-  return typeof value === 'string' && value.length > 0 && value.length < 1200 && !value.startsWith('/') && !value.includes('\\') && !/[\u0000-\u001f\u007f]/u.test(value) && value.split('/').every(segment => segment && segment !== '.' && segment !== '..');
+  return typeof value === 'string' && value.length > 0 && value.length < 1200 && !value.startsWith('/') && !value.includes('\\') &&
+    !/[%?#\u0000-\u001f\u007f]/u.test(value) && !/\s/u.test(value) &&
+    value.split('/').every(segment => segment && segment !== '.' && segment !== '..');
 }
 
 function boundedText(value, maximum) {
@@ -42,11 +44,11 @@ export function truncateText(value, maximum) {
   return last >= 0xd800 && last <= 0xdbff ? cut.slice(0, -1) : cut;
 }
 
-// 同一来源、同一课程目录视为同一课程：translations/zh-CN/15-x/README.md ⇔ 15-x/README.md。
+// 同一来源、同一文件视为同一课程：translations/zh-CN/15-x/README.md ⇔ 15-x/README.md。
+// 用完整文件路径而不是目录，避免同一目录下的多篇独立文章被一并排除（如中文教程章节目录）。
 export function courseKey(sourceID, sourcePath) {
   const normalized = sourcePath.replace(/^translations\/[^/]+\//u, '');
-  const slash = normalized.lastIndexOf('/');
-  return sourceID + ':' + (slash > 0 ? normalized.slice(0, slash) : normalized);
+  return sourceID + ':' + normalized;
 }
 
 export function validateSearchIndex(index, { bytes = null } = {}) {

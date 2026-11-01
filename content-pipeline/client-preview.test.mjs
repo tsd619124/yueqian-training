@@ -82,7 +82,7 @@ test('真实 HTTP 连接复用正式库内检索与健康接口，不访问外�
   assert.ok(result.library.results[0].url.startsWith('https://github.com/' + primary.repository + '/blob/' + primary.revision + '/'));
   const health = await request(runtime.url, '/health');
   assert.equal(health.status, 200);
-  assert.equal(JSON.parse(health.body).documents, 15);
+  assert.equal(JSON.parse(health.body).documents, 21);
   assert.equal((await request(runtime.url, '/api/search?q=x&limit=0')).status, 400);
   assert.equal(runtime.externalRequests(), 0);
 });

@@ -53,6 +53,7 @@ button:disabled { opacity: .5; cursor: progress; }
 .source-article h1 { margin: 0; font: 700 clamp(29px, 3.2vw, 42px)/1.45 "Iowan Old Style", "Songti SC", "STSong", serif; letter-spacing: -.02em; }
 .source-meta { display: flex; flex-wrap: wrap; gap: 18px; margin: 15px 0 32px; font-size: 13px; color: var(--source-muted); align-items: center; }
 .source-meta a { min-height: 36px; display: inline-flex; align-items: center; }
+.source-meta a[hidden] { display: none; }
 .source-body { overflow-wrap: anywhere; }
 .source-body h2, .source-body h3, .source-body h4 { line-height: 1.55; margin: 36px 0 16px; }
 .source-body h2 { font-size: 25px; }

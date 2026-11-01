@@ -46,9 +46,9 @@ async function temporaryOutput(context) {
 }
 
 test('静态包保留全部已核准原文、原图与来源版本', () => {
-  assert.equal(bundle.manifest.documents.length, 15);
-  assert.equal(bundle.manifest.imageReferences, 58);
-  assert.equal(bundle.manifest.assetCount, 58);
+  assert.equal(bundle.manifest.documents.length, snapshot.articles.length);
+  assert.equal(bundle.manifest.imageReferences, snapshot.articles.reduce((total, article) => total + article.images.length, 0));
+  assert.equal(bundle.manifest.assetCount, bundle.manifest.files.filter(file => file.path.startsWith('assets/')).length);
   assert.ok(bundle.totalBytes < registry.budget.maxReleaseBytes);
   for (const article of snapshot.articles) {
     const document = JSON.parse(bundle.files.get(`documents/${article.id}.json`));
@@ -146,10 +146,11 @@ test('中文与英文检索返回已收录原文片段和固定版本来源', ()
   assert.ok(chinese[0].matchedTerms.includes('向量'));
   const english = searchIndex(index, 'NearestNeighbors');
   assert.ok(english.some(result => result.id === 'ms-rag'));
-  const primaryRevision = snapshot.sources.find(source => source.id === 'microsoft-genai').revision;
   for (const result of [...chinese, ...english]) {
-    assert.ok(index.documents.find(document => document.id === result.id).text.includes(result.excerpt));
-    assert.ok(result.url.includes(primaryRevision));
+    const document = index.documents.find(item => item.id === result.id);
+    const source = snapshot.sources.find(item => item.id === document.sourceID);
+    assert.ok(document.text.includes(result.excerpt));
+    assert.ok(source && result.url.includes(source.revision), result.id);
   }
   assert.deepEqual(searchIndex(index, '   '), []);
   assert.throws(() => searchIndex(index, 'a'.repeat(257)), /检索参数/);

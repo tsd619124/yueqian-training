@@ -3,7 +3,9 @@
   const repositories = {
     'microsoft-genai': 'microsoft/generative-ai-for-beginners',
     'microsoft-agents': 'microsoft/ai-agents-for-beginners',
-    'openai-cookbook': 'openai/openai-cookbook'
+    'openai-cookbook': 'openai/openai-cookbook',
+    'didilili-agents': 'didilili/ai-agents-from-zero',
+    'eosphoros-text2sql': 'eosphoros-ai/Awesome-Text2SQL'
   };
   const aliases = [
     ['上下文工程', 'context engineering'], ['智能体', 'agent', 'agents'], ['记忆', 'memory'],
@@ -92,7 +94,7 @@
     }).sort((left, right) => right.score - left.score || left.id.localeCompare(right.id, 'en')).slice(0, limit);
   }
   function isLegacySearchURL(value) { return typeof value === 'string' && legacySearchURLs.includes(value.trim()); }
-  function invalidIndex(condition) { if (!condition) throw new Error('官方来源索引未通过校验，继续使用上一版。'); }
+  function invalidIndex(condition) { if (!condition) throw new Error('外部来源索引未通过校验，继续使用上一版。'); }
   function isoTime(value) { return typeof value === 'string' && value.length <= 40 && Number.isFinite(Date.parse(value)); }
   function documentURL(repository, revision, path) { return 'https://github.com/' + repository + '/blob/' + revision + '/' + path.split('/').map(encodeURIComponent).join('/'); }
   function indexPointer(value) {
@@ -116,16 +118,16 @@
     return value;
   }
   async function sha256(bytes) { return [...new Uint8Array(await root.crypto.subtle.digest('SHA-256', bytes))].map(value => value.toString(16).padStart(2, '0')).join(''); }
-  function parseBytes(bytes) { try { return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); } catch { throw new Error('官方来源索引编码无效，继续使用上一版。'); } }
+  function parseBytes(bytes) { try { return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)); } catch { throw new Error('外部来源索引编码无效，继续使用上一版。'); } }
   async function fetchLimited(url, limit, fetcher, milliseconds) {
     const controller = new AbortController();
     let reader;
     let timer;
-    const timeout = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reader?.cancel().catch(() => {}); reject(new Error('官方来源索引下载超时。')); }, milliseconds); });
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); reader?.cancel().catch(() => {}); reject(new Error('外部来源索引下载超时。')); }, milliseconds); });
     const operation = (async () => {
       const response = await fetcher(url.href, { method: 'GET', redirect: 'error', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: controller.signal });
-      if (!response.ok || response.url && response.url !== url.href) throw new Error('官方来源索引暂时无法访问。');
-      if (Number(response.headers.get('content-length')) > limit) throw new Error('官方来源索引超出大小限制。');
+      if (!response.ok || response.url && response.url !== url.href) throw new Error('外部来源索引暂时无法访问。');
+      if (Number(response.headers.get('content-length')) > limit) throw new Error('外部来源索引超出大小限制。');
       const chunks = [];
       let size = 0;
       if (response.body) {
@@ -135,12 +137,12 @@
             const chunk = await reader.read(); controller.signal.throwIfAborted();
             if (chunk.done) break;
             size += chunk.value.length;
-            if (size > limit) throw new Error('官方来源索引超出大小限制。');
+            if (size > limit) throw new Error('外部来源索引超出大小限制。');
             chunks.push(chunk.value);
           }
         } catch (error) { await reader.cancel().catch(() => {}); throw error; }
       } else { const bytes = new Uint8Array(await response.arrayBuffer()); size = bytes.length; chunks.push(bytes); }
-      if (!size || size > limit) throw new Error('官方来源索引为空或过大。');
+      if (!size || size > limit) throw new Error('外部来源索引为空或过大。');
       const bytes = new Uint8Array(size); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
       return bytes;
     })();
@@ -186,8 +188,8 @@
   async function staticExternal(query, contentBaseURL, fetcher) {
     let state = await cachedIndex();
     if (!state && contentBaseURL && online()) state = (await refreshIndex({ contentBaseURL, fetcher })).state;
-    if (!state) return { state: null, external: [], message: online() ? '官方来源索引暂未获取，已显示本机原文结果。' : '官方来源索引尚未下载，联网后自动获取。' };
-    return { state, external: indexResults(state, query), message: '已搜索保存的原文与官方来源索引（更新于 ' + indexTime(state) + '）。' };
+    if (!state) return { state: null, external: [], message: online() ? '外部来源索引暂未获取，已显示本机原文结果。' : '外部来源索引尚未下载，联网后自动获取。' };
+    return { state, external: indexResults(state, query), message: '已搜索保存的原文与外部来源索引（更新于 ' + indexTime(state) + '）。' };
   }
   function validItem(item, kind) {
     if (!item || item.kind !== kind || item.reviewStatus !== (kind === 'external' ? 'unreviewed' : 'approved') || typeof item.id !== 'string' || item.id.length > 200 || typeof item.title !== 'string' || item.title.length > 400 || typeof item.excerpt !== 'string' || item.excerpt.length > 1500 || repositories[item.sourceID] !== item.repository || !/^[a-f0-9]{40}$/.test(item.revision)) return false;
@@ -273,13 +275,13 @@
       for (const item of value.library) if (!map.has(item.url)) map.set(item.url, item);
       return [...map.values()].slice(0, 20);
     }
-    if (entry && !entry.value.stale && Date.now() - entry.savedAt < 300000) return { ...entry.value, library: combine(entry.value), cache: 'fresh', message: entry.value.degraded ? '联网资料暂不完整，已保留可用结果。' : '已搜索保存资料与配置的官方来源。' };
+    if (entry && !entry.value.stale && Date.now() - entry.savedAt < 300000) return { ...entry.value, library: combine(entry.value), cache: 'fresh', message: entry.value.degraded ? '联网资料暂不完整，已保留可用结果。' : '已搜索保存资料与配置的外部来源。' };
     endpoint.search = new URLSearchParams({ q: query, scope: 'all', limit: '10' }).toString();
     try {
       const value = await remote(endpoint, fetcher, query, releaseID);
       if (value.degraded && entry) return { library: combine(entry.value), external: entry.value.external, degraded: true, cache: 'stale', message: '联网检索受限，正在显示此前保存的检索结果。' };
       try { await saveCache(key, value); } catch {}
-      return { ...value, library: combine(value), cache: value.stale ? 'stale' : 'miss', message: value.stale ? '联网检索受限，正在显示此前保存的检索结果。' : value.degraded ? '联网资料暂不完整，已保留可用结果。' : '已搜索保存资料与配置的官方来源。' };
+      return { ...value, library: combine(value), cache: value.stale ? 'stale' : 'miss', message: value.stale ? '联网检索受限，正在显示此前保存的检索结果。' : value.degraded ? '联网资料暂不完整，已保留可用结果。' : '已搜索保存资料与配置的外部来源。' };
     } catch {
       if (entry) return { library: combine(entry.value), external: entry.value.external, degraded: true, cache: 'stale', message: '联网检索未完成，正在显示此前保存的检索结果。' };
       const indexed = await staticExternal(query, null, fetcher);

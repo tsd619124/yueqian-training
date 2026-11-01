@@ -49,17 +49,29 @@
     return value;
   }
 
+  // 来源内相对路径：允许中文等非 ASCII 文件名，与 iOS `ExternalMaterials.safePath` 规则一致。
+  function sourcePath(value) {
+    return typeof value === 'string' && value.length > 0 && value.length < 1200 && !value.startsWith('/') && !value.includes('\\') &&
+      !/[%?#\u0000-\u001f\u007f]/.test(value) && !/\s/.test(value) &&
+      value.split('/').every(segment => segment && segment !== '.' && segment !== '..');
+  }
+
+  // 与 `encodeURIComponent` 逐段编码一致；iOS `StaticSearch.sourceURL` 使用同一字符集。
+  function encodedPath(value) {
+    return value.split('/').map(encodeURIComponent).join('/');
+  }
+
   function rawURL(revision, path, repository = defaultRepository) {
     assert(validRevision(revision), '来源版本无效。');
     assert(typeof repository === 'string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository), '来源仓库无效。');
-    assert(typeof path === 'string' && /^[A-Za-z0-9_./-]+$/.test(path) && !path.split('/').includes('..') && !path.startsWith('/'), '来源路径无效。');
-    return 'https://raw.githubusercontent.com/' + repository + '/' + revision + '/' + path;
+    assert(sourcePath(path), '来源路径无效。');
+    return 'https://raw.githubusercontent.com/' + repository + '/' + revision + '/' + encodedPath(path);
   }
 
   function sourceURL(value, article, english) {
     const source = resolvedSource(value, article);
     const path = english ? article.path.replace('translations/zh-CN/', '') : article.path;
-    return 'https://github.com/' + source.repository + '/blob/' + source.revision + '/' + path;
+    return 'https://github.com/' + source.repository + '/blob/' + source.revision + '/' + encodedPath(path);
   }
 
   function imageReferences(markdown, articlePath, revision, repository = defaultRepository) {
@@ -67,10 +79,13 @@
     for (const match of markdown.matchAll(imagePattern)) {
       if (/lesson-banner|lesson-\d+-thumbnail|img\.youtube\.com|img\.shields\.io/.test(match[2])) continue;
       const url = new URL(match[2], rawURL(revision, articlePath, repository));
+      // 外站图片（徽章、趋势图等）不下载、不入库，排版时退化为替代文字；仓库内图片必须通过路径审查。
+      if (url.protocol !== 'https:' || url.hostname !== 'raw.githubusercontent.com') continue;
       const prefix = '/' + repository + '/' + revision + '/';
-      assert(url.protocol === 'https:' && url.hostname === 'raw.githubusercontent.com' && url.pathname.startsWith(prefix) && !url.search && !url.hash, '原文包含尚未审核的图片来源，请查看源站；本次更新未替换缓存。');
-      const path = url.pathname.slice(prefix.length);
-      assert((path.startsWith('translated_images/zh-CN/') || path.startsWith('images/') || path.includes('/images/')) && /\.(png|jpe?g|webp)$/i.test(path), '原文图片格式或路径未通过检查。');
+      assert(url.pathname.startsWith(prefix) && !url.search && !url.hash, '原文包含尚未审核的图片来源，请查看源站；本次更新未替换缓存。');
+      let path;
+      try { path = decodeURIComponent(url.pathname.slice(prefix.length)); } catch { throw new Error('原文图片路径编码无效。'); }
+      assert((path.startsWith('translated_images/zh-CN/') || path.startsWith('images/') || path.includes('/images/')) && /\.(png|jpe?g|webp)$/i.test(path) && sourcePath(path), '原文图片格式或路径未通过检查。');
       references.set(path, { path, alt: match[1] });
     }
     assert(references.size <= 24, '单篇图片数量超出上限。');
@@ -188,9 +203,13 @@
       assert(validRevision(revision), '来源返回的版本无效：' + definition.id);
       const licenseText = new TextDecoder('utf-8', { fatal: true }).decode(await fetchRetry(rawURL(revision, definition.licensePath || 'LICENSE', definition.repository), 30000, fetcher));
       assert(licenseText.includes('MIT License'), '来源授权已变化，请先核对；继续使用已有资料：' + definition.id);
-      sources.push({ id: definition.id, repository: definition.repository, revision, fetchedAt, licenseText });
+      sources.push({ id: definition.id, repository: definition.repository, revision, fetchedAt, licensePath: definition.licensePath || 'LICENSE', licenseText });
     }
-    const sameSources = current?.schemaVersion === 2 && Array.isArray(current.sources) && definitions.every(definition => current.sources.find(source => source.id === definition.id && source.repository === definition.repository && source.revision === sources.find(item => item.id === definition.id)?.revision));
+    const sameSources = current?.schemaVersion === 2 && Array.isArray(current.sources) && definitions.every(definition => {
+      const source = current.sources.find(item => item.id === definition.id);
+      return source && source.repository === definition.repository && source.revision === sources.find(item => item.id === definition.id)?.revision &&
+        (source.licensePath || 'LICENSE') === (definition.licensePath || 'LICENSE');
+    });
     const sameCatalog = sameSources && current.articles.length === catalog.articles.length && current.articles.every((article, index) => article.id === catalog.articles[index].id && article.sourceID === catalog.articles[index].sourceID && article.path === catalog.articles[index].path && article.title === catalog.articles[index].title && JSON.stringify(article.lessonIDs) === JSON.stringify(catalog.articles[index].lessonIDs));
     if (sameCatalog) return current;
     const snapshot = { schemaVersion: 2, sources, articles: [] };
@@ -232,8 +251,13 @@
     function inline(value) {
       const protectedText = value.replace(/`([^`]+)`/g, (_, code) => token('<code>' + escapeHTML(code) + '</code>'))
         .replace(/!\[([^\]]*)\]\(([^\s)]+)(?:\s+"[^"]*")?\)/g, (_, alt, target) => {
-          const path = new URL(target, rawURL(source.revision, article.path, source.repository)).pathname.split('/' + source.revision + '/')[1];
-          const image = images.get(path);
+          let path = null;
+          try {
+            const url = new URL(target, rawURL(source.revision, article.path, source.repository));
+            path = url.pathname.split('/' + source.revision + '/')[1];
+            if (path) path = decodeURIComponent(path);
+          } catch { path = null; }
+          const image = path ? images.get(path) : null;
           if (!image) return escapeHTML(alt);
           // 资料库原图用普通地址（image.src）；Node 校验仍可传 base64（image.data）。
           const src = image.src || 'data:' + image.mimeType + ';base64,' + image.data;
@@ -265,7 +289,7 @@
         output.push('<details class="source-code"><summary>' + escapeHTML(language || '代码') + '</summary><pre><code>' + escapeHTML(code.join('\n')) + '</code></pre></details>');
       } else if (/^#{1,6}\s/.test(line)) {
         const match = line.match(/^(#{1,6})\s+(.+)$/);
-        if (match[1].length === 1 && !output.length) { title = match[2]; continue; }
+        if (match[1].length === 1 && !output.length) { title = match[2].replace(/[*_`]/g, '').trim(); continue; }
         const level = Math.min(match[1].length + 1, 4);
         const anchor = 'source-heading-' + headings.length;
         headings.push({ title: match[2].replace(/[*_`]/g, ''), anchor, level });
@@ -368,7 +392,7 @@
     function sourceMeta(article) {
       const sources = release.manifest.sources;
       const source = article ? sources.find(item => item.id === article.sourceID) || sources[0] : sources[0];
-      return { id: source.id, repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt };
+      return { id: source.id, publisher: source.publisher || source.repository, repository: source.repository, revision: source.revision, fetchedAt: source.downloadedAt };
     }
     function statusText() {
       if (settings.checkedAt) return '上次检查 ' + new Date(settings.checkedAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -444,9 +468,18 @@
       const article = { ...definition, markdown: document_.markdown, images: document_.images.map(image => ({ path: image.sourcePath, alt: image.alt, mimeType: image.mimeType, sha256: image.sha256, width: image.width, height: image.height, src: releaseClient.assetURL(current, image.path), file: image.path })) };
       const meta = sourceMeta(article);
       const rendered = renderMarkdown(meta, article);
+      const translated = article.path.includes('translations/zh-CN/');
       document.getElementById('source-title').textContent = rendered.title;
       document.getElementById('source-original').href = sourceURL(meta, article);
-      document.getElementById('source-english').href = sourceURL(meta, article, true);
+      const metaLabel = document.getElementById('source-meta');
+      if (metaLabel) metaLabel.textContent = meta.publisher + ' · ' + (translated ? '中文译文' : '中文原文');
+      const english = document.getElementById('source-english');
+      if (english) { english.href = sourceURL(meta, article, true); english.hidden = !translated; }
+      const copyright = document.getElementById('source-copyright');
+      if (copyright) {
+        copyright.textContent = '正文与图片来自 ' + meta.publisher + ' 的开源资料（仓库 ' + meta.repository + '，MIT 许可），保留来源仓库的版权声明与翻译声明。'
+          + (translated ? '本页中文为来源仓库提供的译文（机器翻译，仅供参考），以英文原文为准。' : '');
+      }
       document.getElementById('source-body').innerHTML = rendered.html;
       const lead = article.images.find(image => !/DALLE/i.test(image.path + image.alt)) || article.images[0];
       const leadFigure = [...document.querySelectorAll('#source-body img')].find(image => image.dataset.sourcePath === lead?.path)?.closest('figure');
@@ -457,7 +490,7 @@
       // 首次查看后把本篇原图与许可存入缓存，供离线阅读；放在空闲时执行，不占首屏。
       idle(() => {
         releaseClient.cacheAssets(current, article.images.map(image => image.file)).catch(() => {});
-        releaseClient.file(current, 'LICENSE.txt').then(bytes => { if (current === release) document.getElementById('source-license').textContent = new TextDecoder().decode(bytes); }).catch(() => {});
+        releaseClient.licenseText(current, meta.id).then(text => { if (current === release) document.getElementById('source-license').textContent = text; }).catch(() => {});
       });
     }
 
@@ -471,7 +504,7 @@
 
     function renderSearchGroups(result, snapshot) {
       searchResults.replaceChildren();
-      for (const [kind, title, items] of [['library', '已入库原文', result.library], ['external', '官方来源 · 未审核', result.external]]) {
+      for (const [kind, title, items] of [['library', '已入库原文', result.library], ['external', '外部来源 · 未审核', result.external]]) {
         const group = document.createElement('section');
         group.className = 'source-search-group';
         group.dataset.resultGroup = kind;
@@ -527,7 +560,7 @@
         const snapshot = await ensureSearchSnapshot().catch(() => ({ schemaVersion: 2, sources: [], articles: [] }));
         if (serial !== searchSerial) return;
         renderSearchGroups({ library: searchClient.local(snapshot, term), external: [] }, snapshot);
-        searchStatus.textContent = services.searchURL ? '正在检索配置的官方来源，已显示本机原文…' : '正在搜索已保存的原文与官方来源索引…';
+        searchStatus.textContent = services.searchURL ? '正在检索配置的外部来源，已显示本机原文…' : '正在搜索已保存的原文与外部来源索引…';
         const result = await searchClient.search({ query: term, snapshot, releaseID: release?.latest.releaseID || '0'.repeat(64), searchURL: services.searchURL, contentBaseURL: location.protocol === 'file:' ? null : services.contentBaseURL });
         if (serial !== searchSerial) return;
         renderSearchGroups(result, snapshot);
@@ -556,7 +589,7 @@
     async function refreshSearchIndex(contentURL) {
       if (!searchClient?.refreshIndex || location.protocol === 'file:') return null;
       const result = await searchClient.refreshIndex({ contentBaseURL: contentURL });
-      return result.status === 'updated' ? '官方来源索引已更新。' : result.status === 'failed' ? (result.state ? '官方来源索引暂未更新，继续使用上一版。' : '官方来源索引暂未获取，稍后自动重试。') : null;
+      return result.status === 'updated' ? '外部来源索引已更新。' : result.status === 'failed' ? (result.state ? '外部来源索引暂未更新，继续使用上一版。' : '外部来源索引暂未获取，稍后自动重试。') : null;
     }
 
     async function update(manual) {
@@ -566,7 +599,7 @@
         return;
       }
       if (!manual && release && (!settings.automatic || Date.now() - Date.parse(settings.checkedAt || 0) < 86400000 || Date.now() - Date.parse(settings.attemptedAt || 0) < 3600000)) {
-        // 资料版本近期已检查时，仍需补取尚未保存的官方来源索引。
+        // 资料版本近期已检查时，仍需补取尚未保存的外部来源索引。
         if (searchClient?.cachedIndex && !(await searchClient.cachedIndex())) await refreshSearchIndex(services.contentBaseURL).catch(() => null);
         return;
       }
@@ -607,7 +640,7 @@
       if (savedSettings && typeof savedSettings.automatic === 'boolean') settings = { automatic: savedSettings.automatic, checkedAt: Number.isFinite(Date.parse(savedSettings.checkedAt)) ? savedSettings.checkedAt : null, attemptedAt: Number.isFinite(Date.parse(savedSettings.attemptedAt)) ? savedSettings.attemptedAt : null };
       services = validatedServices(savedServices || services);
       if (savedServices && savedServices.searchURL !== services.searchURL) cachedValue('services', services).catch(() => {});
-      if (servicesStatus) servicesStatus.textContent = services.searchURL ? '已连接自配检索服务；不可用时回退本机索引。' : '未连接检索服务，使用随资料发布的官方来源索引。';
+      if (servicesStatus) servicesStatus.textContent = services.searchURL ? '已连接自配检索服务；不可用时回退本机索引。' : '未连接检索服务，使用随资料发布的外部来源索引。';
       try { release = savedRelease ? releaseClient.restore(savedRelease) : null; } catch { release = null; }
     } catch (error) {
       status.textContent = '已有资料仍可阅读。' + readableError(error);

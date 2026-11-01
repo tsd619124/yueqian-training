@@ -26,7 +26,9 @@ function jsonBytes(value) {
 }
 
 function safePath(value) {
-  return typeof value === 'string' && value.length > 0 && value.length < 1200 && !value.startsWith('/') && !value.includes('\\') && !/[\u0000-\u001f]/.test(value) && value.split('/').every(segment => segment && segment !== '.' && segment !== '..');
+  return typeof value === 'string' && value.length > 0 && value.length < 1200 && !value.startsWith('/') && !value.includes('\\') &&
+    !/[%?#\u0000-\u001f\u007f]/.test(value) && !/\s/.test(value) &&
+    value.split('/').every(segment => segment && segment !== '.' && segment !== '..');
 }
 
 export function sourceURL(repository, revision, sourcePath, raw = false) {
@@ -134,7 +136,7 @@ export function buildRelease(snapshot, registry, topicConfiguration) {
   const sources = snapshot.sources.map(item => {
     const definition = registry.sources.find(source => source.id === item.id && source.repository === item.repository && source.allowSnapshotPublication);
     requireValue(definition && revisionPattern.test(item.revision) && Number.isFinite(Date.parse(item.fetchedAt)) && typeof item.licenseText === 'string' && item.licenseText.includes('MIT License'), '快照没有获准发布的来源、版本或 MIT 授权：' + (item.id || '未命名'));
-    return { id: definition.id, publisher: definition.publisher, repository: definition.repository, revision: item.revision, fetchedAt: item.fetchedAt, licenseText: item.licenseText };
+    return { id: definition.id, publisher: definition.publisher, repository: definition.repository, revision: item.revision, fetchedAt: item.fetchedAt, licensePath: definition.licensePath || 'LICENSE', licenseText: item.licenseText };
   });
   const bySource = new Map(sources.map(source => [source.id, source]));
   requireValue(Array.isArray(snapshot.articles) && snapshot.articles.length > 0 && snapshot.articles.length <= 100, '原文清单无效。');
@@ -173,7 +175,7 @@ export function buildRelease(snapshot, registry, topicConfiguration) {
   for (const source of sources) files.set(`licenses/${source.id}.txt`, Buffer.from(source.licenseText));
   files.set('LICENSE.txt', Buffer.from(sources.map(source => '===== ' + source.id + ' =====\n' + source.licenseText.trim()).join('\n\n') + '\n'));
   const records = [...files.entries()].sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0).map(([filePath, bytes]) => ({ path: filePath, bytes: bytes.length, sha256: sha256(bytes) }));
-  const content = { schemaVersion: 2, sources: sources.map(source => ({ id: source.id, publisher: source.publisher, repository: source.repository, revision: source.revision, downloadedAt: source.fetchedAt })), documents: summaries, imageReferences, assetCount: records.filter(record => record.path.startsWith('assets/')).length, files: records };
+  const content = { schemaVersion: 2, sources: sources.map(source => ({ id: source.id, publisher: source.publisher, repository: source.repository, revision: source.revision, downloadedAt: source.fetchedAt, licensePath: source.licensePath })), documents: summaries, imageReferences, assetCount: records.filter(record => record.path.startsWith('assets/')).length, files: records };
   const releaseID = sha256(jsonBytes(content));
   const manifest = { ...content, releaseID };
   files.set('manifest.json', jsonBytes(manifest));
@@ -275,6 +277,7 @@ export async function readLibrarySnapshot(directory = bundledLibraryDirectory) {
       repository: source.repository,
       revision: source.revision,
       fetchedAt: source.downloadedAt,
+      licensePath: source.licensePath || 'LICENSE',
       licenseText: await fs.readFile(path.join(releaseDirectory, licensePath), 'utf8')
     });
   }

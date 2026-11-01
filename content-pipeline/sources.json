@@ -42,6 +42,24 @@
       "licensePath": "LICENSE",
       "candidatePattern": "^examples/[^\\n]+\\.md$",
       "allowSnapshotPublication": true
+    },
+    {
+      "id": "didilili-agents",
+      "publisher": "didilili",
+      "repository": "didilili/ai-agents-from-zero",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "candidatePattern": "^实战项目-电商问数/[0-9]+-[^/]+\\.md$",
+      "allowSnapshotPublication": true
+    },
+    {
+      "id": "eosphoros-text2sql",
+      "publisher": "Eosphoros AI",
+      "repository": "eosphoros-ai/Awesome-Text2SQL",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "candidatePattern": "^README\\.zh\\.md$",
+      "allowSnapshotPublication": true
     }
   ]
 }

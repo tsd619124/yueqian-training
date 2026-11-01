@@ -74,7 +74,7 @@ test('一致性夹具本身满足 schema v1 约束', () => {
 test('课程目录键将中文翻译与英文原课视为同一课程', () => {
   assert.equal(courseKey('microsoft-genai', 'translations/zh-CN/15-rag-and-vector-databases/README.md'), courseKey('microsoft-genai', '15-rag-and-vector-databases/README.md'));
   assert.notEqual(courseKey('microsoft-genai', '15-rag-and-vector-databases/README.md'), courseKey('microsoft-agents', '15-rag-and-vector-databases/README.md'));
-  assert.equal(courseKey('openai-cookbook', 'examples/evaluation/README.md'), 'openai-cookbook:examples/evaluation');
+  assert.equal(courseKey('openai-cookbook', 'examples/evaluation/README.md'), 'openai-cookbook:examples/evaluation/README.md');
 });
 
 test('首次构建：校验 blob、提取正文、排除已发布课程，并通过校验器', async () => {
@@ -91,7 +91,7 @@ test('首次构建：校验 blob、提取正文、排除已发布课程，并通
   assert.equal(rag.title, 'Agentic RAG');
   assert.equal(rag.text, 'Agentic RAG diagram Retrieval steps.');
   assert.equal(rag.sha256, hash('sha256', files['microsoft-agents']['05-agentic-rag/README.md']));
-  assert.deepEqual(result.index.sources.map(source => [source.id, source.status, source.documentCount]), [['microsoft-genai', 'ready', 1], ['microsoft-agents', 'ready', 2], ['openai-cookbook', 'ready', 1]]);
+  assert.deepEqual(result.index.sources.map(source => [source.id, source.status, source.documentCount]), [['microsoft-genai', 'ready', 1], ['microsoft-agents', 'ready', 2], ['openai-cookbook', 'ready', 1], ['didilili-agents', 'ready', 0], ['eosphoros-text2sql', 'ready', 0]]);
   assert.deepEqual(Object.keys(result.index.topics[0]), ['id', 'title', 'terms']);
   assert.ok(rankDocuments(result.index.documents, '智能体 记忆', topics).length > 0);
 });
@@ -144,7 +144,7 @@ test('来源失败保留该来源上一版条目（retained）；无上一版的
   const networkDown = await buildSearchIndex({ registry, topics, discovery: discoveryFor(changed), published, previous: first, fetcher: fetcherFor(changed, { fail: sourceID => sourceID === 'microsoft-agents' }) });
   assert.equal(networkDown.index.sources.find(source => source.id === 'microsoft-agents').status, 'retained');
   const noPrevious = await buildSearchIndex({ registry, topics, discovery: unavailable, published, fetcher: fetcherFor(files) });
-  assert.deepEqual(noPrevious.index.sources.map(source => source.id), ['microsoft-genai', 'microsoft-agents']);
+  assert.deepEqual(noPrevious.index.sources.map(source => source.id), ['microsoft-genai', 'microsoft-agents', 'didilili-agents', 'eosphoros-text2sql']);
 });
 
 test('整体无可用结果时原样保留上一版；没有上一版则不产出索引', async () => {
@@ -237,10 +237,11 @@ test('从线上读取上一版：404 视为首次，哈希不符给出警告', a
   assert.match((await loadPublishedIndex('http://example.test/content-library/')).warning, /HTTPS/);
 });
 
-test('正式资料库的 15 篇多来源文档可读取为排除列表', async () => {
+test('正式资料库的 21 篇多来源文档可读取为排除列表', async () => {
   const documents = await publishedDocuments(fileURLToPath(new URL('../yueqian-training/content-library', import.meta.url)));
-  assert.equal(documents.length, 15);
+  assert.equal(documents.length, 21);
   assert.ok(documents.some(item => item.sourceID === 'microsoft-genai' && item.path.startsWith('translations/zh-CN/')));
-  assert.ok(documents.some(item => item.sourceID === 'microsoft-agents'));
-  assert.ok(documents.some(item => item.sourceID === 'openai-cookbook'));
+  assert.ok(documents.some(item => item.sourceID === 'microsoft-agents' && item.path.startsWith('translations/zh-CN/')));
+  assert.ok(documents.some(item => item.sourceID === 'didilili-agents' && item.path.includes('实战项目-电商问数/')));
+  assert.ok(documents.some(item => item.sourceID === 'eosphoros-text2sql' && item.path === 'README.zh.md'));
 });

@@ -15,11 +15,11 @@ const revision = 'a'.repeat(40);
 const results = [];
 async function check(name, run) { await run(); results.push(name); }
 
-await check('资料库完整原文与 58 张原图通过原文目录校验', async () => {
+await check('资料库完整原文与原图通过原文目录校验', async () => {
   await materials.validateSnapshot(snapshot, catalog);
-  assert.equal(snapshot.sources.length, 3);
-  assert.equal(snapshot.articles.length, 15);
-  assert.equal(snapshot.articles.flatMap(article => article.images).length, 58);
+  assert.equal(snapshot.sources.length, 4);
+  assert.equal(snapshot.articles.length, 21);
+  assert.equal(snapshot.articles.flatMap(article => article.images).length, 80);
   for (const article of snapshot.articles) {
     const rendered = materials.renderMarkdown(snapshot, article);
     assert.ok((rendered.html.match(/<img /g) || []).length >= article.images.length, article.id + ' 的配图未完整排版');
@@ -49,9 +49,10 @@ function fixtureFetch(url) {
   const source = snapshot.sources.find(item => item.repository === repository);
   assert.ok(source, '未登记来源：' + repository);
   if (sourcePath === 'LICENSE') return new Response(source.licenseText);
-  const article = snapshot.articles.find(item => item.sourceID === source.id && item.path === sourcePath);
+  const rawPath = decodeURIComponent(sourcePath);
+  const article = snapshot.articles.find(item => item.sourceID === source.id && item.path === rawPath);
   if (article) return new Response(article.markdown);
-  const image = snapshot.articles.filter(item => item.sourceID === source.id).flatMap(item => item.images).find(item => item.path === sourcePath);
+  const image = snapshot.articles.filter(item => item.sourceID === source.id).flatMap(item => item.images).find(item => item.path === rawPath);
   return image ? new Response(Buffer.from(image.data, 'base64')) : new Response('missing', { status: 404 });
 }
 
@@ -77,7 +78,9 @@ await check('授权变化、缺失图片、错误哈希与未审核来源阻断'
   invalid.articles = structuredClone(snapshot.articles);
   invalid.articles[0].markdown += '修改';
   await assert.rejects(materials.validateSnapshot(invalid, catalog), /缓存校验失败/);
-  assert.throws(() => materials.imageReferences('![不可信](https://example.com/image.png)', catalog.articles[0].path, snapshot.sources[0].revision, snapshot.sources[0].repository), /尚未审核/);
+  // 外站图片跳过、不下载；仓库内越权路径仍然拒绝。
+  assert.deepEqual(materials.imageReferences('![不可信](https://example.com/image.png)', catalog.articles[0].path, snapshot.sources[0].revision, snapshot.sources[0].repository), []);
+  assert.throws(() => materials.imageReferences('![越权](https://raw.githubusercontent.com/other/repo/main/images/a.png)', catalog.articles[0].path, snapshot.sources[0].revision, snapshot.sources[0].repository), /尚未审核/);
 });
 
 await check('原文安全排版：原图用资料库地址并带尺寸，保留代码，文本不执行', async () => {

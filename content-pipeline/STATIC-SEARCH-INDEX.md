@@ -37,13 +37,19 @@
 ### 约束（客户端必须校验，不满足则整份拒收、保留旧缓存）
 
 - 索引文件 ≤ 4 MiB；`documents` ≤ 400；`title` ≤ 400、`text` ≤ 12000、`id` ≤ 200 字符；`topics` ≤ 100。
-- `sourceID` 只能是 `microsoft-genai`、`microsoft-agents`、`openai-cookbook`，并与 `repository` 对应；`revision` 为 40 位 hex；`url` 必须等于 `https://github.com/<repository>/blob/<revision>/<path>`，path 按段 encodeURIComponent。
-- 已作为正式资料发布的课程（同来源、同课程目录，如 `translations/zh-CN/15-rag-and-vector-databases/` 与 `15-rag-and-vector-databases/`）由构建端排除，不进入索引。
+- `sourceID` 只能是 `microsoft-genai`、`microsoft-agents`、`openai-cookbook`、`didilili-agents`、`eosphoros-text2sql`，并与 `repository` 对应；`revision` 为 40 位 hex；`url` 必须等于 `https://github.com/<repository>/blob/<revision>/<path>`，path 按段 encodeURIComponent。路径允许中文等非 ASCII 文件名（拒绝控制字符、空白与 `%?#`）。
+- 已作为正式资料发布的课程按“来源 + 归一后的完整文件路径”排除：`translations/zh-CN/15-rag-and-vector-databases/README.md` 与 `15-rag-and-vector-databases/README.md` 视为同一篇；同一目录下的多篇独立文章不会互相排除（如 `实战项目-电商问数/` 的 18 章）。
+- 来源白名单的 5 个同步位置见 `content-pipeline/registry.test.mjs`；漏同步会让 `release.mjs check` 失败。
 
 ## 结果项
 
-与原 Workers `external.results` 相同：`id, title, excerpt(≤280), url, repository, revision, sourceID, kind:"external", reviewStatus:"unreviewed", sha256, score, checkedAt(取所属 source 的 checkedAt)`。界面继续标注「官方来源 · 未审核」，不自动进入课程。
+与原 Workers `external.results` 相同：`id, title, excerpt(≤280), url, repository, revision, sourceID, kind:"external", reviewStatus:"unreviewed", sha256, score, checkedAt(取所属 source 的 checkedAt)`。界面标注「外部来源 · 未审核」，不自动进入课程。
 
 ## 一致性测试
 
 `content-pipeline/fixtures/search-index-sample.json` 与 `search-index-expectations.json` 由 `rankDocuments` 生成。三端测试必须复现每个查询的结果 ID、顺序、score 和 excerpt。注意：excerpt 按 JavaScript 的 UTF-16 下标切片，Swift 实现需按 UTF-16 偏移计算。
+
+## 构建记录
+
+- 2026-10-30：首次真实构建 111 篇 / 3 来源（Microsoft 生成式 AI 12、Agents 19、Cookbook 80，排除已发布 10 篇）。
+- 2026-11-01（工作区，未发布）：5 来源 / 119 篇 / 1,033,714 字节，gzip 338,607。Microsoft GenAI 12、Microsoft Agents 14、Cookbook 80、didilili 电商问数 13、Awesome Text2SQL 0（唯一候选即已发布的中文 README）。`didilili-agents` 的 13 篇为中文路径，验证了客户端 `encodeURIComponent` 编码与 Swift `sourceURL` 一致。

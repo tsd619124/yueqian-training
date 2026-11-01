@@ -184,11 +184,11 @@ test('离线时不发网络请求，有缓存仍可搜索', async () => {
   const result = await search.search({ query: 'memory', snapshot, releaseID: 'r', searchURL: null, contentBaseURL: base, fetcher: () => { throw new Error('must not fetch'); } });
   assert.equal(result.cache, 'index');
   assert.equal(result.external[0].id, 'microsoft-agents:0000000000000001');
-  assert.match(result.message, /^已搜索保存的原文与官方来源索引（更新于 .+）。$/);
+  assert.match(result.message, /^已搜索保存的原文与外部来源索引（更新于 .+）。$/);
   reset();
   const empty = await search.search({ query: 'memory', snapshot, releaseID: 'r', searchURL: null, contentBaseURL: base, fetcher: () => { throw new Error('must not fetch'); } });
   assert.equal(empty.external.length, 0);
-  assert.equal(empty.message, '官方来源索引尚未下载，联网后自动获取。');
+  assert.equal(empty.message, '外部来源索引尚未下载，联网后自动获取。');
   setOnline(true);
 });
 

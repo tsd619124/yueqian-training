@@ -24,7 +24,7 @@
     <aside class="source-sidebar" aria-label="原文目录">
       <h2>原文与配图</h2>
       <form id="materials-search-form" class="source-search-form" role="search">
-        <input id="materials-search" class="source-search" type="search" maxlength="256" placeholder="搜索原文与官方资料" aria-label="搜索原文与官方资料" aria-controls="materials-search-results">
+        <input id="materials-search" class="source-search" type="search" maxlength="256" placeholder="搜索原文与外部资料" aria-label="搜索原文与外部资料" aria-controls="materials-search-results">
         <button type="submit">搜索</button>
       </form>
       <nav id="materials-list" aria-label="选择原文"></nav>
@@ -41,20 +41,20 @@
         <div id="materials-search-results"></div>
       </section>
       <h1 id="source-title" tabindex="-1">原文与配图</h1>
-      <div class="source-meta"><span>Microsoft · 中文译文</span><a id="source-original" target="_blank" rel="noopener noreferrer">查看来源</a><a id="source-english" target="_blank" rel="noopener noreferrer">英文原文</a></div>
+      <div class="source-meta"><span id="source-meta">来源仓库</span><a id="source-original" target="_blank" rel="noopener noreferrer">查看来源</a><a id="source-english" target="_blank" rel="noopener noreferrer" hidden>英文原文</a></div>
       <div id="source-lead" class="source-body"></div>
       <article id="source-body" class="source-body"></article>
       <footer class="source-footer">
         <p id="source-revision"></p>
-        <details><summary>版权与阅读说明</summary><p>正文与图片来自 Microsoft 的 Generative AI for Beginners 开源课程，保留来源仓库的中文译文与翻译声明。页面只调整排版，收起代码及课程封面；原文以源站为准。自动检查在本页打开或回到前台时进行，公开资料下载不包含你的学习记录。官方来源索引随资料检查下载到本机，搜索在本机完成；只有在服务连接中填写检索地址时，才会把检索词发给该服务。外部结果未经课程审核，不会自动加入课程或改变学习进度。</p><pre id="source-license"></pre></details>
+        <details><summary>版权与阅读说明</summary><p><span id="source-copyright">正文与图片来自来源仓库的开源资料，保留来源仓库的版权与翻译声明。</span>页面只调整排版，收起代码及课程封面；原文以源站为准。自动检查在本页打开或回到前台时进行，公开资料下载不包含你的学习记录。外部来源索引随资料检查下载到本机，搜索在本机完成；只有在服务连接中填写检索地址时，才会把检索词发给该服务。外部结果未经课程审核，不会自动加入课程或改变学习进度。</p><pre id="source-license"></pre></details>
         <details class="source-services">
           <summary>高级 · 服务连接</summary>
           <form id="materials-services-form">
             <label for="materials-content-url">资料库地址</label>
             <input id="materials-content-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" required aria-describedby="materials-services-help">
             <label for="materials-search-url">检索地址</label>
-            <input id="materials-search-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" placeholder="可选，留空使用官方来源索引" aria-describedby="materials-services-help">
-            <p id="materials-services-help">开发与自部署使用。填写公开 HTTPS 地址；本机预览可使用 localhost HTTP。检索地址可留空：默认在本机搜索随资料发布的官方来源索引，离线也可用。</p>
+            <input id="materials-search-url" type="text" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2048" placeholder="可选，留空使用外部来源索引" aria-describedby="materials-services-help">
+            <p id="materials-services-help">开发与自部署使用。填写公开 HTTPS 地址；本机预览可使用 localhost HTTP。检索地址可留空：默认在本机搜索随资料发布的外部来源索引，离线也可用。</p>
             <button id="materials-services-save" type="submit">保存连接</button>
             <p id="materials-services-status" role="status" aria-live="polite"></p>
           </form>

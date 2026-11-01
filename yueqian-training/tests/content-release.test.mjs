@@ -361,12 +361,13 @@ function diskFetch(directory) {
   };
 }
 
-test('真实多来源资料库：3 个来源 15 篇逐篇校验，URL 与许可按来源读取，检索快照为 v2', async () => {
+test('真实多来源资料库：4 个来源 21 篇逐篇校验，URL 与许可按来源读取，检索快照为 v2', async () => {
   resetCache();
   const state = await client.load(base, realCatalog, diskFetch(library));
   assert.equal(state.manifest.schemaVersion, 2);
-  assert.deepEqual(state.manifest.sources.map(source => source.id), ['microsoft-genai', 'microsoft-agents', 'openai-cookbook']);
-  assert.equal(state.manifest.documents.length, 15);
+  const sourceIDs = realCatalog.sources.map(source => source.id);
+  assert.deepEqual(state.manifest.sources.map(source => source.id), sourceIDs);
+  assert.equal(state.manifest.documents.length, realCatalog.articles.length);
   const byID = new Map(state.manifest.sources.map(source => [source.id, source]));
   for (const definition of realCatalog.articles) {
     const document = await client.documentFor(state, definition.id, realCatalog, diskFetch(library));
@@ -379,15 +380,21 @@ test('真实多来源资料库：3 个来源 15 篇逐篇校验，URL 与许可�
     assert.ok(document.source.rawURL.includes('/' + source.repository + '/' + source.revision + '/'), document.source.rawURL);
     for (const image of document.images) assert.ok(image.sourceURL.includes('/' + source.repository + '/' + source.revision + '/'), definition.id + ': ' + image.sourceURL);
   }
+  // 中文路径必须按段 percent-encode，来源链接才可点开。
+  const chinese = state.manifest.documents.find(document => document.sourceID === 'didilili-agents');
+  assert.ok(chinese, '缺少中文来源文档');
+  assert.ok(chinese.url.includes('%E5%AE%9E%E6%88%98%E9%A1%B9%E7%9B%AE'), chinese.url);
   const snapshot = await client.searchSnapshot(state, realCatalog, diskFetch(library));
   assert.equal(snapshot.schemaVersion, 2);
-  assert.equal(snapshot.articles.length, 15);
-  assert.deepEqual(snapshot.sources.map(source => source.id), ['microsoft-genai', 'microsoft-agents', 'openai-cookbook']);
-  assert.equal(snapshot.articles.find(article => article.id === 'oc-agents-api').sourceID, 'openai-cookbook');
+  assert.equal(snapshot.articles.length, realCatalog.articles.length);
+  assert.deepEqual(snapshot.sources.map(source => source.id), sourceIDs);
+  assert.equal(snapshot.articles.find(article => article.id === 'dz-sql-loop').sourceID, 'didilili-agents');
   assert.equal('repository' in snapshot, false);
   const licenses = await client.licenseTexts(state, diskFetch(library));
-  assert.deepEqual(licenses.map(value => value.id), ['microsoft-genai', 'microsoft-agents', 'openai-cookbook']);
-  assert.equal(licenses[2].licenseText, await fs.readFile(path.join(library, 'releases', state.latest.releaseID, 'licenses/openai-cookbook.txt'), 'utf8'));
+  assert.deepEqual(licenses.map(value => value.id), sourceIDs);
+  for (const [index, id] of sourceIDs.entries()) {
+    assert.equal(licenses[index].licenseText, await fs.readFile(path.join(library, 'releases', state.latest.releaseID, 'licenses/' + id + '.txt'), 'utf8'));
+  }
   assert.ok(licenses[0].licenseText.includes('MIT License'));
-  assert.ok(licenses[2].licenseText.includes('Copyright (c) 2025 OpenAI'));
+  assert.ok(licenses[2].licenseText.includes('MIT License'));
 });

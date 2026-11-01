@@ -5,6 +5,7 @@
 //   node native-app/scripts/update-external-materials.mjs --check  只校验现有资料库与原文目录一致（不联网）
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildRelease, readLibrarySnapshot, validateRegistry, writeRelease } from '../../content-pipeline/lib.mjs';
 import { exportClientContent } from '../../content-pipeline/client-content.mjs';
@@ -12,21 +13,36 @@ import { exportClientContent } from '../../content-pipeline/client-content.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const web = path.join(root, 'yueqian-training');
 const argumentsList = process.argv.slice(2);
-if (argumentsList.some(argument => argument !== '--check')) throw new Error('只支持 --check 参数。');
+if (argumentsList.some(argument => !['--check', '--force'].includes(argument))) throw new Error('只支持 --check / --force 参数。');
 await import(pathToFileURL(path.join(web, 'external-catalog.js')));
 await import(pathToFileURL(path.join(web, 'external-materials.js')));
 const catalog = globalThis.YUEQIAN_EXTERNAL_CATALOG;
 const materials = globalThis.YueqianMaterials;
 const imageCount = snapshot => snapshot.articles.reduce((total, article) => total + article.images.length, 0);
 
+// GitHub API 未认证额度只有 60 次/小时；本地更新用 gh 登录态或 GITHUB_TOKEN 认证（只发给 api.github.com）。
+function githubToken() {
+  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
+  try { return execFileSync('gh', ['auth', 'token'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
+  catch { return null; }
+}
+const token = githubToken();
+const fetcher = (url, options = {}) => {
+  if (token && String(url).startsWith('https://api.github.com/')) {
+    return fetch(url, { ...options, headers: { ...(options.headers || {}), authorization: 'Bearer ' + token, accept: 'application/vnd.github+json' } });
+  }
+  return fetch(url, options);
+};
+
 if (argumentsList.includes('--check')) {
   const snapshot = await materials.validateSnapshot(await readLibrarySnapshot(), catalog);
   console.log(JSON.stringify({ status: '资料库原文、原图哈希与原文目录一致', sources: snapshot.sources.length, articles: snapshot.articles.length, images: imageCount(snapshot), revisions: Object.fromEntries(snapshot.sources.map(source => [source.id, source.revision.slice(0, 12)])) }, null, 2));
 } else {
-  const current = await readLibrarySnapshot().catch(() => null);
+  const force = argumentsList.includes('--force');
+  const current = force ? null : await readLibrarySnapshot().catch(() => null);
   const sameCatalog = current && current.sources.length === catalog.sources.length && current.sources.every((source, index) => source.id === catalog.sources[index].id && source.repository === catalog.sources[index].repository) && current.articles.length === catalog.articles.length && current.articles.every((article, index) => article.id === catalog.articles[index].id && article.sourceID === catalog.articles[index].sourceID && article.path === catalog.articles[index].path && article.title === catalog.articles[index].title && JSON.stringify(article.lessonIDs) === JSON.stringify(catalog.articles[index].lessonIDs));
   // 原文目录有变化（新增、改标题或课程关联）时必须重新下载；否则来源未更新则直接返回。
-  const snapshot = await materials.downloadSnapshot(catalog, sameCatalog ? current : null, fetch, message => process.stdout.write(message + '\n'));
+  const snapshot = await materials.downloadSnapshot(catalog, sameCatalog ? current : null, fetcher, message => process.stdout.write(message + '\n'));
   if (snapshot === current) { console.log(JSON.stringify({ status: '来源仓库没有新提交，资料保持不变', revisions: Object.fromEntries(current.sources.map(source => [source.id, source.revision.slice(0, 12)])) }, null, 2)); process.exit(0); }
   const registry = validateRegistry(JSON.parse(fs.readFileSync(path.join(root, 'content-pipeline/sources.json'), 'utf8')));
   const topics = JSON.parse(fs.readFileSync(path.join(root, 'content-pipeline/topics.json'), 'utf8'));
