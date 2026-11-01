@@ -159,13 +159,14 @@ export async function checkList({ ci = false } = {}) {
     { id: '原文排版与下载', args: script('test-external-materials.mjs') },
     { id: '原生教材一致', args: [...script('export-content.mjs'), '--check'] },
     { id: '教学套件', args: script('verify-content-kit.mjs') },
-    { id: '内容质量', args: script('check-content-quality.mjs'), after: '教学套件' },
+    // 内容质量依赖 native-app 的 training.json；公开仓库只发布 Web 所需文件，因此该检查仅本地执行。
+    { id: '内容质量', args: script('check-content-quality.mjs'), local: true, after: '教学套件' },
     { id: '版本号', run: versionCheck },
     { id: '站点文件清单', run: async () => { const { readWebRelease } = await import('./production.mjs'); const release = await readWebRelease(web); return `${release.files.length} 个文件，预缓存 ${release.precached.length} 个`; } },
     { id: 'Xcode 工程静态检查', args: script('check-project.mjs'), after: '构建正式图文', local: true }
   ];
   const hasXcode = await exists(pbxproj) && process.platform === 'darwin';
-  for (const step of steps) if (step.local && (ci || !hasXcode)) step.skip = ci ? 'CI 跳过（需 Xcode）' : '无 Xcode 工程';
+  for (const step of steps) if (step.local && (ci || !hasXcode)) step.skip = ci ? 'CI 跳过（本地检查）' : '无 Xcode 工程';
   for (const step of steps) if (step.args === null) step.skip = '没有测试文件';
   const results = new Map();
   const pending = new Set(steps.filter(step => !step.skip));
