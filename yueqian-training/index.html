@@ -15,7 +15,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#f5f7fc">
 <script>
-var APP_VERSION='1.23.0';
+var APP_VERSION='1.25.0';
 /* 课程内容与页面并行下载;app.js 读取这个 Promise */
 window.YUEQIAN_CONTENT=fetch('./content/course.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});window.YUEQIAN_CONTENT.catch(function(){});
 </script>
@@ -409,6 +409,15 @@ button:disabled{opacity:.55;cursor:default}
 .booting #studyHub,.booting #learningEvidence,.booting #curWeek,.booting #modBars,.booting #ovToday{background:var(--surface-2);border-radius:14px;animation:skel 1.2s ease-in-out infinite alternate}
 @keyframes skel{from{opacity:.55}to{opacity:1}}
 .update-banner{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;transform:translateX(-50%);z-index:95;display:flex;align-items:center;gap:8px;min-height:44px;padding:10px 18px;border:0;border-radius:999px;background:var(--button-bg);color:#fff;font:inherit;font-size:14px;font-weight:600;box-shadow:var(--shadow);cursor:pointer;max-width:calc(100vw - 32px)}
+/* 写满横幅:常驻,不是吐司——吐司 3.6 秒就滚走,这个除非写盘成功否则一直在。
+   它挂在 .main 里、所有 .view 之外,所以切 Tab 不会被 hidden 掉;
+   sticky 是为了滚动时也不消失。top 留 60px 躲开固定的「有新版本」胶囊(它在 safe+10,高 44)。
+   底色不透明:半透明会透出下面滚动的内容。z-index 低于吐司(90)与更新条(95)。 */
+.storage-warn{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:80;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:calc(18px + env(safe-area-inset-top,0px)) auto 0;padding:12px 16px;border-radius:14px;background:color-mix(in srgb,var(--orange) 12%,var(--surface));color:var(--ink);font-size:13px;font-weight:500;border:1px solid var(--line-strong);box-shadow:var(--shadow-sm);width:100%;max-width:1040px}
+.storage-warn .ic{color:var(--orange);flex:none;width:17px;height:17px}
+.storage-warn-text{flex:1;min-width:180px;line-height:1.5}
+.storage-warn .btn{flex:none}
+@media (max-width:880px){.storage-warn{top:calc(env(safe-area-inset-top,0px) + 60px);margin:calc(12px + env(safe-area-inset-top,0px)) 16px 0}}
 @media (prefers-reduced-transparency:reduce){
  .sidebar,.tabbar,#dockTitle,#drawer,.modal,.toast{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
  #tabPill{background:var(--surface-2)}
@@ -480,6 +489,12 @@ button:disabled{opacity:.55;cursor:default}
   </aside>
 
   <div class="main">
+    <div id="storageBar" class="storage-warn" role="alert" hidden>
+      <svg class="ic" aria-hidden="true"><use href="#i-msg"/></svg>
+      <span class="storage-warn-text">本机存储空间已满，最近的修改没有保存。清理浏览器空间，或先导出一份备份。</span>
+      <button type="button" class="btn sm" id="storageExport" data-action="export">导出备份</button>
+      <button type="button" class="btn sm primary" id="storageRetry" data-action="storage-retry">重试保存</button>
+    </div>
     <main class="content">
 
       <!-- ===== 总览 ===== -->

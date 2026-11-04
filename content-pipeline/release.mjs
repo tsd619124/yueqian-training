@@ -43,20 +43,23 @@ const exists = file => fs.stat(file).then(() => true, () => false);
 const relative = file => path.relative(root, file) || '.';
 
 // ---------- 版本号：唯一来源为 index.html APP_VERSION、sw.js CACHE 与 project.pbxproj ----------
-export async function readVersions() {
-  const index = await fs.readFile(path.join(web, 'index.html'), 'utf8');
-  const worker = await fs.readFile(path.join(web, 'sw.js'), 'utf8');
+// base 默认为本仓库根目录；文档事实源检查会用临时目录复刻一份最小仓库来验判据。
+export async function readVersions(base = root) {
+  const webDirectory = path.join(base, 'yueqian-training');
+  const projectFile = path.join(base, 'native-app/Yueqian.xcodeproj/project.pbxproj');
+  const index = await fs.readFile(path.join(webDirectory, 'index.html'), 'utf8');
+  const worker = await fs.readFile(path.join(webDirectory, 'sw.js'), 'utf8');
   const webVersion = /\bvar\s+APP_VERSION\s*=\s*'([0-9]+\.[0-9]+\.[0-9]+)'/u.exec(index)?.[1] || null;
   const cacheMatch = /\bvar\s+CACHE\s*=\s*(CACHE_PREFIX\s*\+\s*)?'([^']+)'/u.exec(worker);
   const cache = cacheMatch ? (cacheMatch[1] ? /\bvar\s+CACHE_PREFIX\s*=\s*'([^']+)'/u.exec(worker)?.[1] || '' : '') + cacheMatch[2] : null;
   let versionFile = null;
-  if (await exists(path.join(web, 'version.json'))) {
-    const value = JSON.parse(await fs.readFile(path.join(web, 'version.json'), 'utf8'));
+  if (await exists(path.join(webDirectory, 'version.json'))) {
+    const value = JSON.parse(await fs.readFile(path.join(webDirectory, 'version.json'), 'utf8'));
     versionFile = value.version ?? value.appVersion ?? value.webVersion ?? null;
   }
   let native = null;
-  if (await exists(pbxproj)) {
-    const project = await fs.readFile(pbxproj, 'utf8');
+  if (await exists(projectFile)) {
+    const project = await fs.readFile(projectFile, 'utf8');
     const marketing = [...new Set([...project.matchAll(/MARKETING_VERSION = ([0-9.]+);/gu)].map(match => match[1]))];
     const builds = [...new Set([...project.matchAll(/CURRENT_PROJECT_VERSION = ([0-9]+);/gu)].map(match => match[1]))];
     native = { marketing, builds };
@@ -73,6 +76,57 @@ async function versionCheck() {
   if (versions.native && (versions.native.marketing.length !== 1 || versions.native.builds.length !== 1)) problems.push('project.pbxproj 中 MARKETING_VERSION / CURRENT_PROJECT_VERSION 不唯一');
   if (problems.length) throw new Error(problems.join('；'));
   return `Web ${versions.webVersion} / ${versions.cache}${versions.versionFile ? ' / version.json' : ''}` + (versions.native ? ` · 原生 ${versions.native.marketing[0]}（${versions.native.builds[0]}）` : '');
+}
+
+// ---------- 文档事实源：只有 STATUS.md 能自称「当前版本」，其余三份只能引用 ----------
+// 审计 P2-10：README.md / native-app/README.md / NEXT-SESSION.md 曾各写一套版本，
+// 与 STATUS.md 四处不一致。这里把「不许再写」变成断言，而不是靠人记得改。
+//
+// 判据全部动态算，不硬编码版本号——发布换版本时这条检查会跟着变，不需要再改代码：
+//   1. 三份文档任何一行都不得出现当前原生 MARKETING_VERSION 或当前 Web APP_VERSION；
+//      历史版本（3.4.0、v24 之类）照写，它只拦「当前值」。
+//   2. 三份文档各自至少有一个真正的 STATUS.md 指针（链接 / 行内代码 / 自动链接）；
+//      正文里顺口提一句不算，「读者能点过去」才算。
+// 边界（有意为之）：**不判定 STATUS.md 的内容**。STATUS.md 由收尾人维护，正在被改的时候
+// 不应该把这条检查拖红——判据只落在这三份文件上，别的文件谁在改都不影响它。
+// 同理只管这三份：HANDOFF.md、TAKEOVER-2026-10-31.md 顶部已声明是历史记录，不在此列。
+export const DOC_TRUTH_FILES = ['README.md', 'native-app/README.md', 'NEXT-SESSION.md'];
+export const DOC_TRUTH_SOURCE = 'STATUS.md';
+// 真正的指针形态：`[当前状态](STATUS.md)`、`[..](../STATUS.md)`、`` `STATUS.md` ``、`<STATUS.md>`。
+const DOC_TRUTH_POINTER = /(?:\]\(\s*<?[^\s)]*STATUS\.md|`STATUS\.md`|<STATUS\.md>)/u;
+
+export async function docsTruthCheck(base = root) {
+  const versions = await readVersions(base);
+  const native = versions.native?.marketing?.[0] ?? null;
+  if (!native || !versions.webVersion) throw new Error('读不到当前版本号（project.pbxproj 的 MARKETING_VERSION 或 index.html 的 APP_VERSION）');
+  // 两侧不接数字，避免把 13.14.0 这类历史版本误判成当前版本。
+  const patterns = [
+    { label: `原生 ${native}`, pattern: new RegExp('(?<![0-9.])' + native.replace(/\./gu, '\\.') + '(?![0-9])', 'u') },
+    { label: `Web ${versions.webVersion}`, pattern: new RegExp('(?<![0-9.])' + versions.webVersion.replace(/\./gu, '\\.') + '(?![0-9])', 'u') }
+  ];
+  const read = async file => {
+    try {
+      return await fs.readFile(path.join(base, file), 'utf8');
+    } catch (error) {
+      throw new Error(`文档事实源检查读不到 ${file}：${error.message}`);
+    }
+  };
+  if (!await exists(path.join(base, DOC_TRUTH_SOURCE))) throw new Error(`${DOC_TRUTH_SOURCE} 不存在：三份文档都指向它，事实源文件不能缺`);
+  const problems = [];
+  const pointers = {};
+  for (const file of DOC_TRUTH_FILES) {
+    let found = 0;
+    for (const [index, line] of (await read(file)).split('\n').entries()) {
+      for (const { label, pattern } of patterns) {
+        if (pattern.test(line)) problems.push(`${file}:${index + 1} 写了当前版本号（${label}），应改为引用 ${DOC_TRUTH_SOURCE}：${line.trim().slice(0, 90)}`);
+      }
+      if (DOC_TRUTH_POINTER.test(line)) found++;
+    }
+    if (!found) problems.push(`${file} 没有指向 ${DOC_TRUTH_SOURCE} 的引用：当前版本、测试数、签名到期、部署目标应一律引用它`);
+    pointers[file] = found;
+  }
+  if (problems.length) throw new Error(problems.join('；'));
+  return `三份文档各 ${DOC_TRUTH_FILES.map(file => pointers[file]).join(' / ')} 处引用 ${DOC_TRUTH_SOURCE}，均未出现当前版本 ${native} / ${versions.webVersion}`;
 }
 
 async function bump(webVersion, nativeVersion) {
@@ -287,7 +341,7 @@ function summarize(output, failed = false) {
 //   local    原作者标注的「仅本地」步骤：内容质量依赖 native-app/training.json，公开仓库只发布 Web 所需文件，
 //            所以公开仓库 CI 上它自动跳过；它不是平台限制，macos-latest 上照常跑。
 //
-// 未指定 --only / --skip 时不改变任何既有行为：仍然跑完整 14 项。
+// 未指定 --only / --skip 时不改变任何既有行为：仍然跑完整 16 项。
 export const CHECK_GROUPS = ['web', 'native', 'local'];
 
 // 步骤名 → 分组。名字必须与 checkList 里的 id 完全一致，写错会在解析参数时直接报错而不是静默跳过。
@@ -304,6 +358,7 @@ const CHECK_GROUP_OF = new Map([
   ['教学套件', 'web'],
   ['内容质量', 'web'],
   ['版本号', 'web'],
+  ['文档事实源', 'web'],
   ['站点文件清单', 'web'],
   ['性能基线', 'web'],
   ['Xcode 工程静态检查', 'native']
@@ -339,6 +394,9 @@ export async function checkList({ ci = false, only = null, skip = new Set() } = 
     // 内容质量依赖 native-app 的 training.json；公开仓库只发布 Web 所需文件，因此该检查仅本地执行。
     { id: '内容质量', args: script('check-content-quality.mjs'), local: true, after: '教学套件' },
     { id: '版本号', run: versionCheck },
+    // 审计 P2-10：文档里的版本数字只有 STATUS.md 一处维护，其余三份改成引用；
+    // 这条断言防止它们又被写回「当前版本」，比人工 grep 可靠。
+    { id: '文档事实源', run: () => docsTruthCheck() },
     { id: '站点文件清单', run: async () => { const { readWebRelease } = await import('./production.mjs'); const release = await readWebRelease(web); return `${release.files.length} 个文件，预缓存 ${release.precached.length} 个`; } },
     // 审计 P2-2：性能基线要跟得上版本，否则又回到「报告停在 2.6 阶段」。
     // 只检查「当前原生版本有对应文件」，具体数字由人按 docs/perf/README.md 重测后写入。

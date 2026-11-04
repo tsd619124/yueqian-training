@@ -106,7 +106,11 @@ function runState({ local, session } = {}) {
     localStorage: localStore,
     sessionStorage: sessionStore,
     window: { sessionStorage: sessionStore },
+    // persist() 的真实函数体里会调这两个存储状态钩子（写满横幅的开与关）。
+    // 这条测试只关心「写进 localStorage 的内容」，所以把它们替换成 no-op 桩；
+    // 桩不是为了让断言变松，persist() 一行都没少跑。
     storageFailed: () => {},
+    storageRecovered: () => {},
     navigator: { userAgent: 'test', onLine: true },
     LESSONS: {}, QUIZ: {}, SRC: {}, STAGES: [], TRACKS: [],
     quizQuestion: () => null,

@@ -377,12 +377,25 @@ function loadUI(){
   if(['all','new','opened','read','done'].indexOf(raw.status)>=0)UI.status=raw.status;
  }catch(error){}
 }
-var storageWarned=false;
+/* 存储写满:页面里的横幅常驻(#storageBar),吐司按时间节流。
+   旧实现用 storageWarned 让提示只出现一次,之后每次写盘失败都静默;
+   现在每次失败都重新发信号,横幅一直挂着,任何一次成功写盘才撤掉。 */
+var storageFull=null;
+function storageBanner(visible){var bar=$('#storageBar');if(bar)bar.hidden=!visible}
 function storageFailed(){
- if(storageWarned)return;storageWarned=true;
+ storageFull=true;storageBanner(true);
  setTimeout(function(){store.emit('storage-full')},0);
 }
-function persistUI(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI));return true}catch(error){storageFailed();return false}}
+function storageRecovered(){if(!storageFull)return;storageFull=null;storageBanner(false)}
+/* 横幅上的「重试保存」:删完东西就地点一下,不必再改一次状态去触发自动存盘。
+   成功走 storageRecovered 的既有语义(横幅撤掉);失败则横幅留着并明说「还是没存上」,
+   否则用户点了没反应会以为已经存好了。 */
+function retryPersist(){
+ if(persist()){toast('已保存到本机。','i-check','green');return}
+ storageToastAt=Date.now();
+ toast('还是没存上，本机空间仍然不足。先导出备份，或清理后重新点「重试保存」。','i-msg','orange',{t:'导出备份',fn:function(){doExport()}});
+}
+function persistUI(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI));storageRecovered();return true}catch(error){storageFailed();return false}}
 function saveUI(){clearTimeout(uiTimer);uiTimer=setTimeout(persistUI,150)}
 loadUI();
 function syncData(state){
@@ -411,7 +424,10 @@ function normalizedState(raw){var out=defaults();normalize(raw,out);return out}
 if(!S.pushedHash&&S.pushedRev===S.rev)S.pushedHash=syncHash(S);
 var saveTimer=null,pushTimer=null;
 /* 只把不含凭据的那一份写进 localStorage;令牌在 sessionStorage,见「同步凭据」 */
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(persistable(S)));return true}catch(e){storageFailed();return false}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(persistable(S)));storageRecovered();return true}catch(e){storageFailed();return false}}
+/* 导入专用:先把候选状态写盘、再替换内存。persistable 只剥凭据,不碰其它字段,
+   所以这里写进去的就是导入成功后 S 的落盘内容。失败时内存里的 S 一个字节都不动。 */
+function persistCandidate(state){try{localStorage.setItem(KEY,JSON.stringify(persistable(state)));storageRecovered();return true}catch(e){storageFailed();return false}}
 function save(){
  S.rev=(typeof S.rev==='number'?S.rev:0)+1;
  clearTimeout(saveTimer);
@@ -1427,15 +1443,45 @@ function doExport(){
  downloadJson('yueqian-progress-'+todayStr()+'.json',backupPayload());
  toast('备份已导出,存好这个文件。','i-download');
 }
+/* 结构上限:5 MB 的闸门只挡住文件大小,挡不住「合法大小 + 病态结构」——
+   几层深嵌套或几万个键都能让 normalize 把整棵树遍历一遍,期间主线程卡死。
+   数值不是拍的,是量出来的:一份「把 60 门课、56 个任务、400 天打卡、100 次自测、
+   200 条证据、4 段面试作答全部填满」的真实备份是 1.2 MB,深度 4 层、单对象最多
+   60 个键、顶层 25 个键、对象键总数约 2400。上限取它的三到四倍,留足余量;
+   真要卡死主线程,攻击者得同时在深度、宽度和总量上越界,而这三种都被这里挡住。 */
+var BACKUP_MAX_DEPTH=12,BACKUP_MAX_TOP_KEYS=500,BACKUP_MAX_KEYS=5000,BACKUP_MAX_TOTAL_KEYS=8000;
+/* 「结构过于复杂」是三类可读错误之一,判在 normalize 之前:超限的树根本不会被遍历进状态。
+   注意用显式栈而不是递归 —— JSON.parse 不会产生循环引用,但递归在超深结构上会先爆栈,
+   那样错误就变成 RangeError,用户看到的将是一句读不懂的话。 */
+function backupTooComplex(label,detail){
+ return new Error(label+'结构过于复杂:'+detail+'。正常的进度备份只有二十来个顶层字段、最多四层,请确认选的是「导出进度」得到的文件。');
+}
+function backupStructure(raw,label){
+ var stack=[{value:raw,depth:0}],seen=0;
+ while(stack.length){
+  var node=stack.pop(),value=node.value;
+  if(!value||typeof value!=='object')continue;
+  if(node.depth>BACKUP_MAX_DEPTH)throw backupTooComplex(label,'嵌套超过 '+BACKUP_MAX_DEPTH+' 层');
+  var keys=Object.keys(value);
+  if(keys.length>BACKUP_MAX_KEYS)throw backupTooComplex(label,'某个对象有 '+keys.length+' 个字段,超过 '+BACKUP_MAX_KEYS+' 上限');
+  seen+=keys.length;
+  if(seen>BACKUP_MAX_TOTAL_KEYS)throw backupTooComplex(label,'字段总数超过 '+BACKUP_MAX_TOTAL_KEYS+' 个');
+  for(var i=0;i<keys.length;i++)stack.push({value:value[keys[i]],depth:node.depth+1});
+ }
+ if(Object.keys(raw).length>BACKUP_MAX_TOP_KEYS)throw backupTooComplex(label,'顶层有 '+Object.keys(raw).length+' 个字段,超过 '+BACKUP_MAX_TOP_KEYS+' 上限');
+}
 function parseBackup(raw){
  var data=raw;
  if(raw&&raw.format==='yueqian-progress'){
   if(raw.version&&raw.version>3)throw new Error('备份版本过新,请先更新训练系统。');
   data=raw.data;
+  /* 信封本身也是一层:先按较小的额度量它,免得 data 之外还夹着别的东西 */
+  backupStructure(raw,'备份文件');
  }
- if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('备份格式不正确。');
+ if(!data||typeof data!=='object'||Array.isArray(data))throw new Error('备份格式不正确:这不是一个 JSON 对象。请选择「导出进度」得到的 .json 文件。');
+ backupStructure(data,'备份文件');
  var valid=Array.isArray(data.days)&&data.skills&&typeof data.skills==='object'&&!Array.isArray(data.skills)&&data.checks&&typeof data.checks==='object'&&!Array.isArray(data.checks);
- if(!valid)throw new Error('这不是跃迁计划的完整进度备份。');
+ if(!valid)throw new Error('这不是跃迁计划的完整进度备份。请选择本应用「导出进度」得到的 .json 文件。');
  return {raw:data,state:normalizedState(data)};
 }
 function importSummary(state){
@@ -1443,22 +1489,46 @@ function importSummary(state){
  return (state.name?('称呼「'+state.name+'」 · '):'')+'已打卡 '+state.days.length+' 天 · 完成任务 '+done+' 项 · 已练技能 '+skills+' 项 · 已测模块 '+quiz+' 个。导入后会保留本机同步配置,并把恢复的数据标记为待同步。';
 }
 var pendingImport=null;
+/* 导入大小上限:备份是纯 JSON 文本,真实进度远小于这个数;超过就不用读进内存,
+   免得 FileReader 把整份文件读成字符串后卡住主线程。 */
+var IMPORT_MAX_BYTES=5*1024*1024;
 function closeImportPreview(){pendingImport=null;$('#importPreview').classList.add('hidden')}
+function bytesCn(bytes){var n=Number(bytes)||0;if(n>=1048576)return (n/1048576).toFixed(1).replace(/\.0$/,'')+' MB';if(n>=1024)return (n/1024).toFixed(1).replace(/\.0$/,'')+' KB';return n+' 字节'}
+/* 导入是覆盖写入:先写盘、成功后再替换内存。写盘失败时当前进度、预览窗与 pendingImport 全部原样保留,
+   用户看到的「恢复完成」一定对应磁盘上真有一份新状态。 */
 function confirmImport(){
  if(!pendingImport)return;
  var backup=backupPayload();
- try{localStorage.setItem(KEY+'.pre-import',JSON.stringify(backup))}catch(e){}
- downloadJson('yueqian-before-import-'+todayStr()+'.json',backup);
  var oldLc=S.lc,oldRev=Number(S.rev)||0,oldBase=syncBase(),next=pendingImport.state;
  next.lc=oldLc;next.rev=Math.max(oldRev,Number(next.rev)||0);next.pushedRev=0;next.pushedHash='';next.pushedAt='';next.syncBase=oldBase;
+ /* 先落盘:失败就中止,内存里的 S、预览窗、pendingImport 全部原样保留,.pre-import 也不留半份 */
+ if(!persistCandidate(next)){
+  /* persistCandidate 失败时已经触发了 storageFailed(横幅 + 通用写满信号)。
+     下面这条是导入专用的具体说法,所以把通用吐司的节流窗推到当下,别让用户连吃两条。 */
+  storageToastAt=Date.now();
+  toast('本机存储空间不足,导入已取消,当前进度未改动。请先导出备份或开启云同步后重试。','i-msg','orange',{t:'导出备份',fn:function(){doExport()}});
+  return;
+ }
+ /* 走到这里磁盘上已经是一份完整的新状态,才动内存 */
+ /* 下载能不能落地没法探测(iOS Safari 有版本会静默忽略 a.click()),所以不承诺「已下载」,
+    只说「已导出到下载目录」并给出看不到文件时怎么办。这句只在真的留下恢复线索时才说。 */
+ var keptBefore=false;
+ try{localStorage.setItem(KEY+'.pre-import',JSON.stringify(backup));keptBefore=true}catch(e){}
+ downloadJson('yueqian-before-import-'+todayStr()+'.json',backup);
  S=next;save();
- var stored=persist();
- if(stored){try{localStorage.removeItem(KEY+'.pre-import')}catch(e){}}
  replaceState(next);closeImportPreview();
- if(stored)toast('已先下载当前进度备份，恢复完成。','i-check','green');
+ /* 内存已同步成新状态,恢复副本的使命结束;失败路径上它自始至终没被写过 */
+ try{localStorage.removeItem(KEY+'.pre-import')}catch(e){}
+ toast(keptBefore?'恢复完成。恢复前的进度已导出到下载目录；若没看到文件，请先用「导出进度」手动保存一份。':'恢复完成。导入前的进度没能在本机留下副本，请尽快用「导出进度」保存一份当前进度。','i-check','green');
 }
+/* 读文件前先看 size:超限或空文件直接给可读错误,不启动 FileReader */
 function doImport(file){
+ if(!file)return;
+ if(typeof file.size!=='number'){toast('读不到这个文件的大小,请重新选择。','i-msg');return}
+ if(file.size===0){toast('这个文件是空的(0 字节),不是导出的进度备份。','i-msg');return}
+ if(file.size>IMPORT_MAX_BYTES){toast('备份文件 '+bytesCn(file.size)+',超过 '+bytesCn(IMPORT_MAX_BYTES)+' 上限,已拒绝导入。','i-msg');return}
  var rd=new FileReader();
+ rd.onerror=function(){toast('这个文件读不出来,确认是导出的 JSON 备份。','i-msg')};
  rd.onload=function(){
   try{
    var parsed=parseBackup(JSON.parse(rd.result));
@@ -1547,6 +1617,7 @@ var ACTIONS={
  'update-check':function(){checkUpdate(false)},
  'update-apply':applyUpdate,
  'export':doExport,
+ 'storage-retry':retryPersist,
  'import':function(){$('#importFile').click()},
  'name-save':saveName,
  'reset':resetAll,
@@ -1670,7 +1741,16 @@ function renderAll(){
 }
 /* 界面订阅 Store 事件 */
 store.on('notice',function(note){toast(note.msg,note.ic,note.cls,note.btn)});
-store.on('storage-full',function(){try{toast('本机存储空间已满，最近的修改可能未保存。请先导出备份或开启云同步。','i-msg','orange',{t:'导出备份',fn:function(){doExport()}})}catch(e){}});
+/* 写满提示:横幅常驻(storageFailed 里开关),吐司做 8 秒节流——连点也看得见,
+   但不会每写一次就叠一条。横幅本身不节流,失败一次就出现。 */
+var storageToastAt=0;
+store.on('storage-full',function(){
+ var now=Date.now();
+ if(now-storageToastAt>8000){
+  storageToastAt=now;
+  try{toast('本机存储空间已满，最近的修改没有保存。请先导出备份或开启云同步。','i-msg','orange',{t:'导出备份',fn:function(){doExport()}})}catch(e){}
+ }
+});
 store.on('sync',renderSyncCard);
 store.on('conflict',showConflict);
 store.on('resolved',hideConflict);
@@ -1689,6 +1769,8 @@ REGION_ORDER.forEach(function(name){DIRTY[name]=true});
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.25.0',d:'11-04',items:['导入备份现在也挡「结构病态」：5 MB 以内的超深嵌套或几万个字段会让页面卡住，现在按实测真实备份（约 1.2 MB、深度 4 层）留三四倍余量后拒绝，并说明是结构问题而不是文件坏了','本机存储写满时，顶部提示条新增「重试保存」：清理空间后点一下就能重新存，不必再改一次状态去触发自动保存；存不上会明说，不会假装成功','导入完成的提示不再替你担保下载成功：iOS 上浏览器可能静默吞掉下载，所以改成「已导出到下载目录，没看到就用导出进度手动存一份」，「导入前的进度本机没留下副本」时也会如实说','导入后界面不会因为备份来自另一台设备而错乱：已实测未知课程 ID 会被精确清理、首页显示「还没有阅读记录」而不是空白页（验证后未改动，只补测试钉住）','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
+ {v:'1.24.0',d:'11-04',items:['导入备份前先看文件大小：超过 5 MB 直接拒绝并说明原因，不再把整个文件读进内存卡住页面；空文件和读不出来的文件也会明确提示','本机存储写满后不再只提示一次：页面顶部会常驻一条提示（带「导出备份」按钮），切到任何标签页都在，直到某次写盘成功才消失','导入失败不再改变当前进度：改为「先确认新进度能存下、再替换」，存不下就原样保留并告诉你原因；此前会先换掉内存里的进度、磁盘却没存上','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
  {v:'1.23.0',d:'11-04',items:['断网也能打开「原文与配图」：该页此前只在联网打开过一次后才进缓存，断网首次进入会退回首页；现在随应用外壳一起预装','发布流程新增一致性核对：线上缓存名与本次版本不符会直接判失败，避免「更新了却还是旧界面」','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
  {v:'1.22.0',d:'11-04',items:['同步令牌不再写进浏览器本地存储：只存在本次会话内存里，刷新还在、关掉浏览器就没有，也不会进入导出的备份文件','移除带令牌的链接导入入口：打开旧版那种把令牌写在网址里的链接，只会清掉地址栏并提示去吊销令牌，不再静默保存','面试作答并入跨端同步：它此前既不参与内容指纹也不进备份，写完答案不会触发同步，导出再导入会丢；现在两端一起纳入','「关于」新增数据与隐私说明：本地存储、Gist 同步范围、令牌权限与吊销步骤、备份是明文 JSON，都集中写在一处','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
  {v:'1.21.0',d:'11-01',items:['原文与配图页语义化修复：原文列表与搜索结果补列表语义，搜索面板用标题关联，纯图标按钮补可读名称；页内标题层级收敛为唯一 h1','读屏与键盘：侧栏「选择原文」导航保留可读名称，空态也有说明，移动端 44px 热区不变','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
