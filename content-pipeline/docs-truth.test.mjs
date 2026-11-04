@@ -132,7 +132,16 @@ test('文档事实源：只缺一部分文档时报缺失，不静默降级', as
 
 test('文档事实源：真实仓库当前通过（三份文档已收口到 STATUS.md）', async () => {
   const root = fileURLToPath(new URL('..', import.meta.url));
-  const versions = await readVersions(root);
+  // 这条测试要同时在两种工作副本里成立：源码仓（全套文件）与公开发布仓（只有 Web 产物）。
+  // 曾经因为默认「这里是源码仓」，在发布仓 CI 上抛 `Cannot read properties of null`。
+  const { applicable } = await docsTruthApplicable(root);
   const detail = await docsTruthCheck(root);
-  assert.match(detail, new RegExp(`均未出现当前版本 ${versions.native.marketing[0].replace(/\./gu, '\\.')} / ${versions.webVersion.replace(/\./gu, '\\.')}`, 'u'));
+  if (!applicable) {
+    assert.match(detail, /不适用/u, '发布仓应返回「不适用」而不是抛错');
+    return;
+  }
+  const versions = await readVersions(root);
+  const native = versions.native?.marketing?.[0];
+  assert.ok(native, '源码仓应读得到原生 MARKETING_VERSION');
+  assert.match(detail, new RegExp(`均未出现当前版本 ${native.replace(/\./gu, '\\.')} / ${versions.webVersion.replace(/\./gu, '\\.')}`, 'u'));
 });
