@@ -51,13 +51,20 @@ test('course.json 即最终内容：与原生 catalog.json 的课程字段逐项
   assert.equal(course.lessons['w1.0'].review.date, '2026-10-27');
 });
 
-test('预缓存只含应用外壳，不含原文页与大体积快照', () => {
+test('预缓存含应用外壳与原文页外壳，但不含大体积快照与重复根路径', () => {
   const assets = [...(/\bvar\s+ASSETS\s*=\s*\[([^\]]*)\]/u.exec(worker)[1]).matchAll(/'([^']*)'/gu)].map(match => match[1]);
+  // 前三项：五个必备外壳。
   for (const required of ['./index.html', './app.js', './content/course.json', './manifest.webmanifest', './icon-180.png']) assert.ok(assets.includes(required), required);
-  for (const excluded of ['./', './materials.html', './external-snapshot.js', './content-release-seed.js', './external-materials.js', './material-search.js', './content-release.js']) assert.ok(!assets.includes(excluded), excluded);
+  // 3.14.0 起原文页外壳进预缓存：不进就只有「联网打开过一次」之后才有运行时缓存，
+  // 断网首开会落到 navigate 兜底显示首页。
+  for (const offlineShell of ['./materials.html', './external-materials.css', './material-services.js', './content-release.js', './material-search.js', './external-materials.js']) assert.ok(assets.includes(offlineShell), offlineShell);
+  // 仍然排除：重复的根路径（./ 与 ./index.html 共用一条缓存）、以及体积大且按需下载的快照。
+  for (const excluded of ['./', './external-snapshot.js', './content-release-seed.js']) assert.ok(!assets.includes(excluded), excluded);
   for (const asset of assets) assert.ok(fs.existsSync(path.join(web, asset)), '文件不存在：' + asset);
+  // 上限随原文页外壳上调（原 600 KB → 现在约 623 KB）。这里卡住的是「别把大文件塞进预缓存」，
+  // 不是精确体积；要调就先确认新加的是否真的属于首屏必需。
   const bytes = assets.reduce((total, asset) => total + fs.statSync(path.join(web, asset)).size, 0);
-  assert.ok(bytes < 600 * 1024, '预缓存合计 ' + bytes + ' 字节');
+  assert.ok(bytes < 700 * 1024, '预缓存合计 ' + bytes + ' 字节，超过 700 KB 上限');
 });
 
 // ---------- 在模拟环境里运行 sw.js ----------
@@ -121,7 +128,13 @@ test('取数：./ 与 ./index.html 共用一条缓存，写缓存在 waitUntil �
   assert.ok(first.pending >= 1);
   assert.deepEqual([...sw.stores.get(cacheName).keys()], ['https://site.test/app/index.html']);
   await sw.dispatch('fetch', { request: sw.request('./materials.html?article=a') });
-  assert.ok(sw.stores.get('yueqian-runtime').has('https://site.test/app/materials.html'), '原文页运行时缓存到独立的 runtime 缓存');
+  // 3.14.0 起 materials.html 与它的依赖进了 ASSETS（外壳），因此按外壳写进主缓存，不再落到 runtime。
+  // 断网首开原文页因此才有东西可读——此前只能等「联网打开过一次」。
+  assert.ok(sw.stores.get(cacheName).has('https://site.test/app/materials.html'), '原文页属于外壳，写进主缓存');
+  assert.ok(!(sw.stores.get('yueqian-runtime') ?? new Map()).has('https://site.test/app/materials.html'), '不再写进 runtime');
+  // 不在 ASSETS 里的同源资源仍然走 runtime，这条行为没有变。
+  await sw.dispatch('fetch', { request: sw.request('./some-other.js') });
+  assert.ok(sw.stores.get('yueqian-runtime').has('https://site.test/app/some-other.js'), '非外壳资源仍走 runtime');
 });
 
 test('取数：3 秒无响应先用缓存；离线时导航回退 index.html；no-store 与资料库不经过缓存', async () => {

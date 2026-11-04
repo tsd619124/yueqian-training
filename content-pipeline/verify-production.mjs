@@ -79,6 +79,25 @@ export async function checkWorkerSearch(directory, base, fetcher = fetch) {
   }
 }
 
+// 线上 version.json 的 cache 字段此前只被打印，从没被校验过。
+// 它必须与本次发布目录里 sw.js 的 CACHE 一致：不一致意味着「版本号变了但缓存名没变」，
+// 用户更新后仍会命中旧外壳缓存——表现为更新了却看不到新界面，且极难排查。
+export async function checkCacheName({ base, directory, fetcher = fetch }) {
+  const manifest = JSON.parse(await fs.readFile(path.join(directory, 'release-manifest.json'), 'utf8'));
+  const expected = manifest.cache;
+  if (!expected) return { status: 'skipped', reason: '发布清单没有 cache 字段' };
+  try {
+    const response = await fetcher(new URL('version.json', base), { signal: AbortSignal.timeout(15000) });
+    if (response.status !== 200) return { status: 'invalid', expected, error: 'version.json HTTP ' + response.status };
+    const live = await response.json().catch(() => null);
+    if (!live || typeof live.cache !== 'string') return { status: 'invalid', expected, error: 'version.json 缺少 cache 字段' };
+    if (live.cache !== expected) return { status: 'invalid', expected, actual: live.cache, error: `缓存名不一致：线上 ${live.cache}，本次发布 ${expected}` };
+    return { status: 'valid', cache: live.cache };
+  } catch (error) {
+    return { status: 'invalid', expected, error: String(error.message).slice(0, 160) };
+  }
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.length < 4 || process.argv.length > 5) throw new Error('用法：node content-pipeline/verify-production.mjs <站点 HTTPS 地址> <本次发布目录> [部署前 release-manifest.json]');
   const base = new URL(process.argv[2]);
@@ -100,10 +119,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     if (error.code === 'ENOENT') warn('本次发布没有静态检索索引（search/latest.json）。');
     else search = { status: 'invalid', error: error.message };
   }
+  const cacheName = await checkCacheName({ base, directory });
+  if (cacheName.status === 'invalid') warn('缓存名校验未通过：' + cacheName.error);
   const worker = await checkWorkerSearch(directory, base);
   if (worker.status === 'warning') warn('可选 Workers 检索检查未通过（不阻断发布）：' + worker.warnings.join('；'));
 
-  console.log(JSON.stringify({ checkedAt: new Date().toISOString(), base: base.href, webVersion: report.webVersion, cache: report.cache, contentRelease: report.contentRelease, filesMatching: files.filesMatching, filesTotal: report.files.length, attempts: files.attempts, elapsedMs: files.elapsedMs, mismatches: files.mismatches, searchIndex: search, workerSearch: worker }, null, 2));
+  console.log(JSON.stringify({ checkedAt: new Date().toISOString(), base: base.href, webVersion: report.webVersion, cache: report.cache, cacheNameCheck: cacheName.status, contentRelease: report.contentRelease, filesMatching: files.filesMatching, filesTotal: report.files.length, attempts: files.attempts, elapsedMs: files.elapsedMs, mismatches: files.mismatches, searchIndex: search, workerSearch: worker }, null, 2));
+  if (cacheName.status === 'invalid') {
+    console.error('缓存名校验失败：' + cacheName.error);
+    process.exitCode = 1;
+  }
   if (search.status === 'invalid') {
     console.error('静态检索索引校验失败：' + search.error);
     process.exitCode = 1;

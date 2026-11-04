@@ -305,6 +305,7 @@ const CHECK_GROUP_OF = new Map([
   ['内容质量', 'web'],
   ['版本号', 'web'],
   ['站点文件清单', 'web'],
+  ['性能基线', 'web'],
   ['Xcode 工程静态检查', 'native']
 ]);
 
@@ -339,6 +340,18 @@ export async function checkList({ ci = false, only = null, skip = new Set() } = 
     { id: '内容质量', args: script('check-content-quality.mjs'), local: true, after: '教学套件' },
     { id: '版本号', run: versionCheck },
     { id: '站点文件清单', run: async () => { const { readWebRelease } = await import('./production.mjs'); const release = await readWebRelease(web); return `${release.files.length} 个文件，预缓存 ${release.precached.length} 个`; } },
+    // 审计 P2-2：性能基线要跟得上版本，否则又回到「报告停在 2.6 阶段」。
+    // 只检查「当前原生版本有对应文件」，具体数字由人按 docs/perf/README.md 重测后写入。
+    { id: '性能基线', run: async () => {
+      const versions = await readVersions();
+      const current = versions.native?.marketing?.[0];
+      if (!current) return '未读到原生版本号，跳过';
+      const file = path.join(root, 'docs/perf', current + '.json');
+      if (!await exists(file)) throw new Error(`缺少 docs/perf/${current}.json：本次发布没有性能基线`);
+      const record = JSON.parse(await fs.readFile(file, 'utf8'));
+      if (record.version !== current) throw new Error(`docs/perf/${current}.json 里的 version 是 ${record.version}`);
+      return `${current} 基线已登记（检索 ${record.localSearch?.perKeystrokeIndexedMs ?? '—'} ms，预缓存 ${record.web?.precachedTotalKB ?? '—'} KB）`;
+    } },
     { id: 'Xcode 工程静态检查', args: script('check-project.mjs'), after: '构建正式图文', local: true }
   ];
   const hasXcode = await exists(pbxproj) && process.platform === 'darwin';

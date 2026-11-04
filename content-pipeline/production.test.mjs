@@ -7,7 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildRelease, readLibrarySnapshot, sha256, writeRelease } from './lib.mjs';
 import { prepareSearchWorker } from './search-runtime.mjs';
 import { readWebRelease, retainPrevious } from './production.mjs';
-import { checkWorkerSearch, classifyMismatch, verifyFiles } from './verify-production.mjs';
+import { checkCacheName, checkWorkerSearch, classifyMismatch, verifyFiles } from './verify-production.mjs';
 
 const registry = JSON.parse(await fs.readFile(new URL('./sources.json', import.meta.url)));
 const topics = JSON.parse(await fs.readFile(new URL('./topics.json', import.meta.url)));
@@ -117,6 +117,25 @@ test('当前 Web 源的 sw.js ASSETS 全部存在且进入发布清单', async (
   assert.match(release.cache, /^yueqian-v[0-9]+$/u);
 });
 
+// 原文与配图页是独立页面，它的依赖不会经过 index.html 的引用收集。
+// 以前只进运行时缓存，而运行时缓存要「先联网打开过一次」才有，于是断网首开原文页
+// 会落到 navigate 兜底显示首页。这条断言钉住「依赖必须进 ASSETS」，防止以后加文件又漏。
+test('原文与配图页的全部本地依赖都进 sw.js 预缓存', async () => {
+  const web = fileURLToPath(new URL('../yueqian-training/', import.meta.url));
+  const html = await fs.readFile(path.join(web, 'materials.html'), 'utf8');
+  const assets = await fs.readFile(path.join(web, 'sw.js'), 'utf8');
+  const assetsBlock = /\bvar\s+ASSETS\s*=\s*\[([\s\S]*?)\];/u.exec(assets)?.[1];
+  assert.ok(assetsBlock, 'sw.js 里找不到 ASSETS');
+  const precached = new Set([...assetsBlock.matchAll(/'([^']*)'/gu)].map(match => match[1].replace(/^\.\//u, '')));
+  // 只检查同源的本地文件；外链、锚点与他页链接不算（index.html 已单独预缓存）。
+  const dependencies = [...html.matchAll(/(?:src|href)\s*=\s*"\.\/([^"?#]+)"/gu)]
+    .map(match => match[1])
+    .filter(name => name !== 'index.html' && /\.(?:js|css)$/u.test(name));
+  assert.ok(dependencies.length >= 6, `原文页依赖过少（${dependencies.length}），选择器可能已失效`);
+  const missing = dependencies.filter(name => !precached.has(name));
+  assert.deepEqual(missing, [], `原文页这些依赖没进预缓存，断网首开会显示首页：${missing.join(', ')}`);
+});
+
 function siteFetcher(files, schedule = () => null) {
   let calls = 0;
   return async address => {
@@ -166,4 +185,31 @@ test('Workers 检索检查只告警，不要求 releaseID 一致', async context
   assert.equal(ok.releaseID, 'other');
   const down = await checkWorkerSearch(directory, base, async () => { throw new TypeError('fetch failed'); });
   assert.equal(down.status, 'warning');
+});
+
+// 线上 version.json 的 cache 字段此前只被打印、从不校验。它与本次发布的 CACHE 不一致时，
+// 用户更新后仍会命中旧外壳缓存——「更新了却看不到新界面」，而且极难排查。
+test('线上 version.json 的缓存名必须与本次发布一致', async context => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'yueqian-cache-'));
+  context.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const base = new URL('https://site.test/app/');
+  const write = async cache => fs.writeFile(path.join(directory, 'release-manifest.json'), JSON.stringify({ schemaVersion: 1, cache }));
+
+  await write('yueqian-v27');
+  const same = await checkCacheName({ base, directory, fetcher: async () => new Response(JSON.stringify({ version: '1.23.0', cache: 'yueqian-v27' })) });
+  assert.equal(same.status, 'valid');
+
+  const stale = await checkCacheName({ base, directory, fetcher: async () => new Response(JSON.stringify({ version: '1.23.0', cache: 'yueqian-v26' })) });
+  assert.equal(stale.status, 'invalid');
+  assert.match(stale.error, /缓存名不一致/u);
+
+  const missing = await checkCacheName({ base, directory, fetcher: async () => new Response(JSON.stringify({ version: '1.23.0' })) });
+  assert.equal(missing.status, 'invalid');
+
+  const down = await checkCacheName({ base, directory, fetcher: async () => { throw new TypeError('fetch failed'); } });
+  assert.equal(down.status, 'invalid');
+
+  // 发布清单本身没有 cache 字段时跳过，不误报。
+  await fs.writeFile(path.join(directory, 'release-manifest.json'), JSON.stringify({ schemaVersion: 1 }));
+  assert.equal((await checkCacheName({ base, directory, fetcher: async () => new Response('{}') })).status, 'skipped');
 });

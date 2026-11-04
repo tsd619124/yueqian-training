@@ -3,11 +3,15 @@
    取数:网络优先,3 秒没有响应就先用缓存;离线时回退缓存。写缓存放在 event.waitUntil 里。
    更新:新版本装好后等待,由页面在用户点按「有新版本，点此更新」后发 SKIP_WAITING 再接管。 */
 var CACHE_PREFIX = 'yueqian-';
-var CACHE = CACHE_PREFIX + 'v26';
+var CACHE = CACHE_PREFIX + 'v27';
 var RUNTIME = CACHE_PREFIX + 'runtime';
 /* 激活时只删除本应用旧版本的外壳缓存(yueqian-v数字);runtime 缓存与原文页自己的缓存(如 yueqian-content-v1)保留 */
 /* 发布清单也读取 ASSETS(content-pipeline/production.mjs);前 5 项缺一项就安装失败,其余为可选,缺失不影响安装 */
-var ASSETS = ['./index.html', './app.js', './content/course.json', './manifest.webmanifest', './icon-180.png', './external-catalog.js', './sync-config.js', './training-receipt.png', './training-receipt-obscured.png', './THIRD_PARTY_NOTICES.txt'];
+var ASSETS = ['./index.html', './app.js', './content/course.json', './manifest.webmanifest', './icon-180.png', './external-catalog.js', './sync-config.js', './training-receipt.png', './training-receipt-obscured.png', './THIRD_PARTY_NOTICES.txt',
+  /* 原文与配图页的外壳。此前只进运行时缓存，而运行时缓存要「先联网打开过一次」才有，
+     于是断网首次打开原文页会落到 fetch 的 navigate 兜底、显示首页，用户以为功能坏了。
+     这 6 项都排在 REQUIRED 之后，属可选：某次发布缺一个文件不会让整个 SW 安装失败。 */
+  './materials.html', './external-materials.css', './material-services.js', './content-release.js', './material-search.js', './external-materials.js'];
 var REQUIRED = 5;
 var NETWORK_TIMEOUT = 3000;
 
