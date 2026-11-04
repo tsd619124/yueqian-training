@@ -90,12 +90,45 @@ async function versionCheck() {
 // 边界（有意为之）：**不判定 STATUS.md 的内容**。STATUS.md 由收尾人维护，正在被改的时候
 // 不应该把这条检查拖红——判据只落在这三份文件上，别的文件谁在改都不影响它。
 // 同理只管这三份：HANDOFF.md、TAKEOVER-2026-10-31.md 顶部已声明是历史记录，不在此列。
+//
+// **公开发布仓不适用**：公开仓只发布 Web 产物（`README.md` 由模板生成，没有 `STATUS.md`、
+// 没有 `project.pbxproj`、也没有 `NEXT-SESSION.md`），这条检查在那儿既没有判据也没有意义。
+// 3.16.0 第一次推送时就因为没考虑这点，让公开仓 CI 亮红了一轮。所以这里按「判据是否成立」
+// 优雅降级：缺少全部三份文档 → 明确报「不适用」并跳过；只缺一部分 → 仍然报错（说明是真的缺文件）。
 export const DOC_TRUTH_FILES = ['README.md', 'native-app/README.md', 'NEXT-SESSION.md'];
 export const DOC_TRUTH_SOURCE = 'STATUS.md';
 // 真正的指针形态：`[当前状态](STATUS.md)`、`[..](../STATUS.md)`、`` `STATUS.md` ``、`<STATUS.md>`。
 const DOC_TRUTH_POINTER = /(?:\]\(\s*<?[^\s)]*STATUS\.md|`STATUS\.md`|<STATUS\.md>)/u;
 
+/// 这份工作副本里有没有「文档事实源」这套东西可查。
+///
+/// **判据不能用 README.md 是否存在**：公开发布仓也有 `README.md`（由模板生成），
+/// 所以它不能当作「这是源码仓」的证据。真正的区分点是 `STATUS.md` 与 `NEXT-SESSION.md` ——
+/// 这两份只存在于源码仓，发布仓永远没有。用它们当锚：
+///   STATUS.md 与 NEXT-SESSION.md 都不在 → 公开发布仓，不适用（跳过，不报错）；
+///   两者都在 → 源码仓，把三份文档 + STATUS.md 一并要求齐；
+///   只缺一部分 → 抛错（这么删多半是误操作，不能静默放过）。
+export async function docsTruthApplicable(base = root) {
+  const anchors = [DOC_TRUTH_SOURCE, 'NEXT-SESSION.md'];
+  const anchorsPresent = [];
+  for (const file of anchors) {
+    if (await exists(path.join(base, file))) anchorsPresent.push(file);
+  }
+  if (anchorsPresent.length === 0) {
+    return { applicable: false, reason: '公开发布仓：没有 STATUS.md 与 NEXT-SESSION.md，该检查不适用' };
+  }
+  const all = [...DOC_TRUTH_FILES, DOC_TRUTH_SOURCE];
+  const missing = [];
+  for (const file of all) {
+    if (!await exists(path.join(base, file))) missing.push(file);
+  }
+  if (missing.length) throw new Error(`文档事实源检查的前置文件缺失：${missing.join('、')}`);
+  return { applicable: true, reason: null };
+}
+
 export async function docsTruthCheck(base = root) {
+  const { applicable, reason } = await docsTruthApplicable(base);
+  if (!applicable) return reason;
   const versions = await readVersions(base);
   const native = versions.native?.marketing?.[0] ?? null;
   if (!native || !versions.webVersion) throw new Error('读不到当前版本号（project.pbxproj 的 MARKETING_VERSION 或 index.html 的 APP_VERSION）');
@@ -111,7 +144,6 @@ export async function docsTruthCheck(base = root) {
       throw new Error(`文档事实源检查读不到 ${file}：${error.message}`);
     }
   };
-  if (!await exists(path.join(base, DOC_TRUTH_SOURCE))) throw new Error(`${DOC_TRUTH_SOURCE} 不存在：三份文档都指向它，事实源文件不能缺`);
   const problems = [];
   const pointers = {};
   for (const file of DOC_TRUTH_FILES) {

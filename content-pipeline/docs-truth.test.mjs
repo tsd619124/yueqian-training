@@ -9,7 +9,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { DOC_TRUTH_FILES, DOC_TRUTH_SOURCE, docsTruthCheck, readVersions } from './release.mjs';
+import { DOC_TRUTH_FILES, DOC_TRUTH_SOURCE, docsTruthApplicable, docsTruthCheck, readVersions } from './release.mjs';
 
 const REFERENCE = '当前版本、测试数、签名到期、部署目标一律见 [STATUS.md](STATUS.md)。';
 
@@ -97,9 +97,37 @@ test('文档事实源：读不到版本号或少了 STATUS.md 时给出可读错
   await assert.rejects(docsTruthCheck(withoutPbx), /读不到当前版本号/u);
   assert.equal((await readVersions(withoutPbx)).native, null);
 
+  // 只缺 STATUS.md（三份文档还在）→ 不能当成「公开发布仓」放过，必须报缺文件。
   const withoutStatus = await fixture(context);
   await fs.rm(path.join(withoutStatus, DOC_TRUTH_SOURCE));
-  await assert.rejects(docsTruthCheck(withoutStatus), /STATUS\.md 不存在/u);
+  await assert.rejects(docsTruthCheck(withoutStatus), /前置文件缺失.*STATUS\.md/u);
+});
+
+// 3.16.0 第一次推送公开仓时，这条检查让 CI 亮红：公开仓只发布 Web 产物，
+// 没有 STATUS.md、没有 project.pbxproj、也没有 NEXT-SESSION.md。
+// 判据不成立时应该明确跳过，而不是把发布流程卡死。
+test('文档事实源：公开发布仓（三份文档与 STATUS.md 都不在）判为不适用并跳过', async context => {
+  const base = await fs.mkdtemp(path.join(os.tmpdir(), 'yueqian-docs-publish-'));
+  context.after(() => fs.rm(base, { recursive: true, force: true }));
+  // 复刻公开仓最小形态：只有 Web 产物与一个模板生成的 README。
+  await fs.mkdir(path.join(base, 'yueqian-training'), { recursive: true });
+  await fs.writeFile(path.join(base, 'yueqian-training/index.html'), "<script>var APP_VERSION = '8.8.8';</script>");
+  await fs.writeFile(path.join(base, 'yueqian-training/sw.js'), "var CACHE_PREFIX = 'yueqian-';\nvar CACHE = CACHE_PREFIX + 'v88';\n");
+  await fs.writeFile(path.join(base, 'README.md'), '# 公开仓\n\nWeb 8.8.8，原生配套内容 9.9.9（1）。\n');
+
+  assert.equal((await docsTruthApplicable(base)).applicable, false);
+  const detail = await docsTruthCheck(base);
+  assert.match(detail, /不适用/u);
+  // 关键：不适用时**不抛错**，也不去读那些不存在的文件。
+  assert.match(detail, /公开发布仓/u);
+  // 三份文档一份都不在，所以即便 README 里写了当前版本号也不该报错。
+  assert.match(await docsTruthCheck(base), /不适用/u);
+});
+
+test('文档事实源：只缺一部分文档时报缺失，不静默降级', async context => {
+  const base = await fixture(context);
+  await fs.rm(path.join(base, 'NEXT-SESSION.md'));
+  await assert.rejects(docsTruthCheck(base), /前置文件缺失.*NEXT-SESSION\.md/u);
 });
 
 test('文档事实源：真实仓库当前通过（三份文档已收口到 STATUS.md）', async () => {
