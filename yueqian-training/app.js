@@ -211,8 +211,75 @@ function markLessonDone(){
 var store={listeners:{},on:function(type,fn){(this.listeners[type]=this.listeners[type]||[]).push(fn)},emit:function(type,detail){(this.listeners[type]||[]).forEach(function(fn){fn(detail)})}};
 function notify(msg,ic,cls,btn){store.emit('notice',{msg:msg,ic:ic,cls:cls,btn:btn})}
 function replaceState(next){S=next;store.emit('replace')}
-function defaults(){return {name:'',theme:'auto',skills:{},checks:{},days:[],quiz:{},co:[],start:null,reroll:{},mil:{},read:{},readDone:{},wrong:{},quizSeen:{},attempts:[],latestQuiz:{},evidence:[],rev:0,pushedRev:0,pushedAt:'',pushedHash:'',syncBase:'',lc:null,extra:null}}
+function defaults(){return {name:'',theme:'auto',skills:{},checks:{},days:[],quiz:{},co:[],start:null,reroll:{},mil:{},read:{},readDone:{},wrong:{},quizSeen:{},attempts:[],latestQuiz:{},evidence:[],interviewAnswers:{},rev:0,pushedRev:0,pushedAt:'',pushedHash:'',syncBase:'',lc:null,extra:null}}
 var S=defaults();
+
+/* ================= 同步凭据:只进 sessionStorage,不进 localStorage =================
+   应用发布在 GitHub Pages 上,和同一账号下的其他项目共用源(tsd619124.github.io):
+   写进 localStorage 的令牌,同源任何页面或浏览器扩展都能读到,而且一直留在磁盘上;
+   gist 权限的令牌能读写整个账号的 Gist,泄露代价远大于丢掉进度本身。
+   所以凭据(token 与 LeanCloud 的 id/key/host/code)只放 sessionStorage:本标签页内
+   刷新、前进后退都还在,关掉浏览器即消失;Gist ID 等非机密配置仍存 localStorage。
+   代价:每次重开浏览器要到「我的 → 多设备同步」重新填一次令牌(界面里已写明)。
+   凭据只经由 loadSecret/saveSecret/clearSecret/secretValue 读写,状态 S 里不含凭据。 */
+var SECRET_KEY=KEY+'.secret';
+var SECRET_FIELDS=['token','id','key','host','code'];
+var secret={};
+function secretArea(){try{return window.sessionStorage}catch(e){return null}}
+function secretValue(field){return (secret&&typeof secret[field]==='string')?secret[field]:''}
+function loadSecret(){
+ var out={},area=secretArea(),raw=null;
+ try{raw=JSON.parse((area&&area.getItem(SECRET_KEY))||'null')}catch(e){}
+ if(raw&&typeof raw==='object')SECRET_FIELDS.forEach(function(field){if(typeof raw[field]==='string'&&raw[field])out[field]=raw[field].slice(0,200)});
+ return out;
+}
+function saveSecret(next){
+ var out={},area=secretArea();
+ if(next&&typeof next==='object')SECRET_FIELDS.forEach(function(field){if(typeof next[field]==='string'&&next[field])out[field]=next[field].slice(0,200)});
+ secret=out;
+ try{
+  if(!area)return secret;
+  if(Object.keys(out).length)area.setItem(SECRET_KEY,JSON.stringify(out));else area.removeItem(SECRET_KEY);
+ }catch(e){}
+ return secret;
+}
+function clearSecret(){saveSecret(null)}
+secret=loadSecret();
+/* 旧版本(v1.21.0 及更早)把令牌写在 localStorage:开机时搬进会话凭据,并让随后一次
+   persist() 用不含凭据的状态覆盖旧记录,旧值不留在磁盘上。会话里已有凭据时不覆盖。 */
+function migrateSecret(){
+ var raw=null;
+ try{raw=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return false}
+ var lc=raw&&raw.lc;
+ if(!lc||typeof lc!=='object')return false;
+ var legacy={},found=false;
+ SECRET_FIELDS.forEach(function(field){if(typeof lc[field]==='string'&&lc[field]){legacy[field]=lc[field];found=true;delete lc[field]}});
+ if(!found)return false;
+ if(!Object.keys(secret).length)saveSecret(legacy);
+ /* 立刻把存盘里的旧令牌抹掉,不等下一次 persist() */
+ try{
+  var kept=publicLc(lc);
+  if(kept)raw.lc=kept;else delete raw.lc;
+  localStorage.setItem(KEY,JSON.stringify(raw));
+ }catch(e){}
+ return true;
+}
+migrateSecret();
+/* 从 lc 里只取可公开的部分(backend 与 Gist ID);凭据字段一个都不带 */
+function publicLc(lc){
+ if(!lc||typeof lc!=='object')return null;
+ if(typeof lc.gist==='string'&&lc.gist)return {backend:'gist',gist:lc.gist.slice(0,80)};
+ if(lc.backend==='lc')return {backend:'lc'};
+ return null;
+}
+/* 写盘前再剥一次凭据:即便某处把令牌塞回了 S.lc,也不会落进 localStorage */
+function persistable(state){
+ var src=state||S,out={};
+ Object.keys(src).forEach(function(key){if(key!=='lc')out[key]=src[key]});
+ var lc=publicLc(src.lc);
+ if(lc)out.lc=lc;
+ return out;
+}
 /* 向前兼容:新版本客户端写入的未知字段、未知课程/题目的记录原样保留在 extra,推送与导出时并回 */
 var KNOWN_TOP=Object.keys(defaults());
 function safeKey(key){return typeof key==='string'&&key.length<=120&&key!=='__proto__'&&key!=='constructor'&&key!=='prototype'}
@@ -257,7 +324,20 @@ function normalize(raw,target){
  if(Array.isArray(raw.evidence))out.evidence=raw.evidence.filter(function(proof){return proof&&typeof proof==='object'&&typeof proof.id==='string'&&Object.keys(LESSONS).indexOf(proof.lesson)>=0&&typeof proof.title==='string'&&Array.isArray(proof.goals)}).slice(-200).map(function(proof){var confirmed=Array.isArray(proof.confirmedGoals)?proof.confirmedGoals.filter(function(id,index,list){return proof.goals.indexOf(id)>=0&&Object.keys(SRC).indexOf(id)>=0&&list.indexOf(id)===index}).sort():[];var result={id:proof.id.slice(0,80),lesson:proof.lesson,title:proof.title.slice(0,120),note:typeof proof.note==='string'?proof.note.slice(0,6000):'',url:safeEvidenceUrl(proof.url),goals:proof.goals.filter(function(id,index,list){return typeof id==='string'&&Object.keys(SRC).indexOf(id)>=0&&list.indexOf(id)===index}).slice(0,80),at:typeof proof.at==='string'&&isFinite(Date.parse(proof.at))?proof.at.slice(0,40):''};if(confirmed.length)result.confirmedGoals=confirmed;var unknownGoals=proof.goals.filter(function(id){return typeof id==='string'&&safeKey(id)&&!SRC[id]}),unknownConfirmed=Array.isArray(proof.confirmedGoals)?proof.confirmedGoals.filter(function(id){return unknownGoals.indexOf(id)>=0}):[];if(unknownGoals.length&&safeKey(result.id)){extra.ids.goals[result.id]={goals:unknownGoals};if(unknownConfirmed.length)extra.ids.goals[result.id].confirmedGoals=unknownConfirmed}return keepExtra(proof,result,['id','lesson','title','note','url','goals','at','confirmedGoals'])});
  if(raw.wrong&&typeof raw.wrong==='object'){var o7={};for(var k7 in raw.wrong){var w=raw.wrong[k7];if(w&&typeof w==='object'&&typeof w.next==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(w.next))o7[k7]=keepExtra(w,{n:Math.min(99,Math.max(1,Math.floor(w.n)||1)),s:Math.min(9,Math.max(0,Math.floor(w.s)||0)),next:w.next},['n','s','next'])}out.wrong=o7}
  if(typeof raw.start==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(raw.start))out.start=raw.start;
- if(raw.lc&&typeof raw.lc==='object'){var lc={};['id','key','host','code','backend','token','gist'].forEach(function(f){if(typeof raw.lc[f]==='string')lc[f]=raw.lc[f].slice(0,200)});out.lc=lc}
+ /* 面试作答:键为题目序号(1-4 位字符串),值为作答正文;与原生同样的长度上限与空值规则 */
+ if(raw.interviewAnswers&&typeof raw.interviewAnswers==='object'&&!Array.isArray(raw.interviewAnswers)){
+  var o8={};for(var k8 in raw.interviewAnswers){
+   if(typeof k8!=='string'||!k8||k8.length>4||!safeKey(k8))continue;
+   var v8=raw.interviewAnswers[k8];
+   if(typeof v8!=='string')continue;
+   v8=v8.trim();
+   if(!v8)continue;
+   o8[k8]=v8.slice(0,4000);
+  }
+  out.interviewAnswers=o8;
+ }
+ /* 旧存档里的 lc 可能带令牌:只取非机密的 backend/gist,凭据一律由 sessionStorage 保存 */
+ if(raw.lc&&typeof raw.lc==='object'){var lc=publicLc(raw.lc);if(lc)out.lc=lc}
  if(typeof raw.rev==='number'&&raw.rev>=0)out.rev=Math.floor(raw.rev);
  if(typeof raw.pushedRev==='number'&&raw.pushedRev>=0)out.pushedRev=Math.floor(raw.pushedRev);
  if(typeof raw.pushedAt==='string')out.pushedAt=raw.pushedAt.slice(0,40);
@@ -308,7 +388,9 @@ loadUI();
 function syncData(state){
  var src=state||S,out={};
  ['name','theme','skills','checks','days','quiz','co','start','reroll','mil','read','wrong'].forEach(function(k){out[k]=src[k]});
- ['readDone','quizSeen','attempts','evidence','latestQuiz'].forEach(function(key){var value=src[key];if(value&&Object.keys(value).length)out[key]=value});
+ /* 空字段不入列:没有内容的用户同步指纹保持与旧版一致(72ccbd59),升级不触发假冲突。
+    interviewAnswers 与原生 LearningProgress.syncValue() 对齐,参与跨端指纹计算。 */
+ ['readDone','quizSeen','attempts','evidence','latestQuiz','interviewAnswers'].forEach(function(key){var value=src[key];if(value&&Object.keys(value).length)out[key]=value});
  return withExtra(src,out);
 }
 function syncCanonical(value){
@@ -328,7 +410,8 @@ function syncHash(state){
 function normalizedState(raw){var out=defaults();normalize(raw,out);return out}
 if(!S.pushedHash&&S.pushedRev===S.rev)S.pushedHash=syncHash(S);
 var saveTimer=null,pushTimer=null;
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){storageFailed();return false}}
+/* 只把不含凭据的那一份写进 localStorage;令牌在 sessionStorage,见「同步凭据」 */
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(persistable(S)));return true}catch(e){storageFailed();return false}}
 function save(){
  S.rev=(typeof S.rev==='number'?S.rev:0)+1;
  clearTimeout(saveTimer);
@@ -343,15 +426,16 @@ function schedulePush(){
 }
 
 /* ---------- Store · 云同步(优先 GitHub Gist,备选 LeanCloud) ---------- */
-function lcIsGist(){return !!(S.lc&&S.lc.backend==='gist'&&S.lc.token&&S.lc.gist)}
-function lcOK(){return lcIsGist()||!!(S.lc&&S.lc.id&&S.lc.key&&S.lc.host&&S.lc.code)}
+/* S.lc 只存非机密配置(backend 与 gist ID);令牌等凭据一律从 secret 读,见上方「同步凭据」 */
+function lcIsGist(){return !!(S.lc&&S.lc.backend==='gist'&&secretValue('token')&&S.lc.gist)}
+function lcOK(){return lcIsGist()||!!(secretValue('id')&&secretValue('key')&&secretValue('host')&&secretValue('code'))}
 function lcBase(){
- var h=S.lc.host.trim();
+ var h=secretValue('host').trim();
  if(/^https?:\/\//.test(h))return h.replace(/\/+$/,'')+'/1.1';
  return 'https://'+h.replace(/\/+$/,'')+'/1.1';
 }
-function lcHeaders(){return {'Content-Type':'application/json','X-LC-Id':S.lc.id,'X-LC-Key':S.lc.key}}
-function gistHeaders(){return {'Authorization':'Bearer '+S.lc.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'}}
+function lcHeaders(){return {'Content-Type':'application/json','X-LC-Id':secretValue('id'),'X-LC-Key':secretValue('key')}}
+function gistHeaders(){return {'Authorization':'Bearer '+secretValue('token'),'Accept':'application/vnd.github+json','Content-Type':'application/json'}}
 function gistRead(keepalive){
  return fetch('https://api.github.com/gists/'+S.lc.gist,{headers:gistHeaders(),cache:'no-store',keepalive:!!keepalive})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+'(检查令牌与 Gist ID)');return r.json()})
@@ -378,7 +462,7 @@ function lcFind(keepalive){
  if(lcIsGist()){
   return gistRead(keepalive).then(function(st){return st?remoteFromPayload(st,S.lc.gist):null});
  }
- return fetch(lcBase()+'/classes/Progress?where='+encodeURIComponent(JSON.stringify({code:S.lc.code}))+'&limit=1',{headers:lcHeaders(),cache:'no-store',keepalive:!!keepalive})
+ return fetch(lcBase()+'/classes/Progress?where='+encodeURIComponent(JSON.stringify({code:secretValue('code')}))+'&limit=1',{headers:lcHeaders(),cache:'no-store',keepalive:!!keepalive})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+'(检查 AppID/Key/域名)');return r.json()})
   .then(function(d){var r=(d.results&&d.results[0])||null;return r?remoteFromPayload(r.payload,r.objectId):null});
 }
@@ -423,7 +507,7 @@ function pushNow(force,silent,keepalive){
   if(decision==='conflict'){store.emit('conflict');return}
   var payloadState=syncPayload();
   payloadState.rev=lr;
-  var body=lcIsGist()?null:JSON.stringify({code:S.lc.code,payload:JSON.stringify(payloadState),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
+  var body=lcIsGist()?null:JSON.stringify({code:secretValue('code'),payload:JSON.stringify(payloadState),rev:lr,device:String(navigator.userAgent||'').slice(0,80)});
   var req;
   if(lcIsGist()){req=gistWrite(payloadState,keepalive)}
   else{
@@ -1525,31 +1609,35 @@ function showConflict(){var el=$('#lcConflict');if(el)el.classList.remove('hidde
 function hideConflict(){var el=$('#lcConflict');if(el)el.classList.add('hidden')}
 function renderSyncCard(){
  if(!$('#lcToken'))return;
- var sv=$('#meSyncVal');if(sv)sv.textContent=(!S.lc||(!S.lc.token&&!S.lc.id))?'未配置':(lcIsGist()?'Gist 已连接':'LeanCloud');
+ var token=secretValue('token'),lean=secretValue('id');
+ var sv=$('#meSyncVal');if(sv)sv.textContent=(token||lean)?(lcIsGist()?'Gist 已连接':'LeanCloud'):'未配置';
  var set=function(id,v){var el=$(id);if(el&&document.activeElement!==el&&v)el.value=v};
- set('#lcToken',(S.lc&&S.lc.token)||'');set('#lcGist',(S.lc&&S.lc.gist)||'');
- set('#lcId',(S.lc&&S.lc.id)||'');set('#lcKey',(S.lc&&S.lc.key)||'');set('#lcHost',(S.lc&&S.lc.host)||'');set('#lcCode',(S.lc&&S.lc.code)||'');
+ set('#lcToken',token);set('#lcGist',(S.lc&&S.lc.gist)||'');
+ set('#lcId',lean);set('#lcKey',secretValue('key'));set('#lcHost',secretValue('host'));set('#lcCode',secretValue('code'));
  var st=$('#lcStatus');if(!st)return;
- if(!S.lc||(!S.lc.token&&!S.lc.id)){st.textContent='未配置。';hideConflict();return}
+ if(!token&&!lean){st.textContent='未配置。';hideConflict();return}
  if(!lcOK()){st.textContent='配置不完整:Gist 需要令牌和 Gist ID 两项。';return}
- st.textContent=(lcIsGist()?('Gist '+S.lc.gist.slice(0,8)+'…'):('同步码 '+S.lc.code))+' · 本机版本 v'+(S.rev||0)+' · '+(hasLocalSyncChanges()?'有改动待推送':('已同步'+(S.pushedAt?(' · '+S.pushedAt):'')));
+ st.textContent=(lcIsGist()?('Gist '+S.lc.gist.slice(0,8)+'…'):('同步码 '+secretValue('code')))+' · 本机版本 v'+(S.rev||0)+' · '+(hasLocalSyncChanges()?'有改动待推送':('已同步'+(S.pushedAt?(' · '+S.pushedAt):'')))+' · 令牌仅在本次会话有效';
 }
 function saveSyncConfig(){
  var tok=$('#lcToken').value.trim(),gid=$('#lcGist').value.trim();
+ /* 令牌走 saveSecret,状态 S 里只留 Gist ID 等非机密配置 */
  if(tok&&gid){
-  S.lc={backend:'gist',token:tok.slice(0,200),gist:gid.replace(/^.*\//,'').slice(0,80)};
+  S.lc={backend:'gist',gist:gid.replace(/^.*\//,'').slice(0,80)};
+  saveSecret({token:tok.slice(0,200)});
  }else{
-  S.lc={id:$('#lcId').value.trim().slice(0,160),key:$('#lcKey').value.trim().slice(0,160),host:$('#lcHost').value.trim().slice(0,160),code:$('#lcCode').value.trim().toUpperCase().slice(0,8)};
+  S.lc={backend:'lc'};
+  saveSecret({id:$('#lcId').value.trim().slice(0,160),key:$('#lcKey').value.trim().slice(0,160),host:$('#lcHost').value.trim().slice(0,160),code:$('#lcCode').value.trim().toUpperCase().slice(0,8)});
  }
  persist();renderSyncCard();
- if(lcOK()){toast('配置已保存,正在连接...','i-check');pullNow(false);schedulePush()}
+ if(lcOK()){toast('配置已保存(令牌仅本次会话有效),正在连接...','i-check');pullNow(false);schedulePush()}
  else toast('还没填全(令牌 + Gist ID,或 LeanCloud 四项)','i-msg');
 }
 function syncNow(){if(!lcOK()){toast('先填好并保存同步配置','i-msg');return}pullNow(true)}
 function disconnectSync(b){
  if(b.getAttribute('data-armed')==='1'){
   b.removeAttribute('data-armed');b.textContent='断开';
-  S.lc=null;persist();['#lcToken','#lcGist','#lcId','#lcKey','#lcHost','#lcCode'].forEach(function(s){var el=$(s);if(el)el.value=''});renderSyncCard();toast('已断开同步(本机数据保留)','i-check');
+  S.lc=null;clearSecret();persist();['#lcToken','#lcGist','#lcId','#lcKey','#lcHost','#lcCode'].forEach(function(s){var el=$(s);if(el)el.value=''});renderSyncCard();toast('已断开同步(本机数据保留)','i-check');
  }else{
   b.setAttribute('data-armed','1');b.textContent='再点一次确认断开';
   setTimeout(function(){if(b.getAttribute('data-armed')==='1'){b.removeAttribute('data-armed');b.textContent='断开'}},3000);
@@ -1601,6 +1689,7 @@ REGION_ORDER.forEach(function(name){DIRTY[name]=true});
 $$('.me-item').forEach(function(d){d.addEventListener('toggle',function(){if(d.open)$$('.me-item').forEach(function(o){if(o!==d)o.open=false})})});
 /* ---------- 版本更新日志(最新一期展开,更早版本折叠) ---------- */
 var CHANGELOG=[
+ {v:'1.22.0',d:'11-04',items:['同步令牌不再写进浏览器本地存储：只存在本次会话内存里，刷新还在、关掉浏览器就没有，也不会进入导出的备份文件','移除带令牌的链接导入入口：打开旧版那种把令牌写在网址里的链接，只会清掉地址栏并提示去吊销令牌，不再静默保存','面试作答并入跨端同步：它此前既不参与内容指纹也不进备份，写完答案不会触发同步，导出再导入会丢；现在两端一起纳入','「关于」新增数据与隐私说明：本地存储、Gist 同步范围、令牌权限与吊销步骤、备份是明文 JSON，都集中写在一处','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
  {v:'1.21.0',d:'11-01',items:['原文与配图页语义化修复：原文列表与搜索结果补列表语义，搜索面板用标题关联，纯图标按钮补可读名称；页内标题层级收敛为唯一 h1','读屏与键盘：侧栏「选择原文」导航保留可读名称，空态也有说明，移动端 44px 热区不变','Web 仍只做轻量端：本版不新增作品集、求职 CRM 等原生功能，继续只提供阅读、自测与同步']},
  {v:'1.20.0',d:'11-01',items:['第一阶段迭代：学习进度与训练掌握度改为双指标度量，评价规则与版本说明保持一致','新增 96 题间隔复习，按 1/3/7/14/30 天阶梯安排到期队列，旧错题记录继续兼容','训练同步支持版本化与冲突选择，训练改动自动上传，不再静默覆盖','新增可观测性最小集：关键路径结构化日志、诊断导出与同步失败可见','AX5 四页（今天、学习、训练、我的）无截断、无重叠、无遮挡','文案修复：原文与配图入口按资料清单显示 4 个来源 21 篇，训练副标题去重，产品名统一为「跃迁计划 · AI 售前训练营」并统一 12 周口径']},
  {v:'1.18.0',d:'11-01',items:['外部资料库扩展到 4 个发布来源、21 篇中文原文：新增「电商问数」5 章（ChatBI/NL2SQL 全链路）与 Awesome Text2SQL 中文全景；资料库共 80 处原图','原 4 篇 Microsoft Agents 英文原文改用来源仓库提供的中文译文，OpenAI Cookbook 的 Agents API 篇目替换为 Microsoft Agents「工具使用」中文译文；21 篇全部中文','阅读页按来源显示发布者、仓库与逐来源 MIT 许可，非译文隐藏重复的「英文原文」链接，译文标注“机器翻译，以英文原文为准”','外部检索来源白名单扩展到 5 个仓库并新增一致性检查，可检索新增中文资料']},
@@ -1642,22 +1731,29 @@ var CHANGELOG=[
  if(CHANGELOG.length>1){html+='<details class="log-more"><summary>更早版本 · '+(CHANGELOG.length-1)+' 个</summary>'+CHANGELOG.slice(1).map(item).join('')+'</details>'}
  el.innerHTML=html})();
 setTimeout(function(){checkUpdate(true)},3000);
-/* 链接参数自动配置:#t=令牌&g=GistID(打开即存,随即清掉地址栏,令牌不留在历史记录) */
+/* 链接参数只接受 #g=<GistID>:预填 Gist ID,随即清掉地址栏。
+   不再接受地址栏里的令牌参数。地址栏会进浏览器历史、被同步、被截图转发,令牌一进 URL 就等于公开;
+   旧格式的链接只做地址栏清理并提示重新签发,不读其中的令牌。 */
 (function(){
  try{
   var h=location.hash||'';
-  if(h.indexOf('#t=')===0||h.indexOf('&g=')>0){
-   var m=h.match(/t=([^&]+)&g=([^&]+)/);
-   if(m&&m[1]&&m[2]){
-    S.lc={backend:'gist',token:decodeURIComponent(m[1]).slice(0,200),gist:decodeURIComponent(m[2]).slice(0,80)};
-    persist();renderSyncCard();
-    toast('同步配置已通过链接导入','i-check');
-   }
-   history.replaceState(null,'',location.pathname+location.search);
+  var gistMatch=h.match(/^#g=([^&]+)/);
+  if(!gistMatch&&h.indexOf('t=')<0)return;
+  history.replaceState(null,'',location.pathname+location.search);
+  if(!gistMatch){
+   toast('链接里的令牌不再导入,请在下方重新填写;旧令牌请到 GitHub 设置里吊销','i-msg');
+   return;
   }
+  var gist=decodeURIComponent(gistMatch[1]).replace(/^.*\//,'').slice(0,80);
+  if(!gist||(S.lc&&S.lc.gist))return;
+  S.lc={backend:'gist',gist:gist};
+  persist();renderSyncCard();
+  toast('已通过链接填入 Gist ID,再填一次令牌即可','i-check');
  }catch(e){}
 })();
-/* 自动读取同目录 sync-config.js(若部署者放了 Gist ID 等,新设备少填一项;令牌不放公开文件) */
+/* 自动读取同目录 sync-config.js:只认 Gist ID 这类非机密配置。
+   这个文件是公开的(发布管线也要求它是空模板),里面出现的令牌或 LeanCloud 凭据一律忽略:
+   从公开文件读来的"凭据"既不安全,也属于同一类泄露。 */
 (function(){
  try{
   fetch('sync-config.js',{cache:'no-store'}).then(function(r){return r.ok?r.text():null}).then(function(t){
@@ -1666,15 +1762,10 @@ setTimeout(function(){checkUpdate(true)},3000);
    if(i<0||j<=i)return;
    var c;
    try{c=JSON.parse(t.slice(i,j+1))}catch(e){return}
-   if(!c)return;
-   if(c.backend==='gist'&&c.gist&&(!S.lc||!S.lc.gist)){
-    S.lc=S.lc||{};S.lc.backend='gist';S.lc.gist=String(c.gist).slice(0,80);
-    if(c.token)S.lc.token=String(c.token).slice(0,200);
-    persist();renderSyncCard();
-   }else if(c.id&&c.key&&c.host&&c.code&&(!S.lc||!S.lc.id||!S.lc.key||!S.lc.host||!S.lc.code)){
-    S.lc={id:String(c.id).slice(0,160),key:String(c.key).slice(0,160),host:String(c.host).slice(0,160),code:String(c.code).slice(0,8)};
-    persist();renderSyncCard();
-   }
+   if(!c||c.backend!=='gist'||!c.gist)return;
+   if(S.lc&&S.lc.gist)return;
+   S.lc={backend:'gist',gist:String(c.gist).replace(/^.*\//,'').slice(0,80)};
+   persist();renderSyncCard();
   }).catch(function(){});
  }catch(e){}
 })();

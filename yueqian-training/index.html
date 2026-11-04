@@ -15,7 +15,7 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#f5f7fc">
 <script>
-var APP_VERSION='1.21.0';
+var APP_VERSION='1.22.0';
 /* 课程内容与页面并行下载;app.js 读取这个 Promise */
 window.YUEQIAN_CONTENT=fetch('./content/course.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});window.YUEQIAN_CONTENT.catch(function(){});
 </script>
@@ -659,9 +659,9 @@ button:disabled{opacity:.55;cursor:default}
           <details class="me-item">
             <summary><svg class="ic me-lead"><use href="#i-refresh"/></svg>多设备同步<span class="me-val" id="meSyncVal">未配置</span><svg class="ic me-chev"><use href="#i-chev"/></svg></summary>
             <div class="me-body">
-              <p class="small muted" style="margin-bottom:10px">手机和电脑共用一份进度,存在你自己的 GitHub 私密 Gist 里。在两台设备各填一次下面两项即可;也可以直接打开带参数的链接自动配置。</p>
+              <p class="small muted" style="margin-bottom:10px">手机和电脑共用一份进度,存在你自己的 GitHub 私密 Gist 里。令牌只用于本次会话:刷新页面还在,关掉浏览器就没有,重开时再填一次即可,不会被写进本机存储。Gist ID 会记住,不用重填。</p>
               <div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
-                <input type="text" class="field" id="lcToken" placeholder="同步令牌(gist 权限的 Token)" autocomplete="off">
+                <input type="text" class="field" id="lcToken" placeholder="同步令牌(gist 权限的 Token,仅本次会话)" autocomplete="off">
                 <input type="text" class="field" id="lcGist" placeholder="Gist ID(形如 a1b2c3...)" autocomplete="off">
               </div>
               <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px">
@@ -705,6 +705,12 @@ button:disabled{opacity:.55;cursor:default}
             <div class="me-body">
               <p class="small muted" style="margin-bottom:8px">跃迁计划 · AI 售前训练营 · 当前版本 <span class="mono" id="appVer"></span><button class="btn sm" id="updBtn" data-action="update-check" style="margin-left:8px">检查更新</button></p>
               <p class="small muted" style="margin-bottom:4px">有新版时顶部会出现「有新版本，点此更新」，点按后切换；作答中的测验不会被打断。</p>
+              <div class="hr" style="margin:12px 0"></div>
+              <div class="eyebrow" style="margin-bottom:6px">数据与隐私</div>
+              <p class="small muted" style="margin-bottom:6px">这个网页没有服务器账号，也没有统计或广告脚本。你的学习进度默认只存在这台浏览器的本地存储里；清缓存、换浏览器或换设备都会看不到，请先在上面「数据管理」里导出一份备份。</p>
+              <p class="small muted" style="margin-bottom:6px">只有你自己在「多设备同步」里填了令牌，进度才会离开这台设备，写进你自己的 GitHub 私密 Gist。令牌只存在本次会话内存里，刷新页面还在，关掉浏览器就没有；它不会被写进本地存储，也不会进入你导出的备份文件。建议单独建一个只勾 <span class="mono">gist</span> 权限的令牌，别复用有仓库写权限的令牌；不用了就立刻去 GitHub 设置里吊销。</p>
+              <p class="small muted" style="margin-bottom:6px">同步走的是 GitHub 的接口，你所在网络到 GitHub 的连通性由运营商决定；本页面本身由 GitHub Pages 托管，GitHub 会按它的隐私政策记录访问日志。旧版本曾支持用带令牌的链接直接导入，该入口已移除，地址栏里的旧链接请当作已泄露处理并去吊销。</p>
+              <p class="small muted" style="margin-bottom:6px">备份文件是明文 JSON，包含你的称呼、学习进度、错题与证据笔记。发到聊天工具或云盘前请自己想清楚。</p>
               <div class="hr" style="margin:12px 0"></div>
               <div class="eyebrow" style="margin-bottom:4px">版本更新</div>
               <div id="meLog"></div>
